@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furniture Inventory Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            background: transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .add-item-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .inventory-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .inventory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .item-details {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .item-info {
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .item-info strong {
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-needs-work {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-sold {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .item-actions button {
+            flex: 1;
+            padding: 8px;
+            font-size: 0.9em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card.green {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-card.red {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+
+        .stat-card.blue {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.orange {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .details-table thead {
+            background: #667eea;
+            color: white;
+        }
+
+        .details-table th,
+        .details-table td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        .details-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .details-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .image-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .month-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e0e0e0;
+        }
+
+        .month-card:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .month-stats {
+            display: flex;
+            gap: 30px;
+            font-size: 0.95em;
+        }
+
+        .month-details {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .month-details.active {
+            display: block;
+        }
+
+        .month-items-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .month-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+
+        .expand-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .photo-gallery {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+        }
+
+        .photo-gallery img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .photo-counter {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .work-notes-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .work-notes-box strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .work-notes-box p {
+            color: #856404;
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-modal.active {
+            display: flex;
+        }
+
+        .photo-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .photo-modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+
+        .photo-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            font-size: 2em;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        .photo-nav:hover {
+            background: white;
+        }
+
+        .photo-nav.prev {
+            left: 20px;
+        }
+
+        .photo-nav.next {
+            right: 20px;
+        }
+
+        .photo-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            font-size: 2em;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛋️ Furniture Inventory Manager</h1>
+            <p>Track your inventory, sales, and profits</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('inventory')">Inventory</button>
+            <button class="tab" onclick="switchTab('needswork')">Needs Work</button>
+            <button class="tab" onclick="switchTab('sold')">Sold</button>
+            <button class="tab" onclick="switchTab('additem')">Add New Item</button>
+            <button class="tab" onclick="switchTab('statistics')">Statistics</button>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="inventory" class="tab-content active">
+            <div id="inventoryList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- Needs Work Tab -->
+        <div id="needswork" class="tab-content">
+            <div id="needsWorkList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- Sold Tab -->
+        <div id="sold" class="tab-content">
+            <div id="soldList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- Add New Item Tab -->
+        <div id="additem" class="tab-content">
+            <div class="add-item-section">
+                <h2 style="margin-bottom: 20px;">Add New Item to Inventory</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="itemName" placeholder="e.g., Oak Dining Table">
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Date</label>
+                        <input type="date" id="purchaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Price (£)</label>
+                        <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="itemStatus">
+                            <option value="ready">Ready to Sell</option>
+                            <option value="needs-work">Needs Work</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Photos</label>
+                        <input type="file" id="itemPhoto" accept="image/*" multiple>
+                        <small style="color: #666; font-size: 0.85em;">You can select multiple photos</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Required Photos</label>
+                        <input type="file" id="workPhotos" accept="image/*" multiple>
+                        <small style="color: #666; font-size: 0.85em;">Photos of damage/work needed</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="itemDescription" rows="1" placeholder="Optional details"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Notes (Optional)</label>
+                        <textarea id="itemWorkNotes" rows="1" placeholder="Optional text notes"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="statistics" class="tab-content">
+            <h3 style="margin-bottom: 15px;">Overall Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <div class="stat-value" id="totalBalance">£0.00</div>
+                    <div class="stat-label">Current Balance</div>
+                    <button onclick="openBalanceModal()" style="margin-top: 15px; padding: 8px 16px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                        Edit Balance
+                    </button>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-value" id="moneyIn">£0.00</div>
+                    <div class="stat-label">Money In (Sales)</div>
+                </div>
+                <div class="stat-card red">
+                    <div class="stat-value" id="moneyOut">£0.00</div>
+                    <div class="stat-label">Money Out (Purchases)</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-value" id="totalProfit">£0.00</div>
+                    <div class="stat-label">Total Profit</div>
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Balance Breakdown</h3>
+                <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="display: grid; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                            <span style="color: #666;">Sales Revenue:</span>
+                            <span style="font-weight: 600; color: #28a745;" id="balanceMoneyIn">£0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                            <span style="color: #666;">Inventory Purchases:</span>
+                            <span style="font-weight: 600; color: #dc3545;" id="balanceMoneyOut">-£0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+                            <span style="color: #666;">Additional Income:</span>
+                            <span style="font-weight: 600; color: #28a745;" id="balanceAdditionalIncome">£0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 2px solid #667eea;">
+                            <span style="color: #666;">Additional Expenses:</span>
+                            <span style="font-weight: 600; color: #dc3545;" id="balanceAdditionalExpenses">-£0.00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+                            <span style="font-weight: 700; font-size: 1.1em;">Total Balance:</span>
+                            <span style="font-weight: 700; font-size: 1.1em; color: #667eea;" id="balanceTotal">£0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">This Month's Sales</h3>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #28a745;" id="monthSoldItems">0</div>
+                        <div style="color: #666;">Items Sold</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #667eea;" id="monthRevenue">£0.00</div>
+                        <div style="color: #666;">Revenue</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #ffc107;" id="monthProfit">£0.00</div>
+                        <div style="color: #666;">Profit</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 25px; border-radius: 12px; margin-top: 30px; border: 2px solid #e0e0e0;">
+                <h3 style="margin-bottom: 20px;">Monthly Sales Chart</h3>
+                <canvas id="salesChart" style="max-height: 400px;"></canvas>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Month by Month Breakdown</h3>
+                <div id="monthlyBreakdown"></div>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">Inventory Summary</h3>
+                <div class="stats-grid">
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #667eea;" id="totalItems">0</div>
+                        <div style="color: #666;">Total Items</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #28a745;" id="readyItems">0</div>
+                        <div style="color: #666;">Ready to Sell</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #ffc107;" id="needsWorkItems">0</div>
+                        <div style="color: #666;">Needs Work</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #17a2b8;" id="soldItems">0</div>
+                        <div style="color: #666;">Sold</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #764ba2;" id="avgDaysInStock">0</div>
+                        <div style="color: #666;">Avg Days in Stock</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #e83e8c;" id="avgDaysToSell">0</div>
+                        <div style="color: #666;">Avg Days to Sell</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 15px;">Transaction Details</h3>
+            <table class="details-table">
+                <thead>
+                    <tr>
+                        <th>Item Number</th>
+                        <th>Item</th>
+                        <th>Purchase Date</th>
+                        <th>Days in Stock</th>
+                        <th>Purchase Price</th>
+                        <th>Sold Date</th>
+                        <th>Sold Price</th>
+                        <th>Profit</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="detailsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Item</div>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>Item Number</label>
+                <input type="text" id="editItemNumber" readonly style="background: #f0f0f0; cursor: not-allowed; font-weight: 600; color: #667eea;">
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" id="editItemName">
+                </div>
+                <div class="form-group">
+                    <label>Purchase Date</label>
+                    <input type="date" id="editPurchaseDate">
+                </div>
+                <div class="form-group">
+                    <label>Purchase Price (£)</label>
+                    <input type="number" id="editPurchasePrice" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Sold Date</label>
+                    <input type="date" id="editSoldDate">
+                </div>
+                <div class="form-group">
+                    <label>Sold Price (£)</label>
+                    <input type="number" id="editSoldPrice" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editItemStatus">
+                        <option value="ready">Ready to Sell</option>
+                        <option value="needs-work">Needs Work</option>
+                        <option value="sold">Sold</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editItemDescription" rows="2"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Work Required Photos</label>
+                    <div id="editWorkPhotosPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 10px;"></div>
+                    <input type="file" id="editWorkPhotos" accept="image/*" multiple>
+                    <small style="color: #666; font-size: 0.85em;">Add photos showing areas that need work</small>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Work Notes (Optional)</label>
+                    <textarea id="editItemWorkNotes" rows="2" placeholder="Optional: Add text notes about the work needed"></textarea>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-success" onclick="saveEdit()">Save Changes</button>
+                <button class="btn btn-danger" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal">
+        <button class="photo-close" onclick="closePhotoModal()">✕</button>
+        <div class="photo-modal-content">
+            <button class="photo-nav prev" onclick="prevPhoto()">‹</button>
+            <img id="photoModalImage" src="" alt="">
+            <button class="photo-nav next" onclick="nextPhoto()">›</button>
+            <div style="text-align: center; margin-top: 15px; color: white;">
+                <span id="photoCounter"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Modal -->
+    <div id="balanceModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">Manage Balance & Transactions</div>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">Add Transaction</h4>
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (£)</label>
+                        <input type="number" id="transactionAmount" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="transactionType">
+                            <option value="expense">Expense (-)</option>
+                            <option value="income">Income (+)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="transactionDate">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
+            </div>
+
+            <div>
+                <h4 style="margin-bottom: 15px;">Transaction History</h4>
+                <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Transactions will be listed here -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-success" onclick="closeBalanceModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let inventory = [];
+        let editingIndex = -1;
+        let transactions = [];
+        let currentPhotoIndex = 0;
+        let currentItemPhotos = [];
+
+        // Generate random item number
+        function generateItemNumber() {
+            const prefix = 'FUR';
+            const randomNum = Math.floor(100000 + Math.random() * 900000);
+            return `${prefix}-${randomNum}`;
+        }
+
+        // Load inventory from localStorage
+        function loadInventory() {
+            const saved = localStorage.getItem('furnitureInventory');
+            if (saved) {
+                inventory = JSON.parse(saved);
+                // Assign item numbers to existing items that don't have one
+                let needsSave = false;
+                inventory.forEach(item => {
+                    if (!item.itemNumber) {
+                        item.itemNumber = generateItemNumber();
+                        needsSave = true;
+                    }
+                });
+                if (needsSave) {
+                    saveInventory();
+                }
+            }
+            
+            // Load transactions
+            const savedTransactions = localStorage.getItem('furnitureTransactions');
+            if (savedTransactions) {
+                transactions = JSON.parse(savedTransactions);
+            }
+            
+            renderInventory();
+            updateStatistics();
+        }
+
+        // Save inventory to localStorage
+        function saveInventory() {
+            localStorage.setItem('furnitureInventory', JSON.stringify(inventory));
+        }
+
+        // Save transactions to localStorage
+        function saveTransactions() {
+            localStorage.setItem('furnitureTransactions', JSON.stringify(transactions));
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'statistics') {
+                updateStatistics();
+            }
+        }
+
+        // Add new item
+        function addItem() {
+            const name = document.getElementById('itemName').value;
+            const purchaseDate = document.getElementById('purchaseDate').value;
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            const status = document.getElementById('itemStatus').value;
+            const description = document.getElementById('itemDescription').value;
+            const workNotes = document.getElementById('itemWorkNotes').value;
+            const photoInput = document.getElementById('itemPhoto');
+            const workPhotoInput = document.getElementById('workPhotos');
+
+            if (!name || !purchaseDate || isNaN(purchasePrice)) {
+                alert('Please fill in all required fields (Name, Purchase Date, Purchase Price)');
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                itemNumber: generateItemNumber(),
+                name,
+                purchaseDate,
+                purchasePrice,
+                status,
+                description,
+                workNotes: workNotes || '',
+                soldDate: '',
+                soldPrice: 0,
+                photos: [],
+                workPhotos: []
+            };
+
+            let photosLoaded = false;
+            let workPhotosLoaded = false;
+
+            // Function to check if all photos are loaded
+            const checkAllLoaded = () => {
+                if (photosLoaded && workPhotosLoaded) {
+                    inventory.push(item);
+                    saveInventory();
+                    renderInventory();
+                    clearForm();
+                }
+            };
+
+            // Handle main image uploads
+            if (photoInput.files && photoInput.files.length > 0) {
+                let loadedCount = 0;
+                const totalFiles = photoInput.files.length;
+                
+                for (let i = 0; i < totalFiles; i++) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        item.photos.push(e.target.result);
+                        loadedCount++;
+                        
+                        if (loadedCount === totalFiles) {
+                            photosLoaded = true;
+                            checkAllLoaded();
+                        }
+                    };
+                    reader.readAsDataURL(photoInput.files[i]);
+                }
+            } else {
+                photosLoaded = true;
+            }
+
+            // Handle work photo uploads
+            if (workPhotoInput.files && workPhotoInput.files.length > 0) {
+                let loadedCount = 0;
+                const totalFiles = workPhotoInput.files.length;
+                
+                for (let i = 0; i < totalFiles; i++) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        item.workPhotos.push(e.target.result);
+                        loadedCount++;
+                        
+                        if (loadedCount === totalFiles) {
+                            workPhotosLoaded = true;
+                            checkAllLoaded();
+                        }
+                    };
+                    reader.readAsDataURL(workPhotoInput.files[i]);
+                }
+            } else {
+                workPhotosLoaded = true;
+            }
+
+            // Check if we can proceed immediately
+            checkAllLoaded();
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('itemName').value = '';
+            document.getElementById('purchaseDate').value = '';
+            document.getElementById('purchasePrice').value = '';
+            document.getElementById('itemStatus').value = 'ready';
+            document.getElementById('itemDescription').value = '';
+            document.getElementById('itemWorkNotes').value = '';
+            document.getElementById('itemPhoto').value = '';
+            document.getElementById('workPhotos').value = '';
+            
+            // Switch to inventory tab to show the new item
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.querySelector('.tab[onclick*="inventory"]').classList.add('active');
+            document.getElementById('inventory').classList.add('active');
+        }
+
+        // Render inventory
+        function renderInventory() {
+            const inventoryList = document.getElementById('inventoryList');
+            const needsWorkList = document.getElementById('needsWorkList');
+            const soldList = document.getElementById('soldList');
+            
+            // Separate items by status
+            const readyItems = inventory.filter(item => item.status === 'ready');
+            const needsWorkItems = inventory.filter(item => item.status === 'needs-work');
+            const soldItems = inventory.filter(item => item.status === 'sold');
+            
+            // Render ready to sell inventory
+            if (readyItems.length === 0) {
+                inventoryList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No items ready to sell</h3>
+                        <p>Items marked as "Ready to Sell" will appear here!</p>
+                    </div>
+                `;
+            } else {
+                inventoryList.innerHTML = '<div class="inventory-grid">' +
+                    readyItems.map((item, idx) => {
+                        const index = inventory.indexOf(item);
+                        return renderItemCard(item, index);
+                    }).join('') +
+                    '</div>';
+            }
+            
+            // Render needs work items
+            if (needsWorkItems.length === 0) {
+                needsWorkList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No items need work</h3>
+                        <p>Items marked as "Needs Work" will appear here!</p>
+                    </div>
+                `;
+            } else {
+                needsWorkList.innerHTML = '<div class="inventory-grid">' +
+                    needsWorkItems.map((item, idx) => {
+                        const index = inventory.indexOf(item);
+                        return renderItemCard(item, index);
+                    }).join('') +
+                    '</div>';
+            }
+            
+            // Render sold items
+            if (soldItems.length === 0) {
+                soldList.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No sold items yet</h3>
+                        <p>Items marked as sold will appear here!</p>
+                    </div>
+                `;
+            } else {
+                soldList.innerHTML = '<div class="inventory-grid">' +
+                    soldItems.map((item, idx) => {
+                        const index = inventory.indexOf(item);
+                        return renderItemCard(item, index);
+                    }).join('') +
+                    '</div>';
+            }
+        }
+
+        // Render individual item card
+        function renderItemCard(item, index) {
+            const statusClass = item.status === 'sold' ? 'status-sold' : 
+                               item.status === 'ready' ? 'status-ready' : 'status-needs-work';
+            const statusText = item.status === 'sold' ? 'Sold' : 
+                              item.status === 'ready' ? 'Ready to Sell' : 'Needs Work';
+            
+            const profit = item.soldPrice - item.purchasePrice;
+            
+            // Calculate days in stock
+            const purchaseDate = new Date(item.purchaseDate);
+            const endDate = item.soldDate ? new Date(item.soldDate) : new Date();
+            const daysInStock = Math.floor((endDate - purchaseDate) / (1000 * 60 * 60 * 24));
+            
+            // Handle both old single photo format and new photos array
+            const photos = item.photos && item.photos.length > 0 ? item.photos : 
+                          (item.photo ? [item.photo] : []);
+            
+            return `
+                <div class="inventory-card">
+                            ${photos.length > 0 ? `
+                                <div class="photo-gallery" onclick="openPhotoModal(${index}, 0)">
+                                    <img src="${photos[0]}" alt="${item.name}">
+                                    ${photos.length > 1 ? `<div class="photo-counter">📷 ${photos.length}</div>` : ''}
+                                </div>
+                            ` : `<div class="item-image" style="display: flex; align-items: center; justify-content: center; font-size: 3em;">🛋️</div>`}
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-info" style="color: #667eea; font-weight: 600; margin-bottom: 10px;">📋 ${item.itemNumber || 'N/A'}</div>
+                                <div class="item-info"><strong>Purchased:</strong> ${new Date(item.purchaseDate).toLocaleDateString()} - £${item.purchasePrice.toFixed(2)}</div>
+                                <div class="item-info" style="background: ${item.soldDate ? '#f0f0f0' : '#fff3cd'}; padding: 8px; border-radius: 6px; margin: 8px 0;">
+                                    <strong>⏱️ Days in Stock:</strong> <span style="font-weight: 700; color: ${daysInStock > 90 ? '#dc3545' : daysInStock > 30 ? '#ffc107' : '#28a745'};">${daysInStock} days</span>
+                                </div>
+                                ${item.soldDate ? `
+                                    <div class="item-info"><strong>Sold:</strong> ${new Date(item.soldDate).toLocaleDateString()} - £${item.soldPrice.toFixed(2)}</div>
+                                    <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
+                                        <div style="font-size: 0.9em; color: #666; margin-bottom: 4px;">Total Profit</div>
+                                        <div style="font-size: 1.5em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${profit.toFixed(2)}</div>
+                                    </div>
+                                ` : ''}
+                                ${item.description ? `<div class="item-info" style="margin-top: 10px;">${item.description}</div>` : ''}
+                                ${(item.workPhotos && item.workPhotos.length > 0) || item.workNotes ? `
+                                    <div class="work-notes-box">
+                                        <strong>🔧 Work Required:</strong>
+                                        ${item.workPhotos && item.workPhotos.length > 0 ? `
+                                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px;">
+                                                ${item.workPhotos.map((photo, photoIdx) => `
+                                                    <div style="position: relative; cursor: pointer;" onclick="openWorkPhotoModal(${index}, ${photoIdx})">
+                                                        <img src="${photo}" style="width: 100%; height: 80px; object-fit: cover; border-radius: 6px; border: 2px solid #ffc107;">
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                            <div style="font-size: 0.85em; color: #856404; margin-top: 8px;">
+                                                📷 ${item.workPhotos.length} photo${item.workPhotos.length > 1 ? 's' : ''} showing work needed
+                                            </div>
+                                        ` : ''}
+                                        ${item.workNotes ? `<p style="margin-top: 8px;">${item.workNotes}</p>` : ''}
+                                    </div>
+                                ` : ''}
+                                <div class="status-badge ${statusClass}">${statusText}</div>
+                                <div class="item-actions">
+                                    <button class="btn btn-warning" onclick="editItem(${index})">Edit</button>
+                                    <button class="btn btn-danger" onclick="deleteItem(${index})">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+            `;
+        }
+
+        // Edit item
+        function editItem(index) {
+            editingIndex = index;
+            const item = inventory[index];
+            
+            document.getElementById('editItemNumber').value = item.itemNumber || 'N/A';
+            document.getElementById('editItemName').value = item.name;
+            document.getElementById('editPurchaseDate').value = item.purchaseDate;
+            document.getElementById('editPurchasePrice').value = item.purchasePrice;
+            document.getElementById('editSoldDate').value = item.soldDate || '';
+            document.getElementById('editSoldPrice').value = item.soldPrice || '';
+            document.getElementById('editItemStatus').value = item.status;
+            document.getElementById('editItemDescription').value = item.description || '';
+            document.getElementById('editItemWorkNotes').value = item.workNotes || '';
+            
+            // Display existing work photos
+            displayEditWorkPhotos();
+            
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // Display work photos in edit modal
+        function displayEditWorkPhotos() {
+            const item = inventory[editingIndex];
+            const previewDiv = document.getElementById('editWorkPhotosPreview');
+            
+            if (!item.workPhotos || item.workPhotos.length === 0) {
+                previewDiv.innerHTML = '';
+                return;
+            }
+            
+            previewDiv.innerHTML = item.workPhotos.map((photo, idx) => `
+                <div style="position: relative;">
+                    <img src="${photo}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #ffc107;">
+                    <button onclick="deleteWorkPhoto(${idx}); event.stopPropagation();" 
+                            style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer; font-size: 14px; line-height: 1;">
+                        ×
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Delete work photo
+        function deleteWorkPhoto(photoIndex) {
+            if (confirm('Delete this work photo?')) {
+                const item = inventory[editingIndex];
+                item.workPhotos.splice(photoIndex, 1);
+                displayEditWorkPhotos();
+                saveInventory();
+            }
+        }
+
+        // Save edit
+        function saveEdit() {
+            if (editingIndex === -1) return;
+            
+            const item = inventory[editingIndex];
+            item.name = document.getElementById('editItemName').value;
+            item.purchaseDate = document.getElementById('editPurchaseDate').value;
+            item.purchasePrice = parseFloat(document.getElementById('editPurchasePrice').value);
+            item.soldDate = document.getElementById('editSoldDate').value;
+            item.soldPrice = parseFloat(document.getElementById('editSoldPrice').value) || 0;
+            item.status = document.getElementById('editItemStatus').value;
+            item.description = document.getElementById('editItemDescription').value;
+            item.workNotes = document.getElementById('editItemWorkNotes').value;
+            
+            // Auto-set status to sold if sold date and price are provided
+            if (item.soldDate && item.soldPrice > 0) {
+                item.status = 'sold';
+            }
+            
+            // Handle new work photos
+            const workPhotoInput = document.getElementById('editWorkPhotos');
+            if (workPhotoInput.files && workPhotoInput.files.length > 0) {
+                let loadedCount = 0;
+                const totalFiles = workPhotoInput.files.length;
+                
+                // Initialize workPhotos array if it doesn't exist
+                if (!item.workPhotos) {
+                    item.workPhotos = [];
+                }
+                
+                for (let i = 0; i < totalFiles; i++) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        item.workPhotos.push(e.target.result);
+                        loadedCount++;
+                        
+                        if (loadedCount === totalFiles) {
+                            saveInventory();
+                            renderInventory();
+                            closeEditModal();
+                        }
+                    };
+                    reader.readAsDataURL(workPhotoInput.files[i]);
+                }
+            } else {
+                saveInventory();
+                renderInventory();
+                closeEditModal();
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('editWorkPhotos').value = '';
+            editingIndex = -1;
+        }
+
+        // Delete item
+        function deleteItem(index) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                inventory.splice(index, 1);
+                saveInventory();
+                renderInventory();
+                updateStatistics();
+            }
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            let moneyIn = 0;
+            let moneyOut = 0;
+            let totalItems = inventory.length;
+            let readyItems = 0;
+            let needsWorkItems = 0;
+            let soldItems = 0;
+
+            inventory.forEach(item => {
+                moneyOut += item.purchasePrice;
+                if (item.soldPrice > 0) {
+                    moneyIn += item.soldPrice;
+                }
+                
+                if (item.status === 'sold') soldItems++;
+                else if (item.status === 'ready') readyItems++;
+                else if (item.status === 'needs-work') needsWorkItems++;
+            });
+
+            const totalProfit = moneyIn - moneyOut;
+            
+            // Calculate balance including additional transactions
+            let additionalIncome = 0;
+            let additionalExpenses = 0;
+            transactions.forEach(t => {
+                if (t.type === 'income') {
+                    additionalIncome += t.amount;
+                } else {
+                    additionalExpenses += t.amount;
+                }
+            });
+            
+            const totalBalance = moneyIn - moneyOut + additionalIncome - additionalExpenses;
+
+            document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
+            document.getElementById('moneyIn').textContent = '£' + moneyIn.toFixed(2);
+            document.getElementById('moneyOut').textContent = '£' + moneyOut.toFixed(2);
+            document.getElementById('totalProfit').textContent = '£' + totalProfit.toFixed(2);
+            
+            // Update balance breakdown
+            document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
+            document.getElementById('balanceMoneyOut').textContent = '-£' + moneyOut.toFixed(2);
+            document.getElementById('balanceAdditionalIncome').textContent = '£' + additionalIncome.toFixed(2);
+            document.getElementById('balanceAdditionalExpenses').textContent = '-£' + additionalExpenses.toFixed(2);
+            document.getElementById('balanceTotal').textContent = '£' + totalBalance.toFixed(2);
+            
+            document.getElementById('totalItems').textContent = totalItems;
+            document.getElementById('readyItems').textContent = readyItems;
+            document.getElementById('needsWorkItems').textContent = needsWorkItems;
+            document.getElementById('soldItems').textContent = soldItems;
+
+            // Calculate average days in stock and days to sell
+            let totalDaysInStock = 0;
+            let totalDaysToSell = 0;
+            let unsoldItems = 0;
+            
+            inventory.forEach(item => {
+                const purchaseDate = new Date(item.purchaseDate);
+                const endDate = item.soldDate ? new Date(item.soldDate) : new Date();
+                const daysInStock = Math.floor((endDate - purchaseDate) / (1000 * 60 * 60 * 24));
+                
+                totalDaysInStock += daysInStock;
+                
+                if (item.soldDate) {
+                    totalDaysToSell += daysInStock;
+                } else {
+                    unsoldItems++;
+                }
+            });
+            
+            const avgDaysInStock = totalItems > 0 ? Math.round(totalDaysInStock / totalItems) : 0;
+            const avgDaysToSell = soldItems > 0 ? Math.round(totalDaysToSell / soldItems) : 0;
+            
+            document.getElementById('avgDaysInStock').textContent = avgDaysInStock;
+            document.getElementById('avgDaysToSell').textContent = soldItems > 0 ? avgDaysToSell : '-';
+
+            // Calculate this month's sales
+            updateMonthlyStats();
+            
+            // Draw sales chart
+            drawSalesChart();
+            
+            // Generate monthly breakdown
+            generateMonthlyBreakdown();
+
+            // Update details table
+            const tableBody = document.getElementById('detailsTableBody');
+            if (inventory.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #999;">No transactions yet</td></tr>';
+            } else {
+                tableBody.innerHTML = inventory.map(item => {
+                    const profit = item.soldPrice - item.purchasePrice;
+                    const statusClass = item.status === 'sold' ? 'status-sold' : 
+                                       item.status === 'ready' ? 'status-ready' : 'status-needs-work';
+                    const statusText = item.status === 'sold' ? 'Sold' : 
+                                      item.status === 'ready' ? 'Ready to Sell' : 'Needs Work';
+                    
+                    // Calculate days in stock
+                    const purchaseDate = new Date(item.purchaseDate);
+                    const endDate = item.soldDate ? new Date(item.soldDate) : new Date();
+                    const daysInStock = Math.floor((endDate - purchaseDate) / (1000 * 60 * 60 * 24));
+                    
+                    return `
+                        <tr>
+                            <td style="color: #667eea; font-weight: 600;">${item.itemNumber || 'N/A'}</td>
+                            <td><strong>${item.name}</strong></td>
+                            <td>${new Date(item.purchaseDate).toLocaleDateString()}</td>
+                            <td style="font-weight: 600; color: ${daysInStock > 90 ? '#dc3545' : daysInStock > 30 ? '#ffc107' : '#28a745'};">
+                                ${daysInStock} days
+                            </td>
+                            <td>£${item.purchasePrice.toFixed(2)}</td>
+                            <td>${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : '-'}</td>
+                            <td>${item.soldPrice > 0 ? '£' + item.soldPrice.toFixed(2) : '-'}</td>
+                            <td style="color: ${profit >= 0 && item.soldPrice > 0 ? '#28a745' : profit < 0 ? '#dc3545' : '#666'}; font-weight: 700;">
+                                ${item.soldPrice > 0 ? '£' + profit.toFixed(2) : '-'}
+                            </td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Update monthly statistics
+        function updateMonthlyStats() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            let monthSold = 0;
+            let monthRevenue = 0;
+            let monthCost = 0;
+
+            inventory.forEach(item => {
+                if (item.soldDate) {
+                    const soldDate = new Date(item.soldDate);
+                    if (soldDate.getMonth() === currentMonth && soldDate.getFullYear() === currentYear) {
+                        monthSold++;
+                        monthRevenue += item.soldPrice;
+                        monthCost += item.purchasePrice;
+                    }
+                }
+            });
+
+            const monthProfit = monthRevenue - monthCost;
+
+            document.getElementById('monthSoldItems').textContent = monthSold;
+            document.getElementById('monthRevenue').textContent = '£' + monthRevenue.toFixed(2);
+            document.getElementById('monthProfit').textContent = '£' + monthProfit.toFixed(2);
+        }
+
+        // Get monthly data for chart
+        function getMonthlyData() {
+            const monthlyData = {};
+            
+            inventory.forEach(item => {
+                if (item.soldDate) {
+                    const soldDate = new Date(item.soldDate);
+                    const monthKey = soldDate.getFullYear() + '-' + String(soldDate.getMonth() + 1).padStart(2, '0');
+                    
+                    if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = {
+                            revenue: 0,
+                            cost: 0,
+                            profit: 0,
+                            itemsSold: 0,
+                            items: []
+                        };
+                    }
+                    
+                    monthlyData[monthKey].revenue += item.soldPrice;
+                    monthlyData[monthKey].cost += item.purchasePrice;
+                    monthlyData[monthKey].profit += (item.soldPrice - item.purchasePrice);
+                    monthlyData[monthKey].itemsSold++;
+                    monthlyData[monthKey].items.push(item);
+                }
+            });
+            
+            return monthlyData;
+        }
+
+        // Draw sales chart
+        function drawSalesChart() {
+            const canvas = document.getElementById('salesChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 400;
+            
+            const monthlyData = getMonthlyData();
+            const months = Object.keys(monthlyData).sort();
+            
+            if (months.length === 0) {
+                ctx.fillStyle = '#999';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('No sales data yet', canvas.width / 2, canvas.height / 2);
+                return;
+            }
+            
+            // Chart dimensions
+            const padding = 60;
+            const chartWidth = canvas.width - padding * 2;
+            const chartHeight = canvas.height - padding * 2;
+            
+            // Find max value for scaling
+            const maxRevenue = Math.max(...months.map(m => monthlyData[m].revenue));
+            const maxValue = Math.max(maxRevenue, 100); // Minimum scale of 100
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.stroke();
+            
+            // Calculate bar width
+            const barWidth = chartWidth / months.length * 0.6;
+            const spacing = chartWidth / months.length;
+            
+            // Draw bars
+            months.forEach((month, index) => {
+                const data = monthlyData[month];
+                const barHeight = (data.revenue / maxValue) * chartHeight;
+                const x = padding + index * spacing + (spacing - barWidth) / 2;
+                const y = canvas.height - padding - barHeight;
+                
+                // Revenue bar (blue)
+                const gradient = ctx.createLinearGradient(x, y, x, canvas.height - padding);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, y, barWidth, barHeight);
+                
+                // Month label
+                const [year, monthNum] = month.split('-');
+                const date = new Date(year, parseInt(monthNum) - 1);
+                const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(monthName, x + barWidth / 2, canvas.height - padding + 20);
+                
+                // Revenue value
+                ctx.fillStyle = '#667eea';
+                ctx.font = 'bold 14px Segoe UI';
+                ctx.fillText('£' + data.revenue.toFixed(0), x + barWidth / 2, y - 10);
+            });
+            
+            // Y-axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = '12px Segoe UI';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 5; i++) {
+                const value = (maxValue / 5) * i;
+                const y = canvas.height - padding - (chartHeight / 5) * i;
+                ctx.fillText('£' + value.toFixed(0), padding - 10, y + 5);
+                
+                // Grid line
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(canvas.width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Chart title
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Monthly Revenue', canvas.width / 2, 30);
+        }
+
+        // Generate monthly breakdown
+        function generateMonthlyBreakdown() {
+            const monthlyData = getMonthlyData();
+            const months = Object.keys(monthlyData).sort().reverse(); // Most recent first
+            
+            const breakdownDiv = document.getElementById('monthlyBreakdown');
+            
+            if (months.length === 0) {
+                breakdownDiv.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No sales recorded yet</div>';
+                return;
+            }
+            
+            breakdownDiv.innerHTML = months.map(month => {
+                const data = monthlyData[month];
+                const [year, monthNum] = month.split('-');
+                const date = new Date(year, parseInt(monthNum) - 1);
+                const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                
+                return `
+                    <div class="month-card" onclick="toggleMonth('${month}')">
+                        <div class="month-header">
+                            <div class="month-title">
+                                <span class="expand-icon" id="icon-${month}">▼</span>
+                                ${monthName}
+                            </div>
+                            <div class="month-stats">
+                                <div><strong>${data.itemsSold}</strong> sold</div>
+                                <div><strong style="color: #28a745;">£${data.revenue.toFixed(2)}</strong> revenue</div>
+                                <div><strong style="color: ${data.profit >= 0 ? '#667eea' : '#dc3545'};">£${data.profit.toFixed(2)}</strong> profit</div>
+                            </div>
+                        </div>
+                        <div class="month-details" id="details-${month}">
+                            <h4 style="margin-bottom: 15px;">Items Sold This Month:</h4>
+                            <div class="month-items-list">
+                                ${data.items.map(item => {
+                                    const profit = item.soldPrice - item.purchasePrice;
+                                    return `
+                                        <div class="month-item">
+                                            <div>
+                                                <strong>${item.name}</strong>
+                                                <div style="color: #667eea; font-size: 0.9em;">${item.itemNumber}</div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div>Sold: <strong>£${item.soldPrice.toFixed(2)}</strong></div>
+                                                <div style="color: ${profit >= 0 ? '#28a745' : '#dc3545'}; font-weight: 600;">
+                                                    Profit: £${profit.toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle month details
+        function toggleMonth(monthKey) {
+            const details = document.getElementById('details-' + monthKey);
+            const icon = document.getElementById('icon-' + monthKey);
+            
+            if (details.classList.contains('active')) {
+                details.classList.remove('active');
+                icon.classList.remove('rotated');
+            } else {
+                details.classList.add('active');
+                icon.classList.add('rotated');
+            }
+        }
+
+        // Open balance modal
+        function openBalanceModal() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+            
+            renderTransactions();
+            document.getElementById('balanceModal').classList.add('active');
+        }
+
+        // Close balance modal
+        function closeBalanceModal() {
+            document.getElementById('balanceModal').classList.remove('active');
+            clearTransactionForm();
+        }
+
+        // Clear transaction form
+        function clearTransactionForm() {
+            document.getElementById('transactionDesc').value = '';
+            document.getElementById('transactionAmount').value = '';
+            document.getElementById('transactionType').value = 'expense';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+        }
+
+        // Add transaction
+        function addTransaction() {
+            const desc = document.getElementById('transactionDesc').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const type = document.getElementById('transactionType').value;
+            const date = document.getElementById('transactionDate').value;
+
+            if (!desc || isNaN(amount) || amount <= 0 || !date) {
+                alert('Please fill in all fields with valid values');
+                return;
+            }
+
+            const transaction = {
+                id: Date.now(),
+                description: desc,
+                amount: amount,
+                type: type,
+                date: date
+            };
+
+            transactions.push(transaction);
+            saveTransactions();
+            renderTransactions();
+            updateStatistics();
+            clearTransactionForm();
+        }
+
+        // Delete transaction
+        function deleteTransaction(id) {
+            if (confirm('Delete this transaction?')) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveTransactions();
+                renderTransactions();
+                updateStatistics();
+            }
+        }
+
+        // Render transactions
+        function renderTransactions() {
+            const transactionList = document.getElementById('transactionList');
+            
+            if (transactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No additional transactions yet</div>';
+                return;
+            }
+
+            // Sort by date (most recent first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            transactionList.innerHTML = sortedTransactions.map(t => {
+                const isIncome = t.type === 'income';
+                return `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
+                        <div>
+                            <div style="font-weight: 600; color: #333;">${t.description}</div>
+                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
+                                ${isIncome ? '+' : '-'}£${t.amount.toFixed(2)}
+                            </div>
+                            <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Photo modal functions
+        function openPhotoModal(itemIndex, photoIndex) {
+            const item = inventory[itemIndex];
+            currentItemPhotos = item.photos && item.photos.length > 0 ? item.photos : 
+                               (item.photo ? [item.photo] : []);
+            
+            if (currentItemPhotos.length === 0) return;
+            
+            currentPhotoIndex = photoIndex;
+            displayPhoto();
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function openWorkPhotoModal(itemIndex, photoIndex) {
+            const item = inventory[itemIndex];
+            currentItemPhotos = item.workPhotos || [];
+            
+            if (currentItemPhotos.length === 0) return;
+            
+            currentPhotoIndex = photoIndex;
+            displayPhoto();
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+            currentItemPhotos = [];
+            currentPhotoIndex = 0;
+        }
+
+        function displayPhoto() {
+            document.getElementById('photoModalImage').src = currentItemPhotos[currentPhotoIndex];
+            document.getElementById('photoCounter').textContent = 
+                `${currentPhotoIndex + 1} / ${currentItemPhotos.length}`;
+            
+            // Hide/show nav buttons
+            const prevBtn = document.querySelector('.photo-nav.prev');
+            const nextBtn = document.querySelector('.photo-nav.next');
+            
+            if (currentItemPhotos.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = 'block';
+                nextBtn.style.display = 'block';
+            }
+        }
+
+        function nextPhoto() {
+            currentPhotoIndex = (currentPhotoIndex + 1) % currentItemPhotos.length;
+            displayPhoto();
+        }
+
+        function prevPhoto() {
+            currentPhotoIndex = (currentPhotoIndex - 1 + currentItemPhotos.length) % currentItemPhotos.length;
+            displayPhoto();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        document.getElementById('balanceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBalanceModal();
+            }
+        });
+
+        document.getElementById('photoModal').addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('photo-close')) {
+                closePhotoModal();
+            }
+        });
+
+        // Keyboard navigation for photo modal
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('photoModal').classList.contains('active')) {
+                if (e.key === 'ArrowRight') nextPhoto();
+                if (e.key === 'ArrowLeft') prevPhoto();
+                if (e.key === 'Escape') closePhotoModal();
+            }
+        });
+
+        // Initialize
+        loadInventory();
+    </script>
+</body>
+</html>
+
