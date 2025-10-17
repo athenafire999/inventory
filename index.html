@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Furniture Inventory Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -13,9 +14,357 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             min-height: 100vh;
             padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                padding: 30px 20px;
+                margin: 10px;
+                border-radius: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 20px 15px;
+                margin: 5px;
+            }
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            font-size: 2.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .user-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .user-option {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .user-option:hover {
+            border-color: #3498db;
+            background: #e8f4fd;
+            transform: translateY(-2px);
+        }
+
+        .user-option.selected {
+            border-color: #3498db;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .user-option h3 {
+            font-size: 1.3em;
+            margin-bottom: 5px;
+        }
+
+        .user-option p {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .login-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-login {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-login-primary {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-login-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-login-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .logout-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .logout-btn {
+                top: 15px;
+                right: 15px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            
+            .user-info {
+                top: 15px;
+                left: 15px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logout-btn {
+                top: 10px;
+                right: 10px;
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+            
+            .user-info {
+                top: 10px;
+                left: 10px;
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .history-entry {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .history-entry:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .history-entry.add {
+            border-left-color: #27ae60;
+        }
+
+        .history-entry.edit {
+            border-left-color: #f39c12;
+        }
+
+        .history-entry.delete {
+            border-left-color: #e74c3c;
+        }
+
+        .history-entry.status {
+            border-left-color: #3498db;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-action {
+            font-weight: 700;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .history-timestamp {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .history-user {
+            font-size: 0.9em;
+            color: #3498db;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .history-details {
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .history-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .history-changes {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .change-item {
+            margin: 3px 0;
+        }
+
+        .change-old {
+            color: #dc3545;
+            text-decoration: line-through;
+        }
+
+        .change-new {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .empty-history {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-history h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        /* Mobile-specific improvements */
+        @media (max-width: 768px) {
+            .add-item-section {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+            
+            .stat-value {
+                font-size: 2em;
+            }
+            
+            .stat-label {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .add-item-section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.85em;
+            }
+            
+            .stat-value {
+                font-size: 1.8em;
+            }
+            
+            .stat-label {
+                font-size: 0.9em;
+            }
+            
+            .item-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .item-actions button {
+                flex: none;
+                width: 100%;
+            }
         }
 
         .container {
@@ -27,11 +376,20 @@
             overflow: hidden;
         }
 
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 15px;
+                margin: 0 5px;
+            }
+        }
+
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a252f 0%, #2c3e50 100%);
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
+            border-bottom: 3px solid #3498db;
         }
 
         .header h1 {
@@ -44,10 +402,37 @@
             opacity: 0.9;
         }
 
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+                margin-bottom: 8px;
+            }
+            
+            .header p {
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .header p {
+                font-size: 0.9em;
+            }
+        }
+
         .tabs {
             display: flex;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e0e0e0;
+            background: #ecf0f1;
+            border-bottom: 2px solid #bdc3c7;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab {
@@ -60,16 +445,34 @@
             transition: all 0.3s;
             border: none;
             background: transparent;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+
+        @media (max-width: 768px) {
+            .tab {
+                padding: 15px 10px;
+                font-size: 0.9em;
+                min-width: 100px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tab {
+                padding: 12px 8px;
+                font-size: 0.8em;
+                min-width: 80px;
+            }
         }
 
         .tab:hover {
-            background: #e9ecef;
+            background: #d5dbdb;
         }
 
         .tab.active {
             background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
         }
 
         .tab-content {
@@ -79,6 +482,18 @@
 
         .tab-content.active {
             display: block;
+        }
+
+        @media (max-width: 768px) {
+            .tab-content {
+                padding: 20px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tab-content {
+                padding: 15px 10px;
+            }
         }
 
         .btn {
@@ -94,35 +509,54 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
         }
 
         .btn-success {
-            background: #28a745;
+            background: #27ae60;
             color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
         }
 
         .btn-danger {
-            background: #dc3545;
+            background: #e74c3c;
             color: white;
         }
 
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
         .btn-warning {
-            background: #ffc107;
-            color: #333;
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
         }
 
         .add-item-section {
-            background: #f8f9fa;
+            background: #ecf0f1;
             padding: 25px;
             border-radius: 12px;
             margin-bottom: 30px;
+            border-left: 4px solid #3498db;
         }
 
         .form-grid {
@@ -130,6 +564,14 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
         }
 
         .form-group {
@@ -157,13 +599,27 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
 
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .inventory-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .inventory-grid {
+                gap: 15px;
+            }
         }
 
         .inventory-card {
@@ -216,18 +672,21 @@
         }
 
         .status-ready {
-            background: #d4edda;
-            color: #155724;
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
         }
 
         .status-needs-work {
-            background: #fff3cd;
-            color: #856404;
+            background: #fef5e7;
+            color: #f39c12;
+            border: 1px solid #f39c12;
         }
 
         .status-sold {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #e8f4fd;
+            color: #3498db;
+            border: 1px solid #3498db;
         }
 
         .item-actions {
@@ -249,28 +708,49 @@
             margin-bottom: 30px;
         }
 
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 15px;
+            }
+        }
+
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
             color: white;
             padding: 30px;
             border-radius: 12px;
             text-align: center;
+            border: 1px solid #34495e;
         }
 
         .stat-card.green {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            border-color: #27ae60;
         }
 
         .stat-card.red {
-            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            border-color: #e74c3c;
         }
 
         .stat-card.blue {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-color: #3498db;
         }
 
         .stat-card.orange {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            border-color: #f39c12;
         }
 
         .stat-value {
@@ -293,8 +773,20 @@
             overflow: hidden;
         }
 
+        @media (max-width: 768px) {
+            .details-table {
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .details-table {
+                font-size: 0.8em;
+            }
+        }
+
         .details-table thead {
-            background: #667eea;
+            background: #2c3e50;
             color: white;
         }
 
@@ -337,6 +829,22 @@
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+                max-height: 85vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                padding: 15px;
+                width: 98%;
+                max-height: 80vh;
+            }
         }
 
         .modal-header {
@@ -544,87 +1052,64 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🛋️ Furniture Inventory Manager</h1>
-            <p>Track your inventory, sales, and profits</p>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Furniture Inventory System</h1>
+                <p>Please select your user account to continue</p>
         </div>
+
+            <div class="user-selection">
+                <div class="user-option" onclick="selectUser('mike')" id="mike-option">
+                    <h3>Mike</h3>
+                    <p>Administrator Access</p>
+        </div>
+                <div class="user-option" onclick="selectUser('dee')" id="dee-option">
+                    <h3>Dee</h3>
+                    <p>Administrator Access</p>
+        </div>
+        </div>
+
+            <div class="login-actions">
+                <button class="btn-login btn-login-primary" id="loginBtn" onclick="login()" disabled>
+                    Access Inventory
+                </button>
+        </div>
+                    </div>
+                    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden">
+        <div class="user-info">
+            Logged in as: <span id="currentUser"></span>
+                    </div>
+        <button class="logout-btn" onclick="logout()">
+            Logout
+        </button>
+        
+        <div class="container">
+        <div class="header">
+            <h1><span onclick="showHiddenHistory()" style="cursor: pointer; user-select: none; font-weight: 300;">INV</span> Furniture Inventory Manager</h1>
+            <p>Professional Inventory & Sales Management System</p>
+                    </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('inventory')">Inventory</button>
-            <button class="tab" onclick="switchTab('needswork')">Needs Work</button>
+            <button class="tab active" onclick="switchTab('statistics')">Statistics</button>
+            <button class="tab" onclick="switchTab('inventory')">Inventory</button>
+            <button class="tab" onclick="switchTab('additem')">New Items</button>
+            <button class="tab" onclick="switchTab('needswork')">Not Ready</button>
             <button class="tab" onclick="switchTab('sold')">Sold</button>
-            <button class="tab" onclick="switchTab('additem')">Add New Item</button>
-            <button class="tab" onclick="switchTab('statistics')">Statistics</button>
-        </div>
-
-        <!-- Inventory Tab -->
-        <div id="inventory" class="tab-content active">
-            <div id="inventoryList" style="padding: 20px 0;"></div>
-        </div>
-
-        <!-- Needs Work Tab -->
-        <div id="needswork" class="tab-content">
-            <div id="needsWorkList" style="padding: 20px 0;"></div>
-        </div>
-
-        <!-- Sold Tab -->
-        <div id="sold" class="tab-content">
-            <div id="soldList" style="padding: 20px 0;"></div>
-        </div>
-
-        <!-- Add New Item Tab -->
-        <div id="additem" class="tab-content">
-            <div class="add-item-section">
-                <h2 style="margin-bottom: 20px;">Add New Item to Inventory</h2>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Item Name</label>
-                        <input type="text" id="itemName" placeholder="e.g., Oak Dining Table">
-                    </div>
-                    <div class="form-group">
-                        <label>Purchase Date</label>
-                        <input type="date" id="purchaseDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Purchase Price (£)</label>
-                        <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="itemStatus">
-                            <option value="ready">Ready to Sell</option>
-                            <option value="needs-work">Needs Work</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Item Photos</label>
-                        <input type="file" id="itemPhoto" accept="image/*" multiple>
-                        <small style="color: #666; font-size: 0.85em;">You can select multiple photos</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Work Required Photos</label>
-                        <input type="file" id="workPhotos" accept="image/*" multiple>
-                        <small style="color: #666; font-size: 0.85em;">Photos of damage/work needed</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="itemDescription" rows="1" placeholder="Optional details"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Work Notes (Optional)</label>
-                        <textarea id="itemWorkNotes" rows="1" placeholder="Optional text notes"></textarea>
-                    </div>
-                </div>
-                <div style="margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
-                </div>
-            </div>
         </div>
 
         <!-- Statistics Tab -->
-        <div id="statistics" class="tab-content">
-            <h3 style="margin-bottom: 15px;">Overall Statistics</h3>
+        <div id="statistics" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0;">Overall Statistics</h3>
+                <button onclick="exportToExcel()" class="btn btn-success" style="padding: 10px 20px; font-size: 0.95em;">
+                    Export to Excel
+                </button>
+            </div>
             <div class="stats-grid">
                 <div class="stat-card blue">
                     <div class="stat-value" id="totalBalance">£0.00</div>
@@ -751,6 +1236,93 @@
                 <tbody id="detailsTableBody"></tbody>
             </table>
         </div>
+
+        <!-- Inventory Tab -->
+        <div id="inventory" class="tab-content">
+            <div id="inventoryList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- Add New Item Tab -->
+        <div id="additem" class="tab-content">
+            <div class="add-item-section">
+                <h2 style="margin-bottom: 20px;">Add New Item to Inventory</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="itemName" placeholder="e.g., Oak Dining Table">
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Date</label>
+                        <input type="date" id="purchaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Purchase Price (£)</label>
+                        <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="itemStatus">
+                            <option value="ready">Ready to Sell</option>
+                            <option value="needs-work">Needs Work</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Item Photos</label>
+                        <input type="file" id="itemPhoto" accept="image/*" multiple>
+                        <small style="color: #666; font-size: 0.85em;">You can select multiple photos</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Required Photos</label>
+                        <input type="file" id="workPhotos" accept="image/*" multiple>
+                        <small style="color: #666; font-size: 0.85em;">Photos of damage/work needed</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="itemDescription" rows="1" placeholder="Optional details"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Notes (Optional)</label>
+                        <textarea id="itemWorkNotes" rows="1" placeholder="Optional text notes"></textarea>
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="addItem()">Add Item to Inventory</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Needs Work Tab -->
+        <div id="needswork" class="tab-content">
+            <div id="needsWorkList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- Sold Tab -->
+        <div id="sold" class="tab-content">
+            <div id="soldList" style="padding: 20px 0;"></div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Edit History</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select id="historyFilter" onchange="filterHistory()" style="padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                        <option value="all">All Changes</option>
+                        <option value="add">Items Added</option>
+                        <option value="edit">Items Edited</option>
+                        <option value="delete">Items Deleted</option>
+                        <option value="status">Status Changes</option>
+                    </select>
+                    <button class="btn btn-danger" onclick="clearHistory()" style="padding: 8px 16px; font-size: 0.9em;">
+                        Clear History
+                    </button>
+                </div>
+            </div>
+            
+            <div id="historyList" style="max-height: 600px; overflow-y: auto;">
+                <!-- History entries will be displayed here -->
+            </div>
+        </div>
     </div>
 
     <!-- Edit Modal -->
@@ -870,17 +1442,557 @@
     </div>
 
     <script>
+        // Authentication variables
+        let currentUser = null;
+        let selectedUser = null;
+
+        // Check if user is already logged in
+        function checkAuth() {
+            const savedUser = localStorage.getItem('furnitureUser');
+            if (savedUser) {
+                currentUser = savedUser;
+                showMainApp();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        // Show login screen
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        // Show main application
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+            
+            // Load inventory data
+            loadInventory();
+        }
+
+        // Select user for login
+        function selectUser(user) {
+            selectedUser = user;
+            
+            // Update UI
+            document.querySelectorAll('.user-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById(user + '-option').classList.add('selected');
+            
+            // Enable login button
+            document.getElementById('loginBtn').disabled = false;
+        }
+
+        // Login function
+        function login() {
+            if (!selectedUser) return;
+            
+            currentUser = selectedUser;
+            localStorage.setItem('furnitureUser', currentUser);
+            showMainApp();
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                selectedUser = null;
+                localStorage.removeItem('furnitureUser');
+                showLoginScreen();
+                
+                // Clear any selections
+                document.querySelectorAll('.user-option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                document.getElementById('loginBtn').disabled = true;
+            }
+        }
+
+
+        // Show history in a modal overlay
+        function showHiddenHistory() {
+            // Create modal if it doesn't exist
+            let modal = document.getElementById('historyModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'historyModal';
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 3000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="
+                        background: white;
+                        border-radius: 12px;
+                        max-width: 900px;
+                        width: 100%;
+                        max-height: 80vh;
+                        overflow: hidden;
+                        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+                    ">
+                        <div style="
+                            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+                            color: white;
+                            padding: 20px;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                        ">
+                            <h2 style="margin: 0; font-size: 1.5em;">Edit History</h2>
+                            <button onclick="closeHiddenHistory()" style="
+                                background: rgba(255, 255, 255, 0.2);
+                                border: none;
+                                color: white;
+                                font-size: 1.5em;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-weight: bold;
+                            ">✕</button>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+                                <select id="modalHistoryFilter" onchange="filterModalHistory()" style="padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 6px;">
+                                    <option value="all">All Changes</option>
+                                    <option value="add">Items Added</option>
+                                    <option value="edit">Items Edited</option>
+                                    <option value="delete">Items Deleted</option>
+                                    <option value="status">Status Changes</option>
+                                </select>
+                                <button onclick="clearHistory()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                    Clear History
+                                </button>
+                            </div>
+                            <div id="modalHistoryList" style="max-height: 400px; overflow-y: auto;">
+                                <!-- History entries will be displayed here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+            }
+            
+            // Show modal and render history
+            modal.style.display = 'flex';
+            renderModalHistory();
+        }
+
+        // Close hidden history modal
+        function closeHiddenHistory() {
+            const modal = document.getElementById('historyModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Render history in modal
+        function renderModalHistory(filter = 'all') {
+            const historyList = document.getElementById('modalHistoryList');
+            
+            if (editHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <h3>No edit history yet</h3>
+                        <p>Changes to inventory items will be tracked here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let filteredHistory = editHistory;
+            if (filter !== 'all') {
+                filteredHistory = editHistory.filter(entry => entry.action === filter);
+            }
+
+            historyList.innerHTML = filteredHistory.map(entry => {
+                const date = new Date(entry.timestamp);
+                const timeString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                let actionText = '';
+                let actionIcon = '';
+                
+                switch (entry.action) {
+                    case 'add':
+                        actionText = 'Item Added';
+                        actionIcon = '[+]';
+                        break;
+                    case 'edit':
+                        actionText = 'Item Edited';
+                        actionIcon = '[Edit]';
+                        break;
+                    case 'delete':
+                        actionText = 'Item Deleted';
+                        actionIcon = '[Delete]';
+                        break;
+                    case 'status':
+                        actionText = 'Status Changed';
+                        actionIcon = '[Status]';
+                        break;
+                }
+
+                let changesHtml = '';
+                if (entry.changes && entry.changes.length > 0) {
+                    changesHtml = `
+                        <div style="margin-top: 8px; padding: 8px; background: #f8f9fa; border-radius: 4px; font-size: 0.9em;">
+                            <strong>Changes made:</strong>
+                            ${entry.changes.map(change => `
+                                <div style="margin: 3px 0;">
+                                    <strong>${change.field}:</strong>
+                                    ${change.oldValue ? `<span style="color: #dc3545; text-decoration: line-through;">${change.oldValue}</span>` : ''}
+                                    ${change.oldValue && change.newValue ? ' → ' : ''}
+                                    ${change.newValue ? `<span style="color: #28a745; font-weight: 600;">${change.newValue}</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div style="background: white; border-radius: 8px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #667eea; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-weight: 700; font-size: 1.1em; color: #333;">${actionIcon} ${actionText}</div>
+                            <div style="font-size: 0.85em; color: #666; font-weight: 600;">${timeString}</div>
+                        </div>
+                        <div style="font-size: 0.9em; color: #3498db; font-weight: 600; margin-bottom: 5px;">User: ${entry.user.charAt(0).toUpperCase() + entry.user.slice(1)}</div>
+                        <div style="color: #555; font-size: 0.95em; line-height: 1.4;">
+                            <span style="font-weight: 600; color: #333;">${entry.itemName}</span>
+                            ${entry.itemNumber ? `<span style="color: #3498db; margin-left: 10px;">(${entry.itemNumber})</span>` : ''}
+                        </div>
+                        ${changesHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter modal history
+        function filterModalHistory() {
+            const filter = document.getElementById('modalHistoryFilter').value;
+            renderModalHistory(filter);
+        }
+
+        // Export to Excel function
+        function exportToExcel() {
+            try {
+                // Create a new workbook
+                const workbook = XLSX.utils.book_new();
+                
+                // Prepare inventory data
+                const inventoryData = inventory.map((item, index) => {
+                    const purchaseDate = new Date(item.purchaseDate);
+                    const soldDate = item.soldDate ? new Date(item.soldDate) : '';
+                    const daysInStock = Math.floor((soldDate ? soldDate : new Date() - purchaseDate) / (1000 * 60 * 60 * 24));
+                    const profit = item.soldPrice - item.purchasePrice;
+                    
+                    return {
+                        'Item Number': item.itemNumber || 'N/A',
+                        'Item Name': item.name,
+                        'Purchase Date': purchaseDate.toLocaleDateString(),
+                        'Purchase Price': `£${item.purchasePrice.toFixed(2)}`,
+                        'Status': item.status === 'ready' ? 'Ready to Sell' : 
+                                item.status === 'needs-work' ? 'Needs Work' : 'Sold',
+                        'Sold Date': soldDate ? soldDate.toLocaleDateString() : 'Not Sold',
+                        'Sold Price': item.soldPrice > 0 ? `£${item.soldPrice.toFixed(2)}` : 'Not Sold',
+                        'Profit': item.soldPrice > 0 ? `£${profit.toFixed(2)}` : 'N/A',
+                        'Days in Stock': daysInStock,
+                        'Description': item.description || '',
+                        'Work Notes': item.workNotes || '',
+                        'Photos Count': (item.photos ? item.photos.length : 0),
+                        'Work Photos Count': (item.workPhotos ? item.workPhotos.length : 0)
+                    };
+                });
+                
+                // Create inventory worksheet
+                const inventorySheet = XLSX.utils.json_to_sheet(inventoryData);
+                XLSX.utils.book_append_sheet(workbook, inventorySheet, 'Inventory');
+                
+                // Prepare transaction data
+                const transactionData = transactions.map(t => ({
+                    'Date': new Date(t.date).toLocaleDateString(),
+                    'Description': t.description,
+                    'Type': t.type === 'income' ? 'Income' : 'Expense',
+                    'Amount': `£${t.amount.toFixed(2)}`,
+                    'Added By': currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown'
+                }));
+                
+                // Create transactions worksheet
+                if (transactionData.length > 0) {
+                    const transactionSheet = XLSX.utils.json_to_sheet(transactionData);
+                    XLSX.utils.book_append_sheet(workbook, transactionSheet, 'Transactions');
+                }
+                
+                // Prepare edit history data
+                const historyData = editHistory.map(entry => ({
+                    'Date': new Date(entry.timestamp).toLocaleDateString(),
+                    'Time': new Date(entry.timestamp).toLocaleTimeString(),
+                    'User': entry.user.charAt(0).toUpperCase() + entry.user.slice(1),
+                    'Action': entry.action === 'add' ? 'Item Added' :
+                             entry.action === 'edit' ? 'Item Edited' :
+                             entry.action === 'delete' ? 'Item Deleted' :
+                             entry.action === 'status' ? 'Status Changed' : entry.action,
+                    'Item Name': entry.itemName,
+                    'Item Number': entry.itemNumber || 'N/A',
+                    'Changes': entry.changes ? entry.changes.map(c => `${c.field}: ${c.oldValue || 'N/A'} → ${c.newValue || 'N/A'}`).join('; ') : 'N/A'
+                }));
+                
+                // Create history worksheet
+                if (historyData.length > 0) {
+                    const historySheet = XLSX.utils.json_to_sheet(historyData);
+                    XLSX.utils.book_append_sheet(workbook, historySheet, 'Edit History');
+                }
+                
+                // Prepare summary statistics
+                let moneyIn = 0, moneyOut = 0, totalItems = inventory.length;
+                let readyItems = 0, needsWorkItems = 0, soldItems = 0;
+                
+                inventory.forEach(item => {
+                    moneyOut += item.purchasePrice;
+                    if (item.soldPrice > 0) moneyIn += item.soldPrice;
+                    
+                    if (item.status === 'sold') soldItems++;
+                    else if (item.status === 'ready') readyItems++;
+                    else if (item.status === 'needs-work') needsWorkItems++;
+                });
+                
+                let additionalIncome = 0, additionalExpenses = 0;
+                transactions.forEach(t => {
+                    if (t.type === 'income') additionalIncome += t.amount;
+                    else additionalExpenses += t.amount;
+                });
+                
+                const totalProfit = moneyIn - moneyOut;
+                const totalBalance = moneyIn - moneyOut + additionalIncome - additionalExpenses;
+                
+                const summaryData = [
+                    { 'Metric': 'Total Items', 'Value': totalItems },
+                    { 'Metric': 'Ready to Sell', 'Value': readyItems },
+                    { 'Metric': 'Needs Work', 'Value': needsWorkItems },
+                    { 'Metric': 'Sold Items', 'Value': soldItems },
+                    { 'Metric': 'Total Money In (Sales)', 'Value': `£${moneyIn.toFixed(2)}` },
+                    { 'Metric': 'Total Money Out (Purchases)', 'Value': `£${moneyOut.toFixed(2)}` },
+                    { 'Metric': 'Additional Income', 'Value': `£${additionalIncome.toFixed(2)}` },
+                    { 'Metric': 'Additional Expenses', 'Value': `£${additionalExpenses.toFixed(2)}` },
+                    { 'Metric': 'Total Profit', 'Value': `£${totalProfit.toFixed(2)}` },
+                    { 'Metric': 'Current Balance', 'Value': `£${totalBalance.toFixed(2)}` },
+                    { 'Metric': 'Export Date', 'Value': new Date().toLocaleString() },
+                    { 'Metric': 'Exported By', 'Value': currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown' }
+                ];
+                
+                // Create summary worksheet
+                const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+                XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+                
+                // Generate filename with current date
+                const currentDate = new Date().toISOString().split('T')[0];
+                const filename = `Furniture_Inventory_${currentDate}.xlsx`;
+                
+                // Save the file
+                XLSX.writeFile(workbook, filename);
+                
+                // Show success message
+                alert(`Excel file "${filename}" has been downloaded successfully!`);
+                
+            } catch (error) {
+                console.error('Error exporting to Excel:', error);
+                alert('Error exporting to Excel. Please try again.');
+            }
+        }
+
+        // Initialize variables first
         let inventory = [];
         let editingIndex = -1;
         let transactions = [];
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
+        let editHistory = [];
+
+        // Initialize authentication on page load
+        checkAuth();
 
         // Generate random item number
         function generateItemNumber() {
             const prefix = 'FUR';
             const randomNum = Math.floor(100000 + Math.random() * 900000);
             return `${prefix}-${randomNum}`;
+        }
+
+        // History management functions
+        function addHistoryEntry(action, itemName, itemNumber, changes = null, oldItem = null) {
+            const historyEntry = {
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                user: currentUser,
+                action: action,
+                itemName: itemName,
+                itemNumber: itemNumber,
+                changes: changes,
+                oldItem: oldItem
+            };
+            
+            editHistory.unshift(historyEntry); // Add to beginning
+            saveHistory();
+            
+            // Update history display if we're on the history tab
+            if (document.getElementById('history').classList.contains('active')) {
+                renderHistory();
+            }
+        }
+
+        function saveHistory() {
+            localStorage.setItem('furnitureEditHistory', JSON.stringify(editHistory));
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem('furnitureEditHistory');
+            if (saved) {
+                editHistory = JSON.parse(saved);
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('Are you sure you want to clear all edit history? This cannot be undone.')) {
+                editHistory = [];
+                saveHistory();
+                renderHistory();
+            }
+        }
+
+        function filterHistory() {
+            const filter = document.getElementById('historyFilter').value;
+            renderHistory(filter);
+        }
+
+        function renderHistory(filter = 'all') {
+            const historyList = document.getElementById('historyList');
+            
+            if (editHistory.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-history">
+                        <h3>No edit history yet</h3>
+                        <p>Changes to inventory items will be tracked here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let filteredHistory = editHistory;
+            if (filter !== 'all') {
+                filteredHistory = editHistory.filter(entry => entry.action === filter);
+            }
+
+            historyList.innerHTML = filteredHistory.map(entry => {
+                const date = new Date(entry.timestamp);
+                const timeString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                let actionText = '';
+                let actionIcon = '';
+                
+                switch (entry.action) {
+                    case 'add':
+                        actionText = 'Item Added';
+                        actionIcon = '[+]';
+                        break;
+                    case 'edit':
+                        actionText = 'Item Edited';
+                        actionIcon = '[Edit]';
+                        break;
+                    case 'delete':
+                        actionText = 'Item Deleted';
+                        actionIcon = '[Delete]';
+                        break;
+                    case 'status':
+                        actionText = 'Status Changed';
+                        actionIcon = '[Status]';
+                        break;
+                }
+
+                let changesHtml = '';
+                if (entry.changes && entry.changes.length > 0) {
+                    changesHtml = `
+                        <div class="history-changes">
+                            <strong>Changes made:</strong>
+                            ${entry.changes.map(change => `
+                                <div class="change-item">
+                                    <strong>${change.field}:</strong>
+                                    ${change.oldValue ? `<span class="change-old">${change.oldValue}</span>` : ''}
+                                    ${change.oldValue && change.newValue ? ' → ' : ''}
+                                    ${change.newValue ? `<span class="change-new">${change.newValue}</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="history-entry ${entry.action}">
+                        <div class="history-header">
+                            <div class="history-action">${actionIcon} ${actionText}</div>
+                            <div class="history-timestamp">${timeString}</div>
+                        </div>
+                        <div class="history-user">👤 ${entry.user.charAt(0).toUpperCase() + entry.user.slice(1)}</div>
+                        <div class="history-details">
+                            <span class="history-item-name">${entry.itemName}</span>
+                            ${entry.itemNumber ? `<span style="color: #3498db; margin-left: 10px;">(${entry.itemNumber})</span>` : ''}
+                        </div>
+                        ${changesHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function detectChanges(oldItem, newItem) {
+            const changes = [];
+            
+            const fields = ['name', 'purchaseDate', 'purchasePrice', 'soldDate', 'soldPrice', 'status', 'description', 'workNotes'];
+            
+            fields.forEach(field => {
+                const oldValue = oldItem[field];
+                const newValue = newItem[field];
+                
+                if (oldValue !== newValue) {
+                    let displayOldValue = oldValue;
+                    let displayNewValue = newValue;
+                    
+                    // Format values for display
+                    if (field === 'purchaseDate' || field === 'soldDate') {
+                        displayOldValue = oldValue ? new Date(oldValue).toLocaleDateString() : 'Not set';
+                        displayNewValue = newValue ? new Date(newValue).toLocaleDateString() : 'Not set';
+                    } else if (field === 'purchasePrice' || field === 'soldPrice') {
+                        displayOldValue = oldValue ? `£${parseFloat(oldValue).toFixed(2)}` : 'Not set';
+                        displayNewValue = newValue ? `£${parseFloat(newValue).toFixed(2)}` : 'Not set';
+                    } else if (field === 'status') {
+                        const statusMap = {
+                            'ready': 'Ready to Sell',
+                            'needs-work': 'Needs Work',
+                            'sold': 'Sold'
+                        };
+                        displayOldValue = statusMap[oldValue] || oldValue;
+                        displayNewValue = statusMap[newValue] || newValue;
+                    }
+                    
+                    changes.push({
+                        field: field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+                        oldValue: displayOldValue,
+                        newValue: displayNewValue
+                    });
+                }
+            });
+            
+            return changes;
         }
 
         // Load inventory from localStorage
@@ -907,6 +2019,9 @@
                 transactions = JSON.parse(savedTransactions);
             }
             
+            // Load history
+            loadHistory();
+            
             renderInventory();
             updateStatistics();
         }
@@ -931,6 +2046,8 @@
             
             if (tabName === 'statistics') {
                 updateStatistics();
+            } else if (tabName === 'history') {
+                renderHistory();
             }
         }
 
@@ -973,6 +2090,10 @@
                 if (photosLoaded && workPhotosLoaded) {
                     inventory.push(item);
                     saveInventory();
+                    
+                    // Add to history
+                    addHistoryEntry('add', item.name, item.itemNumber);
+                    
                     renderInventory();
                     clearForm();
                 }
@@ -1130,15 +2251,15 @@
                             ${photos.length > 0 ? `
                                 <div class="photo-gallery" onclick="openPhotoModal(${index}, 0)">
                                     <img src="${photos[0]}" alt="${item.name}">
-                                    ${photos.length > 1 ? `<div class="photo-counter">📷 ${photos.length}</div>` : ''}
+                                    ${photos.length > 1 ? `<div class="photo-counter">${photos.length} Photos</div>` : ''}
                                 </div>
-                            ` : `<div class="item-image" style="display: flex; align-items: center; justify-content: center; font-size: 3em;">🛋️</div>`}
+                            ` : `<div class="item-image" style="display: flex; align-items: center; justify-content: center; font-size: 3em; color: #bdc3c7;">No Image</div>`}
                             <div class="item-details">
                                 <div class="item-name">${item.name}</div>
-                                <div class="item-info" style="color: #667eea; font-weight: 600; margin-bottom: 10px;">📋 ${item.itemNumber || 'N/A'}</div>
+                                <div class="item-info" style="color: #3498db; font-weight: 600; margin-bottom: 10px;">Item: ${item.itemNumber || 'N/A'}</div>
                                 <div class="item-info"><strong>Purchased:</strong> ${new Date(item.purchaseDate).toLocaleDateString()} - £${item.purchasePrice.toFixed(2)}</div>
                                 <div class="item-info" style="background: ${item.soldDate ? '#f0f0f0' : '#fff3cd'}; padding: 8px; border-radius: 6px; margin: 8px 0;">
-                                    <strong>⏱️ Days in Stock:</strong> <span style="font-weight: 700; color: ${daysInStock > 90 ? '#dc3545' : daysInStock > 30 ? '#ffc107' : '#28a745'};">${daysInStock} days</span>
+                                    <strong>Days in Stock:</strong> <span style="font-weight: 700; color: ${daysInStock > 90 ? '#e74c3c' : daysInStock > 30 ? '#f39c12' : '#27ae60'};">${daysInStock} days</span>
                                 </div>
                                 ${item.soldDate ? `
                                     <div class="item-info"><strong>Sold:</strong> ${new Date(item.soldDate).toLocaleDateString()} - £${item.soldPrice.toFixed(2)}</div>
@@ -1150,7 +2271,7 @@
                                 ${item.description ? `<div class="item-info" style="margin-top: 10px;">${item.description}</div>` : ''}
                                 ${(item.workPhotos && item.workPhotos.length > 0) || item.workNotes ? `
                                     <div class="work-notes-box">
-                                        <strong>🔧 Work Required:</strong>
+                                        <strong>Work Required:</strong>
                                         ${item.workPhotos && item.workPhotos.length > 0 ? `
                                             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px;">
                                                 ${item.workPhotos.map((photo, photoIdx) => `
@@ -1160,7 +2281,7 @@
                                                 `).join('')}
                                             </div>
                                             <div style="font-size: 0.85em; color: #856404; margin-top: 8px;">
-                                                📷 ${item.workPhotos.length} photo${item.workPhotos.length > 1 ? 's' : ''} showing work needed
+                                                ${item.workPhotos.length} photo${item.workPhotos.length > 1 ? 's' : ''} showing work needed
                                             </div>
                                         ` : ''}
                                         ${item.workNotes ? `<p style="margin-top: 8px;">${item.workNotes}</p>` : ''}
@@ -1232,7 +2353,9 @@
         function saveEdit() {
             if (editingIndex === -1) return;
             
+            const oldItem = {...inventory[editingIndex]}; // Create a copy of the old item
             const item = inventory[editingIndex];
+            
             item.name = document.getElementById('editItemName').value;
             item.purchaseDate = document.getElementById('editPurchaseDate').value;
             item.purchasePrice = parseFloat(document.getElementById('editPurchasePrice').value);
@@ -1245,6 +2368,13 @@
             // Auto-set status to sold if sold date and price are provided
             if (item.soldDate && item.soldPrice > 0) {
                 item.status = 'sold';
+            }
+            
+            // Detect changes and add to history
+            const changes = detectChanges(oldItem, item);
+            if (changes.length > 0) {
+                const action = changes.some(c => c.field === 'Status') ? 'status' : 'edit';
+                addHistoryEntry(action, item.name, item.itemNumber, changes, oldItem);
             }
             
             // Handle new work photos
@@ -1289,6 +2419,11 @@
         // Delete item
         function deleteItem(index) {
             if (confirm('Are you sure you want to delete this item?')) {
+                const deletedItem = inventory[index];
+                
+                // Add to history before deleting
+                addHistoryEntry('delete', deletedItem.name, deletedItem.itemNumber, null, deletedItem);
+                
                 inventory.splice(index, 1);
                 saveInventory();
                 renderInventory();
@@ -1819,17 +2954,25 @@
             }
         });
 
-        // Keyboard navigation for photo modal
+        // Keyboard navigation for photo modal and hidden history access
         document.addEventListener('keydown', function(e) {
             if (document.getElementById('photoModal').classList.contains('active')) {
                 if (e.key === 'ArrowRight') nextPhoto();
                 if (e.key === 'ArrowLeft') prevPhoto();
                 if (e.key === 'Escape') closePhotoModal();
             }
+            
+            
+            // Close history modal with Escape
+            if (e.key === 'Escape') {
+                const historyModal = document.getElementById('historyModal');
+                if (historyModal && historyModal.style.display !== 'none') {
+                    closeHiddenHistory();
+                }
+            }
         });
 
-        // Initialize
-        loadInventory();
+        // Note: loadInventory() is now called from showMainApp() after authentication
     </script>
 </body>
 </html>
