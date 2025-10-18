@@ -1001,6 +1001,13 @@
             opacity: 1;
         }
         
+        /* Always show arrows on mobile */
+        @media (max-width: 768px) {
+            .reorder-buttons {
+                opacity: 1;
+            }
+        }
+        
         .reorder-btn {
             background: rgba(102, 126, 234, 0.9);
             color: white;
@@ -1015,6 +1022,15 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
+        }
+        
+        /* Larger buttons on mobile for easier tapping */
+        @media (max-width: 768px) {
+            .reorder-btn {
+                width: 28px;
+                height: 24px;
+                font-size: 14px;
+            }
         }
         
         .reorder-btn:hover {
@@ -2862,7 +2878,7 @@
             const itemClass = isDraggable ? 'inventory-list-item reorderable-item' : 'inventory-list-item';
             
             return `
-                <div class="${itemClass}" onclick="openFullViewModal(${index})" style="
+                <div class="${itemClass}" style="
                     display: flex;
                     align-items: center;
                     padding: 15px;
@@ -2883,8 +2899,8 @@
                     <!-- Reorder Buttons (for reorderable items) -->
                     ${reorderButtons}
                     
-                    <!-- Photo -->
-                    <div style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0;">
+                    <!-- Photo (Clickable) -->
+                    <div onclick="openFullViewModal(${index}); event.stopPropagation();" style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0; cursor: pointer;">
                         ${photos.length > 0 ? `
                             <img src="${photos[0]}" alt="${item.name}" style="
                                 width: 100%;
