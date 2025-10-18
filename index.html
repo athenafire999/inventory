@@ -2162,29 +2162,67 @@
         // Load inventory from Supabase
         async function loadInventory() {
             try {
+                console.log('Loading inventory from Supabase...');
                 // Load inventory items
                 const { data: inventoryData, error: inventoryError } = await supabase
                     .from('inventory')
                     .select('*')
                     .order('created_at', { ascending: false });
 
+                console.log('Supabase response:', { data: inventoryData, error: inventoryError });
+
                 if (inventoryError) {
                     console.error('Error loading inventory:', inventoryError);
                     inventory = [];
                 } else {
                     inventory = inventoryData || [];
-                // Assign item numbers to existing items that don't have one
-                let needsSave = false;
-                inventory.forEach(item => {
-                    if (!item.itemNumber) {
-                        item.itemNumber = generateItemNumber();
-                        needsSave = true;
-                    }
-                });
-                if (needsSave) {
+                    console.log('Loaded inventory items:', inventory.length);
+                    
+                    // Convert database field names to app field names
+                    inventory.forEach(item => {
+                        // Convert item_number to itemNumber
+                        if (item.item_number && !item.itemNumber) {
+                            item.itemNumber = item.item_number;
+                        }
+                        // Convert other database fields if needed
+                        if (item.purchase_date && !item.purchaseDate) {
+                            item.purchaseDate = item.purchase_date;
+                        }
+                        if (item.purchase_price !== undefined && item.purchasePrice === undefined) {
+                            item.purchasePrice = item.purchase_price;
+                        }
+                        if (item.sold_date && !item.soldDate) {
+                            item.soldDate = item.sold_date;
+                        }
+                        if (item.sold_price !== undefined && item.soldPrice === undefined) {
+                            item.soldPrice = item.sold_price;
+                        }
+                        if (item.work_notes && !item.workNotes) {
+                            item.workNotes = item.work_notes;
+                        }
+                        if (item.work_photos && !item.workPhotos) {
+                            item.workPhotos = item.work_photos;
+                        }
+                        if (item.affect_balance !== undefined && item.affectBalance === undefined) {
+                            item.affectBalance = item.affect_balance;
+                        }
+                        if (item.add_to_balance !== undefined && item.addToBalance === undefined) {
+                            item.addToBalance = item.add_to_balance;
+                        }
+                    });
+                    
+                    // Assign item numbers to existing items that don't have one
+                    let needsSave = false;
+                    inventory.forEach(item => {
+                        if (!item.itemNumber) {
+                            item.itemNumber = generateItemNumber();
+                            needsSave = true;
+                        }
+                    });
+                    if (needsSave) {
                         await saveInventory();
+                    }
                 }
-            }
             
             // Load transactions
                 const { data: transactionsData, error: transactionsError } = await supabase
@@ -2216,6 +2254,7 @@
         // Save inventory to Supabase
         async function saveInventory() {
             try {
+                console.log('Saving inventory to Supabase...', inventory.length, 'items');
                 // Convert inventory to database format
                 const inventoryToSave = inventory.map(item => ({
                     item_number: item.itemNumber,
@@ -2233,11 +2272,15 @@
                     work_photos: item.workPhotos || []
                 }));
 
+                console.log('Inventory to save:', inventoryToSave);
+
                 // Clear existing data and insert new data
                 const { error: deleteError } = await supabase
                     .from('inventory')
                     .delete()
                     .neq('id', 0); // Delete all records
+
+                console.log('Delete result:', deleteError);
 
                 if (deleteError) {
                     console.error('Error clearing inventory:', deleteError);
@@ -2248,8 +2291,12 @@
                         .from('inventory')
                         .insert(inventoryToSave);
 
+                    console.log('Insert result:', insertError);
+
                     if (insertError) {
                         console.error('Error saving inventory:', insertError);
+                    } else {
+                        console.log('Successfully saved inventory to Supabase');
                     }
                 }
             } catch (error) {
@@ -2946,7 +2993,25 @@
                 } else {
                     console.error('Could not find item in inventory array');
                     console.log('Available items:', inventory.map(item => ({ name: item.name, itemNumber: item.itemNumber })));
-                    alert('Error: Could not find item to edit');
+                    console.log('Looking for itemNumber:', currentFullViewItemNumber);
+                    console.log('Full inventory:', inventory);
+                    
+                    // Try alternative search methods
+                    const altIndex1 = inventory.findIndex(item => item.itemNumber === currentFullViewItemNumber);
+                    const altIndex2 = inventory.findIndex(item => item.itemNumber == currentFullViewItemNumber);
+                    const altIndex3 = inventory.findIndex(item => String(item.itemNumber) === String(currentFullViewItemNumber));
+                    
+                    console.log('Alternative searches:', { altIndex1, altIndex2, altIndex3 });
+                    
+                    if (altIndex1 !== -1) {
+                        editItem(altIndex1);
+                    } else if (altIndex2 !== -1) {
+                        editItem(altIndex2);
+                    } else if (altIndex3 !== -1) {
+                        editItem(altIndex3);
+                    } else {
+                        alert('Error: Could not find item to edit');
+                    }
                 }
                 
                 currentFullViewItemNumber = null; // Reset after use
