@@ -1827,12 +1827,12 @@
                         'Item Number': item.itemNumber || 'N/A',
                         'Item Name': item.name,
                         'Purchase Date': purchaseDate.toLocaleDateString(),
-                        'Purchase Price': `£${item.purchasePrice.toFixed(2)}`,
+                        'Purchase Price': `£${(item.purchasePrice || 0).toFixed(2)}`,
                         'Status': item.status === 'ready' ? 'Ready to Sell' : 
                                 item.status === 'needs-work' ? 'Needs Work' : 'Sold',
                         'Sold Date': soldDate ? soldDate.toLocaleDateString() : 'Not Sold',
-                        'Sold Price': item.soldPrice > 0 ? `£${item.soldPrice.toFixed(2)}` : 'Not Sold',
-                        'Profit': item.soldPrice > 0 ? `£${profit.toFixed(2)}` : 'N/A',
+                        'Sold Price': (item.soldPrice || 0) > 0 ? `£${(item.soldPrice || 0).toFixed(2)}` : 'Not Sold',
+                        'Profit': (item.soldPrice || 0) > 0 ? `£${((item.soldPrice || 0) - (item.purchasePrice || 0)).toFixed(2)}` : 'N/A',
                         'Days in Stock': daysInStock,
                         'Description': item.description || '',
                         'Work Notes': item.workNotes || '',
@@ -1850,7 +1850,7 @@
                     'Date': new Date(t.date).toLocaleDateString(),
                     'Description': t.description,
                     'Type': t.type === 'income' ? 'Income' : 'Expense',
-                    'Amount': `£${t.amount.toFixed(2)}`,
+                    'Amount': `£${(t.amount || 0).toFixed(2)}`,
                     'Added By': currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown'
                 }));
                 
@@ -1920,12 +1920,12 @@
                     { 'Metric': 'Ready to Sell', 'Value': readyItems },
                     { 'Metric': 'Needs Work', 'Value': needsWorkItems },
                     { 'Metric': 'Sold Items', 'Value': soldItems },
-                    { 'Metric': 'Total Money In (Sales)', 'Value': `£${moneyIn.toFixed(2)}` },
-                    { 'Metric': 'Total Money Out (Purchases)', 'Value': `£${moneyOut.toFixed(2)}` },
-                    { 'Metric': 'Additional Income', 'Value': `£${additionalIncome.toFixed(2)}` },
-                    { 'Metric': 'Additional Expenses', 'Value': `£${additionalExpenses.toFixed(2)}` },
-                    { 'Metric': 'Total Profit', 'Value': `£${totalProfit.toFixed(2)}` },
-                    { 'Metric': 'Current Balance', 'Value': `£${totalBalance.toFixed(2)}` },
+                    { 'Metric': 'Total Money In (Sales)', 'Value': `£${(moneyIn || 0).toFixed(2)}` },
+                    { 'Metric': 'Total Money Out (Purchases)', 'Value': `£${(moneyOut || 0).toFixed(2)}` },
+                    { 'Metric': 'Additional Income', 'Value': `£${(additionalIncome || 0).toFixed(2)}` },
+                    { 'Metric': 'Additional Expenses', 'Value': `£${(additionalExpenses || 0).toFixed(2)}` },
+                    { 'Metric': 'Total Profit', 'Value': `£${(totalProfit || 0).toFixed(2)}` },
+                    { 'Metric': 'Current Balance', 'Value': `£${(totalBalance || 0).toFixed(2)}` },
                     { 'Metric': 'Export Date', 'Value': new Date().toLocaleString() },
                     { 'Metric': 'Exported By', 'Value': currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown' }
                 ];
@@ -2642,7 +2642,7 @@
                         
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div style="color: #666; font-size: 0.9em;">
-                                <strong>${priceLabel}:</strong> £${currentPrice.toFixed(2)}
+                                <strong>${priceLabel}:</strong> £${(currentPrice || 0).toFixed(2)}
                             </div>
                             <div style="color: #666; font-size: 0.8em;">
                                 ${new Date(item.purchaseDate).toLocaleDateString()}
@@ -2693,15 +2693,15 @@
                             <div class="item-details">
                                 <div class="item-name">${item.name}</div>
                                 <div class="item-info" style="color: #3498db; font-weight: 600; margin-bottom: 10px;">Item: ${item.itemNumber || 'N/A'}</div>
-                                <div class="item-info"><strong>Purchased:</strong> ${new Date(item.purchaseDate).toLocaleDateString()} - £${item.purchasePrice.toFixed(2)}</div>
+                                <div class="item-info"><strong>Purchased:</strong> ${new Date(item.purchaseDate).toLocaleDateString()} - £${(item.purchasePrice || 0).toFixed(2)}</div>
                                 <div class="item-info" style="background: ${item.soldDate ? '#f0f0f0' : '#fff3cd'}; padding: 8px; border-radius: 6px; margin: 8px 0;">
                                     <strong>Days in Stock:</strong> <span style="font-weight: 700; color: ${daysInStock > 90 ? '#e74c3c' : daysInStock > 30 ? '#f39c12' : '#27ae60'};">${daysInStock} days</span>
                                 </div>
                                 ${item.soldDate ? `
-                                    <div class="item-info"><strong>Sold:</strong> ${new Date(item.soldDate).toLocaleDateString()} - £${item.soldPrice.toFixed(2)}</div>
+                                    <div class="item-info"><strong>Sold:</strong> ${new Date(item.soldDate).toLocaleDateString()} - £${(item.soldPrice || 0).toFixed(2)}</div>
                                     <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
                                         <div style="font-size: 0.9em; color: #666; margin-bottom: 4px;">Total Profit</div>
-                                        <div style="font-size: 1.5em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${profit.toFixed(2)}</div>
+                                        <div style="font-size: 1.5em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${(profit || 0).toFixed(2)}</div>
                                     </div>
                                 ` : ''}
                                 ${item.description ? `<div class="item-info" style="margin-top: 10px;">${item.description}</div>` : ''}
@@ -2946,7 +2946,7 @@
                                 </div>
                                 <div>
                                     <strong>Purchase Price:</strong><br>
-                                    <span style="font-weight: 600;">£${item.purchasePrice.toFixed(2)}</span>
+                                    <span style="font-weight: 600;">£${(item.purchasePrice || 0).toFixed(2)}</span>
                                 </div>
                                 <div>
                                     <strong>Days in Stock:</strong><br>
@@ -2965,12 +2965,12 @@
                                     </div>
                                     <div>
                                         <strong>Sold Price:</strong><br>
-                                        <span style="font-weight: 600;">£${item.soldPrice.toFixed(2)}</span>
+                                        <span style="font-weight: 600;">£${(item.soldPrice || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
                                 <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
                                     <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total Profit</div>
-                                    <div style="font-size: 1.8em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${profit.toFixed(2)}</div>
+                                    <div style="font-size: 1.8em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${(profit || 0).toFixed(2)}</div>
                                 </div>
                             </div>
                         ` : ''}
@@ -3252,11 +3252,11 @@
                             <td style="font-weight: 600; color: ${daysInStock > 90 ? '#dc3545' : daysInStock > 30 ? '#ffc107' : '#28a745'};">
                                 ${daysInStock} days
                             </td>
-                            <td>£${item.purchasePrice.toFixed(2)}</td>
+                            <td>£${(item.purchasePrice || 0).toFixed(2)}</td>
                             <td>${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : '-'}</td>
-                            <td>${item.soldPrice > 0 ? '£' + item.soldPrice.toFixed(2) : '-'}</td>
-                            <td style="color: ${profit >= 0 && item.soldPrice > 0 ? '#28a745' : profit < 0 ? '#dc3545' : '#666'}; font-weight: 700;">
-                                ${item.soldPrice > 0 ? '£' + profit.toFixed(2) : '-'}
+                            <td>${(item.soldPrice || 0) > 0 ? '£' + (item.soldPrice || 0).toFixed(2) : '-'}</td>
+                            <td style="color: ${profit >= 0 && (item.soldPrice || 0) > 0 ? '#28a745' : profit < 0 ? '#dc3545' : '#666'}; font-weight: 700;">
+                                ${(item.soldPrice || 0) > 0 ? '£' + (profit || 0).toFixed(2) : '-'}
                             </td>
                             <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                         </tr>
@@ -3455,7 +3455,7 @@
                             <h4 style="margin-bottom: 15px;">Items Sold This Month:</h4>
                             <div class="month-items-list">
                                 ${data.items.map(item => {
-                                    const profit = item.soldPrice - item.purchasePrice;
+                                    const profit = (item.soldPrice || 0) - (item.purchasePrice || 0);
                                     return `
                                         <div class="month-item">
                                             <div>
@@ -3463,9 +3463,9 @@
                                                 <div style="color: #667eea; font-size: 0.9em;">${item.itemNumber}</div>
                                             </div>
                                             <div style="text-align: right;">
-                                                <div>Sold: <strong>£${item.soldPrice.toFixed(2)}</strong></div>
+                                                <div>Sold: <strong>£${(item.soldPrice || 0).toFixed(2)}</strong></div>
                                                 <div style="color: ${profit >= 0 ? '#28a745' : '#dc3545'}; font-weight: 600;">
-                                                    Profit: £${profit.toFixed(2)}
+                                                    Profit: £${(profit || 0).toFixed(2)}
                                                 </div>
                                             </div>
                                         </div>
@@ -3544,7 +3544,7 @@
             // Add to history
             addHistoryEntry('balance_transaction', desc, '', [
                 { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
-                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` },
+                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
                 { field: 'Date', oldValue: '', newValue: date }
             ]);
             
@@ -3569,7 +3569,7 @@
             // Add to history
             addHistoryEntry('balance_transaction', `Sale: ${itemName}`, '', [
                 { field: 'Type', oldValue: '', newValue: 'Income' },
-                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` },
+                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
                 { field: 'Date', oldValue: '', newValue: soldDate },
                 { field: 'Item', oldValue: '', newValue: itemName }
             ]);
@@ -3590,7 +3590,7 @@
                 if (transactionToDelete) {
                     addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
                         { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
-                        { field: 'Amount', oldValue: `£${transactionToDelete.amount.toFixed(2)}`, newValue: 'Deleted' },
+                        { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' },
                         { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
                     ]);
                 }
@@ -3622,7 +3622,7 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
-                                ${isIncome ? '+' : '-'}£${t.amount.toFixed(2)}
+                                ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
                             </div>
                             <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
                                 Delete
@@ -3661,7 +3661,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="font-size: 1.1em; font-weight: 700; color: #28a745;">
-                            £${item.soldPrice.toFixed(2)}
+                            £${(item.soldPrice || 0).toFixed(2)}
                         </div>
                         <button onclick="addSoldItemToBalance('${item.name}', ${item.soldPrice}, '${item.soldDate || new Date().toISOString().split('T')[0]}')" 
                                 style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
