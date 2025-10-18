@@ -1930,7 +1930,7 @@
                             <div style="font-weight: 700; font-size: 1.1em; color: #333;">${actionIcon} ${actionText}</div>
                             <div style="font-size: 0.85em; color: #666; font-weight: 600;">${timeString}</div>
                         </div>
-                        <div style="font-size: 0.9em; color: #3498db; font-weight: 600; margin-bottom: 5px;">User: ${entry.user.charAt(0).toUpperCase() + entry.user.slice(1)}</div>
+                        <div style="font-size: 0.9em; color: #3498db; font-weight: 600; margin-bottom: 5px;">User: ${entry.user ? entry.user.charAt(0).toUpperCase() + entry.user.slice(1) : 'Unknown'}</div>
                         <div style="color: #555; font-size: 0.95em; line-height: 1.4;">
                             <span style="font-weight: 600; color: #333;">${entry.itemName}</span>
                             ${entry.itemNumber ? `<span style="color: #3498db; margin-left: 10px;">(${entry.itemNumber})</span>` : ''}
@@ -2001,7 +2001,7 @@
                 const historyData = editHistory.map(entry => ({
                     'Date': new Date(entry.timestamp).toLocaleDateString(),
                     'Time': new Date(entry.timestamp).toLocaleTimeString(),
-                    'User': entry.user.charAt(0).toUpperCase() + entry.user.slice(1),
+                    'User': entry.user ? entry.user.charAt(0).toUpperCase() + entry.user.slice(1) : 'Unknown',
                     'Action': entry.action === 'add' ? 'Item Added' :
                              entry.action === 'edit' ? 'Item Edited' :
                              entry.action === 'delete' ? 'Item Deleted' :
@@ -2108,13 +2108,18 @@
 
         // History management functions
         function addHistoryEntry(action, itemName, itemNumber, changes = null, oldItem = null) {
+            // Ensure we have valid values
+            const safeItemName = itemName || 'Unknown Item';
+            const safeItemNumber = itemNumber || 'N/A';
+            const safeUser = currentUser || 'Unknown User';
+            
             const historyEntry = {
                 id: Date.now(),
                 timestamp: new Date().toISOString(),
-                user: currentUser,
+                user: safeUser,
                 action: action,
-                itemName: itemName,
-                itemNumber: itemNumber,
+                itemName: safeItemName,
+                itemNumber: safeItemNumber,
                 changes: changes,
                 oldItem: oldItem
             };
@@ -2134,11 +2139,11 @@
                 // Convert history to database format
                 const historyToSave = editHistory.map(entry => ({
                     action: entry.action,
-                    item_name: entry.itemName,
-                    item_number: entry.itemNumber,
+                    item_name: entry.itemName || 'Unknown Item',
+                    item_number: entry.itemNumber || 'N/A',
                     changes: entry.changes,
                     old_values: entry.oldValues || null,
-                    user_name: entry.userName || currentUser
+                    user_name: entry.user || currentUser || 'Unknown User'
                 }));
 
                 // Clear existing data and insert new data
@@ -2273,7 +2278,7 @@
                             <div class="history-action">${actionIcon} ${actionText}</div>
                             <div class="history-timestamp">${timeString}</div>
                         </div>
-                        <div class="history-user">👤 ${entry.user.charAt(0).toUpperCase() + entry.user.slice(1)}</div>
+                        <div class="history-user">👤 ${entry.user ? entry.user.charAt(0).toUpperCase() + entry.user.slice(1) : 'Unknown'}</div>
                         <div class="history-details">
                             <span class="history-item-name">${entry.itemName}</span>
                             ${entry.itemNumber ? `<span style="color: #3498db; margin-left: 10px;">(${entry.itemNumber})</span>` : ''}
