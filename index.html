@@ -981,55 +981,49 @@
             white-space: pre-wrap;
         }
 
-        /* Drag and Drop Styles */
-        .draggable-item {
-            cursor: move;
-            transition: all 0.3s ease;
+        /* Reorder Button Styles */
+        .reorderable-item {
             position: relative;
         }
         
-        .draggable-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .draggable-item.dragging {
-            opacity: 0.5;
-            transform: rotate(5deg);
-            z-index: 1000;
-        }
-        
-        .drag-placeholder {
-            background: #f0f8ff;
-            border: 2px dashed #667eea;
-            border-radius: 8px;
-            height: 80px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #667eea;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-        
-        .drag-handle {
+        .reorder-buttons {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(102, 126, 234, 0.8);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 0.8em;
-            cursor: move;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
         
-        .draggable-item:hover .drag-handle {
+        .reorderable-item:hover .reorder-buttons {
             opacity: 1;
+        }
+        
+        .reorder-btn {
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .reorder-btn:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: scale(1.1);
+        }
+        
+        .reorder-btn:active {
+            transform: scale(0.95);
         }
         
         .priority-indicator {
@@ -2203,15 +2197,15 @@
         // Save history to Supabase
         async function saveHistory() {
             try {
-                // Convert history to database format
+                // Convert history to database format with validation
                 const historyToSave = editHistory.map(entry => ({
-                    action: entry.action,
+                    action: entry.action || 'unknown',
                     item_name: entry.itemName || 'Unknown Item',
                     item_number: entry.itemNumber || 'N/A',
-                    changes: entry.changes,
-                    old_values: entry.oldValues || null,
+                    changes: entry.changes ? JSON.stringify(entry.changes) : null,
+                    old_values: entry.oldValues ? JSON.stringify(entry.oldValues) : null,
                     user_name: entry.user || currentUser || 'Unknown User'
-                }));
+                })).filter(entry => entry.item_name !== 'Unknown Item' || entry.action !== 'unknown');
 
                 // Clear existing data and insert new data
                 const { error: deleteError } = await supabase
@@ -2230,6 +2224,15 @@
 
                     if (insertError) {
                         console.error('Error saving history:', insertError);
+                        console.error('History data that failed:', historyToSave);
+                        console.error('Error details:', {
+                            message: insertError.message,
+                            details: insertError.details,
+                            hint: insertError.hint,
+                            code: insertError.code
+                        });
+                    } else {
+                        console.log('✅ History saved successfully');
                     }
                 }
             } catch (error) {
@@ -2519,15 +2522,25 @@
         async function saveInventory() {
             try {
                 console.log('🔄 Saving inventory to Supabase...', inventory.length, 'items');
-                alert('🔄 Saving ' + inventory.length + ' items to Supabase'); // Mobile debug
                 console.log('📊 Inventory data:', inventory);
                 
                 // Check for any invalid items
                 inventory.forEach((item, index) => {
-                    if (!item.name || !item.purchaseDate || isNaN(item.purchasePrice)) {
+                    if (!item || !item.name || !item.purchaseDate || isNaN(item.purchasePrice)) {
                         console.error(`❌ Invalid item at index ${index}:`, item);
+                        console.error(`❌ This item will be skipped during save`);
                     }
                 });
+                
+                // Filter out any undefined/null items before saving
+                const validInventory = inventory.filter(item => 
+                    item && item.name && item.purchaseDate && !isNaN(item.purchasePrice)
+                );
+                
+                if (validInventory.length !== inventory.length) {
+                    console.log(`⚠️ Filtered out ${inventory.length - validInventory.length} invalid items`);
+                    inventory = validInventory; // Update the main array
+                }
                 
                 // Convert inventory to database format
                 const inventoryToSave = inventory.map(item => ({
@@ -2580,7 +2593,6 @@
                     } else {
                         console.log('✅ Successfully saved inventory to Supabase');
                         console.log('✅ Inserted items:', insertData?.length || 0);
-                        alert('✅ Successfully saved ' + (insertData?.length || 0) + ' items to Supabase'); // Mobile debug
                     }
                 } else {
                     console.log('ℹ️ No inventory items to save');
@@ -2794,10 +2806,15 @@
                     </div>
                 `;
             } else {
-                needsWorkList.innerHTML = '<div class="inventory-list">' +
+                needsWorkList.innerHTML = `
+                    <div style="background: #e8f4fd; border: 1px solid #b3d9ff; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                        <div style="color: #0066cc; font-weight: 600; margin-bottom: 5px;">📋 Job Queue</div>
+                        <div style="color: #666; font-size: 0.9em;">Hover over items to see ↑↓ buttons for reordering (1 = highest priority)</div>
+                    </div>
+                    <div class="inventory-list">` +
                     needsWorkItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemList(item, index, true); // Make draggable
+                        return renderItemList(item, index, true); // Make reorderable
                     }).join('') +
                     '</div>';
             }
@@ -2834,21 +2851,18 @@
             const currentPrice = item.soldPrice > 0 ? item.soldPrice : item.purchasePrice;
             const priceLabel = item.soldPrice > 0 ? 'Sold for' : 'Purchase Price';
             
-            // Add drag attributes for "Not Ready" items
-            const dragAttributes = isDraggable ? `
-                draggable="true"
-                class="inventory-list-item draggable-item"
-                data-index="${index}"
-                ondragstart="handleDragStart(event)"
-                ondragend="handleDragEnd(event)"
-                ondragover="handleDragOver(event)"
-                ondrop="handleDrop(event)"
-            ` : `
-                class="inventory-list-item"
-            `;
+            // Add reorder buttons for "Not Ready" items
+            const reorderButtons = isDraggable ? `
+                <div class="reorder-buttons">
+                    <button onclick="moveItemUp(${index}); event.stopPropagation();" class="reorder-btn up-btn" title="Move Up">↑</button>
+                    <button onclick="moveItemDown(${index}); event.stopPropagation();" class="reorder-btn down-btn" title="Move Down">↓</button>
+                </div>
+            ` : '';
+            
+            const itemClass = isDraggable ? 'inventory-list-item reorderable-item' : 'inventory-list-item';
             
             return `
-                <div ${dragAttributes} onclick="openFullViewModal(${index})" style="
+                <div class="${itemClass}" onclick="openFullViewModal(${index})" style="
                     display: flex;
                     align-items: center;
                     padding: 15px;
@@ -2859,14 +2873,15 @@
                     cursor: pointer;
                     transition: all 0.3s ease;
                     border-left: 4px solid ${item.status === 'ready' ? '#28a745' : item.status === 'sold' ? '#6c757d' : '#ffc107'};
+                    position: relative;
                 " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" 
                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
                     
-                    <!-- Priority Indicator (for draggable items) -->
+                    <!-- Priority Indicator (for reorderable items) -->
                     ${isDraggable ? `<div class="priority-indicator">${index + 1}</div>` : ''}
                     
-                    <!-- Drag Handle (for draggable items) -->
-                    ${isDraggable ? `<div class="drag-handle">⋮⋮</div>` : ''}
+                    <!-- Reorder Buttons (for reorderable items) -->
+                    ${reorderButtons}
                     
                     <!-- Photo -->
                     <div style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0;">
@@ -3265,47 +3280,113 @@
             }
         }
 
-        // Drag and Drop Functions
-        let draggedElement = null;
-        let draggedIndex = null;
-
-        function handleDragStart(event) {
-            draggedElement = event.target;
-            draggedIndex = parseInt(event.target.getAttribute('data-index'));
-            event.target.classList.add('dragging');
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData('text/plain', draggedIndex.toString());
+        // Reorder Functions
+        function moveItemUp(index) {
+            console.log('⬆️ Moving item up:', index);
+            console.log('⬆️ Current inventory length:', inventory.length);
+            console.log('⬆️ Item at index:', inventory[index]);
+            
+            // Validate the item exists and is needs-work
+            if (!inventory[index] || inventory[index].status !== 'needs-work') {
+                console.log('❌ Invalid item for move up:', inventory[index]);
+                return;
+            }
+            
+            // Get all needs-work items and their indices
+            const needsWorkIndices = [];
+            inventory.forEach((item, idx) => {
+                if (item && item.status === 'needs-work') {
+                    needsWorkIndices.push(idx);
+                }
+            });
+            
+            console.log('⬆️ Needs-work indices:', needsWorkIndices);
+            
+            // Find current position in needs-work array
+            const currentPosition = needsWorkIndices.indexOf(index);
+            console.log('⬆️ Current position:', currentPosition);
+            
+            if (currentPosition > 0) {
+                // Swap with item above
+                const targetIndex = needsWorkIndices[currentPosition - 1];
+                console.log('⬆️ Swapping with target index:', targetIndex);
+                console.log('⬆️ Target item:', inventory[targetIndex]);
+                
+                // Perform the swap
+                const temp = inventory[index];
+                inventory[index] = inventory[targetIndex];
+                inventory[targetIndex] = temp;
+                
+                console.log('⬆️ Swap completed. New items:');
+                console.log('⬆️ Item at', index, ':', inventory[index]);
+                console.log('⬆️ Item at', targetIndex, ':', inventory[targetIndex]);
+                
+                // Update UI immediately for better user experience
+                renderInventory();
+                
+                // Save to database in background (non-blocking)
+                setTimeout(() => {
+                    saveInventory();
+                }, 100);
+                
+                console.log('✅ Item moved up successfully');
+            } else {
+                console.log('ℹ️ Item is already at the top');
+            }
         }
-
-        function handleDragEnd(event) {
-            event.target.classList.remove('dragging');
-            draggedElement = null;
-            draggedIndex = null;
-        }
-
-        function handleDragOver(event) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-        }
-
-        function handleDrop(event) {
-            event.preventDefault();
+        
+        function moveItemDown(index) {
+            console.log('⬇️ Moving item down:', index);
+            console.log('⬇️ Current inventory length:', inventory.length);
+            console.log('⬇️ Item at index:', inventory[index]);
             
-            const dropIndex = parseInt(event.target.getAttribute('data-index'));
-            if (dropIndex === draggedIndex) return;
+            // Validate the item exists and is needs-work
+            if (!inventory[index] || inventory[index].status !== 'needs-work') {
+                console.log('❌ Invalid item for move down:', inventory[index]);
+                return;
+            }
             
-            // Swap items in inventory array
-            const temp = inventory[draggedIndex];
-            inventory[draggedIndex] = inventory[dropIndex];
-            inventory[dropIndex] = temp;
+            // Get all needs-work items and their indices
+            const needsWorkIndices = [];
+            inventory.forEach((item, idx) => {
+                if (item && item.status === 'needs-work') {
+                    needsWorkIndices.push(idx);
+                }
+            });
             
-            // Save the new order
-            saveInventory();
+            console.log('⬇️ Needs-work indices:', needsWorkIndices);
             
-            // Re-render the needs work section
-            renderInventory();
+            // Find current position in needs-work array
+            const currentPosition = needsWorkIndices.indexOf(index);
+            console.log('⬇️ Current position:', currentPosition);
             
-            console.log('🔄 Items swapped and order saved');
+            if (currentPosition < needsWorkIndices.length - 1) {
+                // Swap with item below
+                const targetIndex = needsWorkIndices[currentPosition + 1];
+                console.log('⬇️ Swapping with target index:', targetIndex);
+                console.log('⬇️ Target item:', inventory[targetIndex]);
+                
+                // Perform the swap
+                const temp = inventory[index];
+                inventory[index] = inventory[targetIndex];
+                inventory[targetIndex] = temp;
+                
+                console.log('⬇️ Swap completed. New items:');
+                console.log('⬇️ Item at', index, ':', inventory[index]);
+                console.log('⬇️ Item at', targetIndex, ':', inventory[targetIndex]);
+                
+                // Update UI immediately for better user experience
+                renderInventory();
+                
+                // Save to database in background (non-blocking)
+                setTimeout(() => {
+                    saveInventory();
+                }, 100);
+                
+                console.log('✅ Item moved down successfully');
+            } else {
+                console.log('ℹ️ Item is already at the bottom');
+            }
         }
 
         // Open full view modal
@@ -3455,6 +3536,13 @@
         }
 
         // Close full view modal
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.getElementById('editMainPhotos').value = '';
+            document.getElementById('editWorkPhotos').value = '';
+            editingIndex = -1;
+        }
+
         function closeFullViewModal() {
             document.getElementById('fullViewModal').classList.remove('active');
             currentFullViewItemNumber = null; // Reset the itemNumber reference
