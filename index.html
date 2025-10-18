@@ -146,70 +146,13 @@
             box-shadow: none;
         }
 
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #333;
-            transition: all 0.3s;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+        .logout-btn-header:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            transform: translateY(-1px);
         }
 
-        .logout-btn:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .user-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            color: #333;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .logout-btn {
-                top: 15px;
-                right: 15px;
-                padding: 8px 15px;
-                font-size: 0.9em;
-            }
-            
-            .user-info {
-                top: 15px;
-                left: 15px;
-                padding: 8px 15px;
-                font-size: 0.9em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .logout-btn {
-                top: 10px;
-                right: 10px;
-                padding: 6px 12px;
-                font-size: 0.8em;
-            }
-            
-            .user-info {
-                top: 10px;
-                left: 10px;
-                padding: 6px 12px;
-                font-size: 0.8em;
-            }
-        }
 
         .hidden {
             display: none !important;
@@ -415,6 +358,22 @@
             .header p {
                 font-size: 1em;
             }
+            
+            .header > div {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start !important;
+            }
+            
+            .header > div > div:last-child {
+                align-self: flex-end;
+                gap: 10px;
+            }
+            
+            .logout-btn-header {
+                padding: 8px 16px !important;
+                font-size: 0.9em !important;
+            }
         }
 
         @media (max-width: 480px) {
@@ -424,6 +383,17 @@
             
             .header p {
                 font-size: 0.9em;
+            }
+            
+            .header > div > div:last-child {
+                flex-direction: column;
+                align-items: flex-end !important;
+                gap: 8px;
+            }
+            
+            .logout-btn-header {
+                padding: 6px 12px !important;
+                font-size: 0.8em !important;
             }
         }
 
@@ -1081,18 +1051,33 @@
 
     <!-- Main Application -->
     <div id="mainApp" class="hidden">
-        <div class="user-info">
-            Logged in as: <span id="currentUser"></span>
-                    </div>
-        <button class="logout-btn" onclick="logout()">
-            Logout
-        </button>
         
         <div class="container">
         <div class="header">
-            <h1><span onclick="showHiddenHistory()" style="cursor: pointer; user-select: none; font-weight: 300;">INV</span> Furniture Inventory Manager</h1>
-            <p>Professional Inventory & Sales Management System</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><span onclick="showHiddenHistory()" style="cursor: pointer; user-select: none; font-weight: 300;">INV</span> Furniture Inventory Manager</h1>
+                    <p>Professional Inventory & Sales Management System</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 8px 15px; border-radius: 6px; font-weight: 600;">
+                        User: <span id="currentUserHeader"></span>
                     </div>
+                    <button onclick="logout()" class="logout-btn-header" style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s;
+                    ">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('statistics')">Statistics</button>
@@ -1260,6 +1245,14 @@
                         <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
                     </div>
                     <div class="form-group">
+                        <label>Affect Balance</label>
+                        <select id="affectBalance">
+                            <option value="yes">Yes - Deduct from balance</option>
+                            <option value="no">No - Don't affect balance</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85em;">Choose "No" for donated/found/free items</small>
+                    </div>
+                    <div class="form-group">
                         <label>Status</label>
                         <select id="itemStatus">
                             <option value="ready">Ready to Sell</option>
@@ -1342,10 +1335,18 @@
                     <label>Purchase Date</label>
                     <input type="date" id="editPurchaseDate">
                 </div>
-                <div class="form-group">
-                    <label>Purchase Price (£)</label>
-                    <input type="number" id="editPurchasePrice" step="0.01">
-                </div>
+                    <div class="form-group">
+                        <label>Purchase Price (£)</label>
+                        <input type="number" id="editPurchasePrice" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Affect Balance</label>
+                        <select id="editAffectBalance">
+                            <option value="yes">Yes - Deduct from balance</option>
+                            <option value="no">No - Don't affect balance</option>
+                        </select>
+                        <small style="color: #666; font-size: 0.85em;">Choose "No" for donated/found/free items</small>
+                    </div>
                 <div class="form-group">
                     <label>Sold Date</label>
                     <input type="date" id="editSoldDate">
@@ -1353,6 +1354,14 @@
                 <div class="form-group">
                     <label>Sold Price (£)</label>
                     <input type="number" id="editSoldPrice" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Add to Balance</label>
+                    <select id="editAddToBalance">
+                        <option value="yes">Yes - Add to balance</option>
+                        <option value="no">No - Don't add to balance</option>
+                    </select>
+                    <small style="color: #666; font-size: 0.85em;">Choose "No" if you want to manually add the money later</small>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
@@ -1428,6 +1437,14 @@
                 <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
             </div>
 
+            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">Sold Items - Add to Balance</h4>
+                <p style="color: #666; margin-bottom: 15px;">These sold items haven't been added to your balance yet. Click to add them as income transactions.</p>
+                <div id="soldItemsList" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Sold items will be listed here -->
+                </div>
+            </div>
+
             <div>
                 <h4 style="margin-bottom: 15px;">Transaction History</h4>
                 <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
@@ -1467,7 +1484,7 @@
         function showMainApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('currentUser').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
+            document.getElementById('currentUserHeader').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
             
             // Load inventory data
             loadInventory();
@@ -1760,8 +1777,11 @@
                 let readyItems = 0, needsWorkItems = 0, soldItems = 0;
                 
                 inventory.forEach(item => {
-                    moneyOut += item.purchasePrice;
-                    if (item.soldPrice > 0) moneyIn += item.soldPrice;
+                    // Include purchase price in balance if affectBalance is true or undefined (existing items default to true)
+                    if (item.affectBalance === true || item.affectBalance === undefined) {
+                        moneyOut += item.purchasePrice;
+                    }
+                    // Sold items are NOT automatically added to balance - they must be manually added through transactions
                     
                     if (item.status === 'sold') soldItems++;
                     else if (item.status === 'ready') readyItems++;
@@ -1774,7 +1794,17 @@
                     else additionalExpenses += t.amount;
                 });
                 
-                const totalProfit = moneyIn - moneyOut;
+                // Calculate profit only from sold items
+                let soldItemsCost = 0;
+                let soldItemsRevenue = 0;
+                inventory.forEach(item => {
+                    if (item.status === 'sold' && item.soldPrice > 0) {
+                        // Always include revenue and cost for sold items in profit calculation
+                        soldItemsRevenue += item.soldPrice;
+                        soldItemsCost += item.purchasePrice;
+                    }
+                });
+                const totalProfit = soldItemsRevenue - soldItemsCost;
                 const totalBalance = moneyIn - moneyOut + additionalIncome - additionalExpenses;
                 
                 const summaryData = [
@@ -2056,6 +2086,7 @@
             const name = document.getElementById('itemName').value;
             const purchaseDate = document.getElementById('purchaseDate').value;
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            const affectBalance = document.getElementById('affectBalance').value;
             const status = document.getElementById('itemStatus').value;
             const description = document.getElementById('itemDescription').value;
             const workNotes = document.getElementById('itemWorkNotes').value;
@@ -2073,6 +2104,7 @@
                 name,
                 purchaseDate,
                 purchasePrice,
+                affectBalance: affectBalance === 'yes',
                 status,
                 description,
                 workNotes: workNotes || '',
@@ -2152,6 +2184,7 @@
             document.getElementById('itemName').value = '';
             document.getElementById('purchaseDate').value = '';
             document.getElementById('purchasePrice').value = '';
+            document.getElementById('affectBalance').value = 'yes';
             document.getElementById('itemStatus').value = 'ready';
             document.getElementById('itemDescription').value = '';
             document.getElementById('itemWorkNotes').value = '';
@@ -2306,8 +2339,10 @@
             document.getElementById('editItemName').value = item.name;
             document.getElementById('editPurchaseDate').value = item.purchaseDate;
             document.getElementById('editPurchasePrice').value = item.purchasePrice;
+            document.getElementById('editAffectBalance').value = (item.affectBalance === true || item.affectBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editSoldDate').value = item.soldDate || '';
             document.getElementById('editSoldPrice').value = item.soldPrice || '';
+            document.getElementById('editAddToBalance').value = (item.addToBalance === true || item.addToBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editItemStatus').value = item.status;
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
@@ -2359,8 +2394,10 @@
             item.name = document.getElementById('editItemName').value;
             item.purchaseDate = document.getElementById('editPurchaseDate').value;
             item.purchasePrice = parseFloat(document.getElementById('editPurchasePrice').value);
+            item.affectBalance = document.getElementById('editAffectBalance').value === 'yes';
             item.soldDate = document.getElementById('editSoldDate').value;
             item.soldPrice = parseFloat(document.getElementById('editSoldPrice').value) || 0;
+            item.addToBalance = document.getElementById('editAddToBalance').value === 'yes';
             item.status = document.getElementById('editItemStatus').value;
             item.description = document.getElementById('editItemDescription').value;
             item.workNotes = document.getElementById('editItemWorkNotes').value;
@@ -2441,17 +2478,27 @@
             let soldItems = 0;
 
             inventory.forEach(item => {
-                moneyOut += item.purchasePrice;
-                if (item.soldPrice > 0) {
-                    moneyIn += item.soldPrice;
+                if (item.affectBalance !== false) { // Default to true for existing items
+                    moneyOut += item.purchasePrice;
                 }
+                // Sold items are NOT automatically added to balance - they must be manually added through transactions
                 
                 if (item.status === 'sold') soldItems++;
                 else if (item.status === 'ready') readyItems++;
                 else if (item.status === 'needs-work') needsWorkItems++;
             });
 
-            const totalProfit = moneyIn - moneyOut;
+            // Calculate profit only from sold items
+            let soldItemsCost = 0;
+            let soldItemsRevenue = 0;
+            inventory.forEach(item => {
+                if (item.status === 'sold' && item.soldPrice > 0) {
+                    // Always include revenue and cost for sold items in profit calculation
+                    soldItemsRevenue += item.soldPrice;
+                    soldItemsCost += item.purchasePrice;
+                }
+            });
+            const totalProfit = soldItemsRevenue - soldItemsCost;
             
             // Calculate balance including additional transactions
             let additionalIncome = 0;
@@ -2789,6 +2836,7 @@
             document.getElementById('transactionDate').value = today;
             
             renderTransactions();
+            renderSoldItems();
             document.getElementById('balanceModal').classList.add('active');
         }
 
@@ -2834,6 +2882,23 @@
             clearTransactionForm();
         }
 
+        // Add sold item to balance as income transaction
+        function addSoldItemToBalance(itemName, amount, soldDate) {
+            const transaction = {
+                id: Date.now(),
+                description: `Sale: ${itemName}`,
+                amount: amount,
+                type: 'income',
+                date: soldDate
+            };
+
+            transactions.push(transaction);
+            saveTransactions();
+            renderTransactions();
+            renderSoldItems(); // Refresh the sold items list
+            updateStatistics();
+        }
+
         // Delete transaction
         function deleteTransaction(id) {
             if (confirm('Delete this transaction?')) {
@@ -2875,6 +2940,45 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        // Render sold items that can be added to balance
+        function renderSoldItems() {
+            const soldItemsList = document.getElementById('soldItemsList');
+            
+            // Get sold items that haven't been added to balance yet
+            const soldItems = inventory.filter(item => 
+                item.status === 'sold' && 
+                item.soldPrice > 0 && 
+                !transactions.some(t => 
+                    t.description.includes(item.name) && 
+                    t.type === 'income' && 
+                    t.amount === item.soldPrice
+                )
+            );
+            
+            if (soldItems.length === 0) {
+                soldItemsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No sold items to add to balance</div>';
+                return;
+            }
+
+            soldItemsList.innerHTML = soldItems.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ddd;">
+                    <div>
+                        <div style="font-weight: 600; color: #333;">${item.name}</div>
+                        <div style="font-size: 0.9em; color: #666;">Sold: ${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'Unknown'}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="font-size: 1.1em; font-weight: 700; color: #28a745;">
+                            £${item.soldPrice.toFixed(2)}
+                        </div>
+                        <button onclick="addSoldItemToBalance('${item.name}', ${item.soldPrice}, '${item.soldDate || new Date().toISOString().split('T')[0]}')" 
+                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                            Add to Balance
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Photo modal functions
