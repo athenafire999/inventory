@@ -1096,10 +1096,10 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('statistics')">Statistics</button>
-            <button class="tab" onclick="switchTab('inventory')">Inventory</button>
+            <button class="tab" onclick="switchTab('inventory')">Inventory (<span id="inventoryCount">0</span>)</button>
             <button class="tab" onclick="switchTab('additem')">New Items</button>
-            <button class="tab" onclick="switchTab('needswork')">Not Ready</button>
-            <button class="tab" onclick="switchTab('sold')">Sold</button>
+            <button class="tab" onclick="switchTab('needswork')">Not Ready (<span id="needsworkCount">0</span>)</button>
+            <button class="tab" onclick="switchTab('sold')">Sold (<span id="soldCount">0</span>)</button>
         </div>
 
         <!-- Statistics Tab -->
@@ -2424,10 +2424,10 @@
                     </div>
                 `;
             } else {
-                inventoryList.innerHTML = '<div class="inventory-grid">' +
+                inventoryList.innerHTML = '<div class="inventory-list">' +
                     readyItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemCard(item, index);
+                        return renderItemList(item, index);
                     }).join('') +
                     '</div>';
             }
@@ -2441,10 +2441,10 @@
                     </div>
                 `;
             } else {
-                needsWorkList.innerHTML = '<div class="inventory-grid">' +
+                needsWorkList.innerHTML = '<div class="inventory-list">' +
                     needsWorkItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemCard(item, index);
+                        return renderItemList(item, index);
                     }).join('') +
                     '</div>';
             }
@@ -2458,16 +2458,112 @@
                     </div>
                 `;
             } else {
-                soldList.innerHTML = '<div class="inventory-grid">' +
+                soldList.innerHTML = '<div class="inventory-list">' +
                     soldItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemCard(item, index);
+                        return renderItemList(item, index);
                     }).join('') +
                     '</div>';
             }
         }
 
         // Render individual item card
+        // Render item in list view (compact)
+        function renderItemList(item, index) {
+            const photos = item.photos && item.photos.length > 0 ? item.photos : 
+                          (item.photo ? [item.photo] : []);
+            
+            const statusClass = item.status === 'sold' ? 'status-sold' : 
+                               item.status === 'ready' ? 'status-ready' : 'status-needs-work';
+            const statusText = item.status === 'sold' ? 'Sold' : 
+                              item.status === 'ready' ? 'Ready' : 'Needs Work';
+            
+            const currentPrice = item.soldPrice > 0 ? item.soldPrice : item.purchasePrice;
+            const priceLabel = item.soldPrice > 0 ? 'Sold for' : 'Purchase Price';
+            
+            return `
+                <div class="inventory-list-item" onclick="openEditModal(${index})" style="
+                    display: flex;
+                    align-items: center;
+                    padding: 15px;
+                    background: white;
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    border-left: 4px solid ${item.status === 'ready' ? '#28a745' : item.status === 'sold' ? '#6c757d' : '#ffc107'};
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" 
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                    
+                    <!-- Photo -->
+                    <div style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0;">
+                        ${photos.length > 0 ? `
+                            <img src="${photos[0]}" alt="${item.name}" style="
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                                border-radius: 6px;
+                                border: 2px solid #e9ecef;
+                            ">
+                        ` : `
+                            <div style="
+                                width: 100%;
+                                height: 100%;
+                                background: #f8f9fa;
+                                border-radius: 6px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: #6c757d;
+                                font-size: 1.5em;
+                                border: 2px solid #e9ecef;
+                            ">📷</div>
+                        `}
+                    </div>
+                    
+                    <!-- Item Details -->
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
+                            <h3 style="margin: 0; font-size: 1.2em; color: #333; font-weight: 600;">${item.name}</h3>
+                            <span class="status-badge ${statusClass}" style="
+                                padding: 4px 8px;
+                                border-radius: 12px;
+                                font-size: 0.8em;
+                                font-weight: 600;
+                                text-transform: uppercase;
+                            ">${statusText}</span>
+                        </div>
+                        
+                        <div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">
+                            <strong>Item #:</strong> ${item.itemNumber || 'N/A'}
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="color: #666; font-size: 0.9em;">
+                                <strong>${priceLabel}:</strong> £${currentPrice.toFixed(2)}
+                            </div>
+                            <div style="color: #666; font-size: 0.8em;">
+                                ${new Date(item.purchaseDate).toLocaleDateString()}
+                            </div>
+                        </div>
+                        
+                        ${item.description ? `
+                            <div style="color: #666; font-size: 0.85em; margin-top: 5px; 
+                                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                ${item.description}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Click indicator -->
+                    <div style="margin-left: 10px; color: #6c757d; font-size: 1.2em;">
+                        →
+                    </div>
+                </div>
+            `;
+        }
+
         function renderItemCard(item, index) {
             const statusClass = item.status === 'sold' ? 'status-sold' : 
                                item.status === 'ready' ? 'status-ready' : 'status-needs-work';
@@ -2735,6 +2831,11 @@
             document.getElementById('readyItems').textContent = readyItems;
             document.getElementById('needsWorkItems').textContent = needsWorkItems;
             document.getElementById('soldItems').textContent = soldItems;
+
+            // Update tab counts
+            document.getElementById('inventoryCount').textContent = readyItems;
+            document.getElementById('needsworkCount').textContent = needsWorkItems;
+            document.getElementById('soldCount').textContent = soldItems;
 
             // Calculate average days in stock and days to sell
             let totalDaysInStock = 0;
