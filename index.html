@@ -1320,6 +1320,8 @@
                         <option value="edit">Items Edited</option>
                         <option value="delete">Items Deleted</option>
                         <option value="status">Status Changes</option>
+                        <option value="balance_transaction">Balance Transactions</option>
+                        <option value="balance_transaction_delete">Balance Deletions</option>
                     </select>
                     <button class="btn btn-danger" onclick="clearHistory()" style="padding: 8px 16px; font-size: 0.9em;">
                         Clear History
@@ -1636,6 +1638,8 @@
                                     <option value="edit">Items Edited</option>
                                     <option value="delete">Items Deleted</option>
                                     <option value="status">Status Changes</option>
+                                    <option value="balance_transaction">Balance Transactions</option>
+                                    <option value="balance_transaction_delete">Balance Deletions</option>
                                 </select>
                                 <button onclick="clearHistory()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
                                     Clear History
@@ -1706,6 +1710,14 @@
                     case 'status':
                         actionText = 'Status Changed';
                         actionIcon = '[Status]';
+                        break;
+                    case 'balance_transaction':
+                        actionText = 'Balance Transaction Added';
+                        actionIcon = '[Balance+]';
+                        break;
+                    case 'balance_transaction_delete':
+                        actionText = 'Balance Transaction Deleted';
+                        actionIcon = '[Balance-]';
                         break;
                 }
 
@@ -2040,6 +2052,14 @@
                     case 'status':
                         actionText = 'Status Changed';
                         actionIcon = '[Status]';
+                        break;
+                    case 'balance_transaction':
+                        actionText = 'Balance Transaction Added';
+                        actionIcon = '[Balance+]';
+                        break;
+                    case 'balance_transaction_delete':
+                        actionText = 'Balance Transaction Deleted';
+                        actionIcon = '[Balance-]';
                         break;
                 }
 
@@ -3063,6 +3083,14 @@
 
             transactions.push(transaction);
             saveTransactions(); // Keep as non-async for now
+            
+            // Add to history
+            addHistoryEntry('balance_transaction', desc, '', [
+                { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
+                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` },
+                { field: 'Date', oldValue: '', newValue: date }
+            ]);
+            
             renderTransactions();
             updateStatistics();
             clearTransactionForm();
@@ -3080,6 +3108,15 @@
 
             transactions.push(transaction);
             saveTransactions(); // Keep as non-async for now
+            
+            // Add to history
+            addHistoryEntry('balance_transaction', `Sale: ${itemName}`, '', [
+                { field: 'Type', oldValue: '', newValue: 'Income' },
+                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` },
+                { field: 'Date', oldValue: '', newValue: soldDate },
+                { field: 'Item', oldValue: '', newValue: itemName }
+            ]);
+            
             renderTransactions();
             renderSoldItems(); // Refresh the sold items list
             updateStatistics();
@@ -3088,8 +3125,19 @@
         // Delete transaction
         function deleteTransaction(id) {
             if (confirm('Delete this transaction?')) {
+                const transactionToDelete = transactions.find(t => t.id === id);
                 transactions = transactions.filter(t => t.id !== id);
                 saveTransactions(); // Keep as non-async for now
+                
+                // Add to history
+                if (transactionToDelete) {
+                    addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
+                        { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
+                        { field: 'Amount', oldValue: `£${transactionToDelete.amount.toFixed(2)}`, newValue: 'Deleted' },
+                        { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
+                    ]);
+                }
+                
                 renderTransactions();
                 updateStatistics();
             }
