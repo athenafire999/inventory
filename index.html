@@ -1502,6 +1502,35 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlweWdyZWV4b2tydXdxanF2dXVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3Mjg0NjcsImV4cCI6MjA3NjMwNDQ2N30.1itsG_KGK4_wqA7y1La9neJ9AkH4hDe0ouEwM1xvYwA';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Test Supabase connection
+        console.log('Supabase client initialized:', supabase);
+        console.log('Supabase URL:', supabaseUrl);
+        console.log('Supabase Key (first 20 chars):', supabaseKey.substring(0, 20) + '...');
+
+        // Test Supabase connection
+        async function testSupabaseConnection() {
+            try {
+                console.log('Testing Supabase connection...');
+                const { data, error } = await supabase
+                    .from('inventory')
+                    .select('count')
+                    .limit(1);
+                
+                if (error) {
+                    console.error('Supabase connection test failed:', error);
+                } else {
+                    console.log('Supabase connection test successful:', data);
+                }
+            } catch (err) {
+                console.error('Supabase connection test error:', err);
+            }
+        }
+
+        // Run connection test after page loads
+        window.addEventListener('load', () => {
+            setTimeout(testSupabaseConnection, 1000); // Wait 1 second for everything to load
+        });
+
         // Authentication variables
         let currentUser = null;
         let selectedUser = null;
@@ -2255,7 +2284,9 @@
         // Save inventory to Supabase
         async function saveInventory() {
             try {
-                console.log('Saving inventory to Supabase...', inventory.length, 'items');
+                console.log('🔄 Saving inventory to Supabase...', inventory.length, 'items');
+                console.log('📊 Inventory data:', inventory);
+                
                 // Convert inventory to database format
                 const inventoryToSave = inventory.map(item => ({
                     item_number: item.itemNumber,
@@ -2273,7 +2304,7 @@
                     work_photos: item.workPhotos || []
                 }));
 
-                console.log('Inventory to save:', inventoryToSave);
+                console.log('💾 Inventory to save:', inventoryToSave);
 
                 // Clear existing data and insert new data
                 const { error: deleteError } = await supabase
@@ -2281,10 +2312,10 @@
                     .delete()
                     .neq('id', 0); // Delete all records
 
-                console.log('Delete result:', deleteError);
+                console.log('🗑️ Delete result:', deleteError);
 
                 if (deleteError) {
-                    console.error('Error clearing inventory:', deleteError);
+                    console.error('❌ Error clearing inventory:', deleteError);
                 }
 
                 if (inventoryToSave.length > 0) {
@@ -2292,16 +2323,18 @@
                         .from('inventory')
                         .insert(inventoryToSave);
 
-                    console.log('Insert result:', insertError);
+                    console.log('💾 Insert result:', insertError);
 
                     if (insertError) {
-                        console.error('Error saving inventory:', insertError);
+                        console.error('❌ Error saving inventory:', insertError);
                     } else {
-                        console.log('Successfully saved inventory to Supabase');
+                        console.log('✅ Successfully saved inventory to Supabase');
                     }
+                } else {
+                    console.log('ℹ️ No inventory items to save');
                 }
             } catch (error) {
-                console.error('Error saving inventory:', error);
+                console.error('❌ Error saving inventory:', error);
             }
         }
 
@@ -3086,6 +3119,7 @@
                 addHistoryEntry('delete', deletedItem.name, deletedItem.itemNumber, null, deletedItem);
                 
                 inventory.splice(index, 1);
+                console.log('Calling saveInventory after deletion...');
                 saveInventory(); // Keep as non-async for now
                 renderInventory();
                 updateStatistics();
@@ -3103,7 +3137,7 @@
 
             inventory.forEach(item => {
                 if (item.affectBalance !== false) { // Default to true for existing items
-                    moneyOut += item.purchasePrice;
+                    moneyOut += (item.purchasePrice || 0);
                 }
                 // Sold items are NOT automatically added to balance - they must be manually added through transactions
                 
@@ -3116,10 +3150,10 @@
             let soldItemsCost = 0;
             let soldItemsRevenue = 0;
             inventory.forEach(item => {
-                if (item.status === 'sold' && item.soldPrice > 0) {
+                if (item.status === 'sold' && (item.soldPrice || 0) > 0) {
                     // Always include revenue and cost for sold items in profit calculation
-                    soldItemsRevenue += item.soldPrice;
-                        soldItemsCost += item.purchasePrice;
+                    soldItemsRevenue += (item.soldPrice || 0);
+                    soldItemsCost += (item.purchasePrice || 0);
                 }
             });
             const totalProfit = soldItemsRevenue - soldItemsCost;
@@ -3129,9 +3163,9 @@
             let additionalExpenses = 0;
             transactions.forEach(t => {
                 if (t.type === 'income') {
-                    additionalIncome += t.amount;
+                    additionalIncome += (t.amount || 0);
                 } else {
-                    additionalExpenses += t.amount;
+                    additionalExpenses += (t.amount || 0);
                 }
             });
             
@@ -3278,9 +3312,9 @@
                         };
                     }
                     
-                    monthlyData[monthKey].revenue += item.soldPrice;
-                    monthlyData[monthKey].cost += item.purchasePrice;
-                    monthlyData[monthKey].profit += (item.soldPrice - item.purchasePrice);
+                    monthlyData[monthKey].revenue += (item.soldPrice || 0);
+                    monthlyData[monthKey].cost += (item.purchasePrice || 0);
+                    monthlyData[monthKey].profit += ((item.soldPrice || 0) - (item.purchasePrice || 0));
                     monthlyData[monthKey].itemsSold++;
                     monthlyData[monthKey].items.push(item);
                 }
@@ -3413,8 +3447,8 @@
                             </div>
                             <div class="month-stats">
                                 <div><strong>${data.itemsSold}</strong> sold</div>
-                                <div><strong style="color: #28a745;">£${data.revenue.toFixed(2)}</strong> revenue</div>
-                                <div><strong style="color: ${data.profit >= 0 ? '#667eea' : '#dc3545'};">£${data.profit.toFixed(2)}</strong> profit</div>
+                                <div><strong style="color: #28a745;">£${(data.revenue || 0).toFixed(2)}</strong> revenue</div>
+                                <div><strong style="color: ${(data.profit || 0) >= 0 ? '#667eea' : '#dc3545'};">£${(data.profit || 0).toFixed(2)}</strong> profit</div>
                             </div>
                         </div>
                         <div class="month-details" id="details-${month}">
