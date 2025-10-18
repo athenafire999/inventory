@@ -2982,10 +2982,15 @@
             console.log('editFromFullView called, currentFullViewItemNumber:', currentFullViewItemNumber);
             if (currentFullViewItemNumber) {
                 console.log('Finding index for itemNumber:', currentFullViewItemNumber);
-                closeFullViewModal();
+                
+                // Store the itemNumber before closing modal
+                const itemNumberToFind = currentFullViewItemNumber;
+                
+                // Close modal but don't reset the itemNumber yet
+                document.getElementById('fullViewModal').classList.remove('active');
                 
                 // Find the actual index in the inventory array using itemNumber
-                const actualIndex = inventory.findIndex(item => item.itemNumber === currentFullViewItemNumber);
+                const actualIndex = inventory.findIndex(item => item.itemNumber === itemNumberToFind);
                 console.log('Actual inventory index:', actualIndex);
                 
                 if (actualIndex !== -1) {
@@ -2993,13 +2998,16 @@
                 } else {
                     console.error('Could not find item in inventory array');
                     console.log('Available items:', inventory.map(item => ({ name: item.name, itemNumber: item.itemNumber })));
-                    console.log('Looking for itemNumber:', currentFullViewItemNumber);
+                    console.log('Looking for itemNumber:', itemNumberToFind);
                     console.log('Full inventory:', inventory);
+                    console.log('First item details:', inventory[0]);
+                    console.log('First item itemNumber:', inventory[0]?.itemNumber);
+                    console.log('First item item_number:', inventory[0]?.item_number);
                     
                     // Try alternative search methods
-                    const altIndex1 = inventory.findIndex(item => item.itemNumber === currentFullViewItemNumber);
-                    const altIndex2 = inventory.findIndex(item => item.itemNumber == currentFullViewItemNumber);
-                    const altIndex3 = inventory.findIndex(item => String(item.itemNumber) === String(currentFullViewItemNumber));
+                    const altIndex1 = inventory.findIndex(item => item.itemNumber === itemNumberToFind);
+                    const altIndex2 = inventory.findIndex(item => item.itemNumber == itemNumberToFind);
+                    const altIndex3 = inventory.findIndex(item => String(item.itemNumber) === String(itemNumberToFind));
                     
                     console.log('Alternative searches:', { altIndex1, altIndex2, altIndex3 });
                     
@@ -3014,7 +3022,8 @@
                     }
                 }
                 
-                currentFullViewItemNumber = null; // Reset after use
+                // Reset after we're done
+                currentFullViewItemNumber = null;
             } else {
                 console.log('No item selected for editing');
             }
