@@ -1436,6 +1436,7 @@
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                <button class="btn btn-danger" onclick="deleteFromFullView()">Delete Item</button>
                 <button class="btn btn-primary" onclick="editFromFullView()">Edit Item</button>
                 <button class="btn btn-secondary" onclick="closeFullViewModal()">Close</button>
             </div>
@@ -3026,6 +3027,53 @@
                 currentFullViewItemNumber = null;
             } else {
                 console.log('No item selected for editing');
+            }
+        }
+
+        // Delete item from full view
+        function deleteFromFullView() {
+            console.log('deleteFromFullView called, currentFullViewItemNumber:', currentFullViewItemNumber);
+            if (currentFullViewItemNumber) {
+                // Store the itemNumber before closing modal
+                const itemNumberToFind = currentFullViewItemNumber;
+                
+                // Close modal but don't reset the itemNumber yet
+                document.getElementById('fullViewModal').classList.remove('active');
+                
+                // Find the actual index in the inventory array using itemNumber
+                const actualIndex = inventory.findIndex(item => item.itemNumber === itemNumberToFind);
+                console.log('Actual inventory index for deletion:', actualIndex);
+                
+                if (actualIndex !== -1) {
+                    // Use the existing deleteItem function
+                    deleteItem(actualIndex);
+                } else {
+                    console.error('Could not find item in inventory array for deletion');
+                    console.log('Looking for itemNumber:', itemNumberToFind);
+                    console.log('Available items:', inventory.map(item => ({ name: item.name, itemNumber: item.itemNumber })));
+                    
+                    // Try alternative search methods
+                    const altIndex1 = inventory.findIndex(item => item.itemNumber === itemNumberToFind);
+                    const altIndex2 = inventory.findIndex(item => item.itemNumber == itemNumberToFind);
+                    const altIndex3 = inventory.findIndex(item => String(item.itemNumber) === String(itemNumberToFind));
+                    
+                    console.log('Alternative searches for deletion:', { altIndex1, altIndex2, altIndex3 });
+                    
+                    if (altIndex1 !== -1) {
+                        deleteItem(altIndex1);
+                    } else if (altIndex2 !== -1) {
+                        deleteItem(altIndex2);
+                    } else if (altIndex3 !== -1) {
+                        deleteItem(altIndex3);
+                    } else {
+                        alert('Error: Could not find item to delete');
+                    }
+                }
+                
+                // Reset after we're done
+                currentFullViewItemNumber = null;
+            } else {
+                console.log('No item selected for deletion');
             }
         }
 
