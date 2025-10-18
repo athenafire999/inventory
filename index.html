@@ -981,6 +981,73 @@
             white-space: pre-wrap;
         }
 
+        /* Drag and Drop Styles */
+        .draggable-item {
+            cursor: move;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .draggable-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .draggable-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+            z-index: 1000;
+        }
+        
+        .drag-placeholder {
+            background: #f0f8ff;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            height: 80px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .drag-handle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(102, 126, 234, 0.8);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.8em;
+            cursor: move;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .draggable-item:hover .drag-handle {
+            opacity: 1;
+        }
+        
+        .priority-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
         .photo-modal {
             display: none;
             position: fixed;
@@ -2730,7 +2797,7 @@
                 needsWorkList.innerHTML = '<div class="inventory-list">' +
                     needsWorkItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemList(item, index);
+                        return renderItemList(item, index, true); // Make draggable
                     }).join('') +
                     '</div>';
             }
@@ -2755,7 +2822,7 @@
 
         // Render individual item card
         // Render item in list view (compact)
-        function renderItemList(item, index) {
+        function renderItemList(item, index, isDraggable = false) {
             const photos = item.photos && item.photos.length > 0 ? item.photos : 
                           (item.photo ? [item.photo] : []);
             
@@ -2767,8 +2834,21 @@
             const currentPrice = item.soldPrice > 0 ? item.soldPrice : item.purchasePrice;
             const priceLabel = item.soldPrice > 0 ? 'Sold for' : 'Purchase Price';
             
+            // Add drag attributes for "Not Ready" items
+            const dragAttributes = isDraggable ? `
+                draggable="true"
+                class="inventory-list-item draggable-item"
+                data-index="${index}"
+                ondragstart="handleDragStart(event)"
+                ondragend="handleDragEnd(event)"
+                ondragover="handleDragOver(event)"
+                ondrop="handleDrop(event)"
+            ` : `
+                class="inventory-list-item"
+            `;
+            
             return `
-                <div class="inventory-list-item" onclick="openFullViewModal(${index})" style="
+                <div ${dragAttributes} onclick="openFullViewModal(${index})" style="
                     display: flex;
                     align-items: center;
                     padding: 15px;
@@ -2781,6 +2861,12 @@
                     border-left: 4px solid ${item.status === 'ready' ? '#28a745' : item.status === 'sold' ? '#6c757d' : '#ffc107'};
                 " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" 
                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                    
+                    <!-- Priority Indicator (for draggable items) -->
+                    ${isDraggable ? `<div class="priority-indicator">${index + 1}</div>` : ''}
+                    
+                    <!-- Drag Handle (for draggable items) -->
+                    ${isDraggable ? `<div class="drag-handle">⋮⋮</div>` : ''}
                     
                     <!-- Photo -->
                     <div style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0;">
@@ -3179,12 +3265,47 @@
             }
         }
 
-        // Close edit modal
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-            document.getElementById('editMainPhotos').value = '';
-            document.getElementById('editWorkPhotos').value = '';
-            editingIndex = -1;
+        // Drag and Drop Functions
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        function handleDragStart(event) {
+            draggedElement = event.target;
+            draggedIndex = parseInt(event.target.getAttribute('data-index'));
+            event.target.classList.add('dragging');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', draggedIndex.toString());
+        }
+
+        function handleDragEnd(event) {
+            event.target.classList.remove('dragging');
+            draggedElement = null;
+            draggedIndex = null;
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            
+            const dropIndex = parseInt(event.target.getAttribute('data-index'));
+            if (dropIndex === draggedIndex) return;
+            
+            // Swap items in inventory array
+            const temp = inventory[draggedIndex];
+            inventory[draggedIndex] = inventory[dropIndex];
+            inventory[dropIndex] = temp;
+            
+            // Save the new order
+            saveInventory();
+            
+            // Re-render the needs work section
+            renderInventory();
+            
+            console.log('🔄 Items swapped and order saved');
         }
 
         // Open full view modal
