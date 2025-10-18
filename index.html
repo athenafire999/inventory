@@ -403,6 +403,21 @@
             border-bottom: 2px solid #bdc3c7;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #bdc3c7 transparent;
+        }
+
+        .tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tabs::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tabs::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 2px;
         }
 
         .tab {
@@ -417,21 +432,33 @@
             background: transparent;
             white-space: nowrap;
             min-width: 120px;
+            flex-shrink: 0;
         }
 
         @media (max-width: 768px) {
             .tab {
-                padding: 15px 10px;
+                padding: 15px 8px;
                 font-size: 0.9em;
-                min-width: 100px;
+                min-width: 120px;
+                flex-shrink: 0;
             }
         }
 
         @media (max-width: 480px) {
             .tab {
-                padding: 12px 8px;
-                font-size: 0.8em;
+                padding: 12px 6px;
+                font-size: 0.75em;
+                min-width: 90px;
+                flex-shrink: 0;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .tab {
+                padding: 10px 4px;
+                font-size: 0.7em;
                 min-width: 80px;
+                flex-shrink: 0;
             }
         }
 
@@ -1054,7 +1081,7 @@
                     font-weight: 600;
                     transition: border-color 0.3s;
                 " oninput="checkPinAndEnableLogin()">
-            </div>
+        </div>
 
             <div class="login-actions">
                 <button class="btn-login btn-login-primary" id="loginBtn" onclick="login()" disabled>
@@ -2241,18 +2268,18 @@
                         }
                     });
                     
-                    // Assign item numbers to existing items that don't have one
-                    let needsSave = false;
-                    inventory.forEach(item => {
-                        if (!item.itemNumber) {
-                            item.itemNumber = generateItemNumber();
-                            needsSave = true;
-                        }
-                    });
-                    if (needsSave) {
-                        await saveInventory();
+                // Assign item numbers to existing items that don't have one
+                let needsSave = false;
+                inventory.forEach(item => {
+                    if (!item.itemNumber) {
+                        item.itemNumber = generateItemNumber();
+                        needsSave = true;
                     }
+                });
+                if (needsSave) {
+                        await saveInventory();
                 }
+            }
             
             // Load transactions
                 const { data: transactionsData, error: transactionsError } = await supabase
