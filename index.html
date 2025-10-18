@@ -2219,21 +2219,22 @@
         // Load inventory from Supabase
         async function loadInventory() {
             try {
-                console.log('Loading inventory from Supabase...');
+                console.log('🔄 Loading inventory from Supabase...');
+                
                 // Load inventory items
                 const { data: inventoryData, error: inventoryError } = await supabase
                     .from('inventory')
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                console.log('Supabase response:', { data: inventoryData, error: inventoryError });
+                console.log('📦 Supabase inventory response:', { data: inventoryData, error: inventoryError });
 
                 if (inventoryError) {
-                    console.error('Error loading inventory:', inventoryError);
+                    console.error('❌ Error loading inventory:', inventoryError);
                     inventory = [];
                 } else {
                     inventory = inventoryData || [];
-                    console.log('Loaded inventory items:', inventory.length);
+                    console.log('✅ Loaded inventory items:', inventory.length);
                     
                     // Convert database field names to app field names
                     inventory.forEach(item => {
@@ -2268,43 +2269,52 @@
                         }
                     });
                     
-                // Assign item numbers to existing items that don't have one
-                let needsSave = false;
-                inventory.forEach(item => {
-                    if (!item.itemNumber) {
-                        item.itemNumber = generateItemNumber();
-                        needsSave = true;
-                    }
-                });
-                if (needsSave) {
+                    // Assign item numbers to existing items that don't have one
+                    let needsSave = false;
+                    inventory.forEach(item => {
+                        if (!item.itemNumber) {
+                            item.itemNumber = generateItemNumber();
+                            needsSave = true;
+                        }
+                    });
+                    if (needsSave) {
+                        console.log('💾 Saving inventory with new item numbers...');
                         await saveInventory();
+                    }
                 }
-            }
-            
-            // Load transactions
+                
+                // Load transactions
+                console.log('💰 Loading transactions from Supabase...');
                 const { data: transactionsData, error: transactionsError } = await supabase
                     .from('transactions')
                     .select('*')
                     .order('created_at', { ascending: false });
 
+                console.log('💳 Supabase transactions response:', { data: transactionsData, error: transactionsError });
+
                 if (transactionsError) {
-                    console.error('Error loading transactions:', transactionsError);
+                    console.error('❌ Error loading transactions:', transactionsError);
                     transactions = [];
                 } else {
                     transactions = transactionsData || [];
-            }
-            
-            // Load history
+                    console.log('✅ Loaded transactions:', transactions.length);
+                }
+                
+                // Load history
+                console.log('📚 Loading history from Supabase...');
                 await loadHistory();
-            
-            renderInventory();
-            updateStatistics();
+                
+                // Update UI
+                renderInventory();
+                updateStatistics();
+                console.log('🎨 UI updated with loaded data');
+                
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('❌ Error loading data:', error);
                 inventory = [];
                 transactions = [];
-            renderInventory();
-            updateStatistics();
+                renderInventory();
+                updateStatistics();
             }
         }
 
@@ -2343,19 +2353,28 @@
 
                 if (deleteError) {
                     console.error('❌ Error clearing inventory:', deleteError);
+                    return; // Don't try to insert if delete failed
                 }
 
                 if (inventoryToSave.length > 0) {
-                    const { error: insertError } = await supabase
+                    const { data: insertData, error: insertError } = await supabase
                         .from('inventory')
-                        .insert(inventoryToSave);
+                        .insert(inventoryToSave)
+                        .select();
 
-                    console.log('💾 Insert result:', insertError);
+                    console.log('💾 Insert result:', { data: insertData, error: insertError });
 
                     if (insertError) {
                         console.error('❌ Error saving inventory:', insertError);
+                        console.error('❌ Insert error details:', {
+                            message: insertError.message,
+                            details: insertError.details,
+                            hint: insertError.hint,
+                            code: insertError.code
+                        });
                     } else {
                         console.log('✅ Successfully saved inventory to Supabase');
+                        console.log('✅ Inserted items:', insertData?.length || 0);
                     }
                 } else {
                     console.log('ℹ️ No inventory items to save');
