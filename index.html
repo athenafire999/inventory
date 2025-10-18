@@ -1041,6 +1041,21 @@
         </div>
         </div>
 
+            <div class="pin-section" style="margin-top: 20px;">
+                <label for="pinInput" style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Enter PIN Code:</label>
+                <input type="password" id="pinInput" placeholder="Enter PIN" maxlength="4" style="
+                    width: 100%;
+                    padding: 12px;
+                    border: 2px solid #ddd;
+                    border-radius: 8px;
+                    font-size: 18px;
+                    text-align: center;
+                    letter-spacing: 2px;
+                    font-weight: 600;
+                    transition: border-color 0.3s;
+                " oninput="checkPinAndEnableLogin()">
+            </div>
+
             <div class="login-actions">
                 <button class="btn-login btn-login-primary" id="loginBtn" onclick="login()" disabled>
                     Access Inventory
@@ -1458,7 +1473,13 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://ipygreexokruwqjqvuuk.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlweWdyZWV4b2tydXdxanF2dXVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3Mjg0NjcsImV4cCI6MjA3NjMwNDQ2N30.1itsG_KGK4_wqA7y1La9neJ9AkH4hDe0ouEwM1xvYwA';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
         // Authentication variables
         let currentUser = null;
         let selectedUser = null;
@@ -1481,13 +1502,13 @@
         }
 
         // Show main application
-        function showMainApp() {
+        async function showMainApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('currentUserHeader').textContent = currentUser.charAt(0).toUpperCase() + currentUser.slice(1);
             
             // Load inventory data
-            loadInventory();
+            await loadInventory();
         }
 
         // Select user for login
@@ -1500,17 +1521,41 @@
             });
             document.getElementById(user + '-option').classList.add('selected');
             
-            // Enable login button
-            document.getElementById('loginBtn').disabled = false;
+            // Check if PIN is correct to enable login button
+            checkPinAndEnableLogin();
+        }
+
+        // Check PIN and enable login button if correct
+        function checkPinAndEnableLogin() {
+            const pinInput = document.getElementById('pinInput');
+            const loginBtn = document.getElementById('loginBtn');
+            const correctPin = '1990';
+            
+            if (selectedUser && pinInput.value === correctPin) {
+                loginBtn.disabled = false;
+                pinInput.style.borderColor = '#28a745';
+            } else {
+                loginBtn.disabled = true;
+                pinInput.style.borderColor = pinInput.value.length > 0 ? '#dc3545' : '#ddd';
+            }
         }
 
         // Login function
-        function login() {
+        async function login() {
             if (!selectedUser) return;
+            
+            const pinInput = document.getElementById('pinInput');
+            const correctPin = '1990';
+            
+            if (pinInput.value !== correctPin) {
+                alert('Invalid PIN code. Please enter the correct PIN.');
+                pinInput.focus();
+                return;
+            }
             
             currentUser = selectedUser;
             localStorage.setItem('furnitureUser', currentUser);
-            showMainApp();
+            await showMainApp();
         }
 
         // Logout function
@@ -1521,11 +1566,13 @@
                 localStorage.removeItem('furnitureUser');
                 showLoginScreen();
                 
-                // Clear any selections
+                // Clear any selections and PIN
                 document.querySelectorAll('.user-option').forEach(option => {
                     option.classList.remove('selected');
                 });
                 document.getElementById('loginBtn').disabled = true;
+                document.getElementById('pinInput').value = '';
+                document.getElementById('pinInput').style.borderColor = '#ddd';
             }
         }
 
@@ -1874,7 +1921,7 @@
             };
             
             editHistory.unshift(historyEntry); // Add to beginning
-            saveHistory();
+            saveHistory(); // Keep as non-async for now to avoid breaking other calls
             
             // Update history display if we're on the history tab
             if (document.getElementById('history').classList.contains('active')) {
@@ -1882,21 +1929,67 @@
             }
         }
 
-        function saveHistory() {
-            localStorage.setItem('furnitureEditHistory', JSON.stringify(editHistory));
+        // Save history to Supabase
+        async function saveHistory() {
+            try {
+                // Convert history to database format
+                const historyToSave = editHistory.map(entry => ({
+                    action: entry.action,
+                    item_name: entry.itemName,
+                    item_number: entry.itemNumber,
+                    changes: entry.changes,
+                    old_values: entry.oldValues || null,
+                    user_name: entry.userName || currentUser
+                }));
+
+                // Clear existing data and insert new data
+                const { error: deleteError } = await supabase
+                    .from('edit_history')
+                    .delete()
+                    .neq('id', 0); // Delete all records
+
+                if (deleteError) {
+                    console.error('Error clearing history:', deleteError);
+                }
+
+                if (historyToSave.length > 0) {
+                    const { error: insertError } = await supabase
+                        .from('edit_history')
+                        .insert(historyToSave);
+
+                    if (insertError) {
+                        console.error('Error saving history:', insertError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving history:', error);
+            }
         }
 
-        function loadHistory() {
-            const saved = localStorage.getItem('furnitureEditHistory');
-            if (saved) {
-                editHistory = JSON.parse(saved);
+        // Load history from Supabase
+        async function loadHistory() {
+            try {
+                const { data: historyData, error: historyError } = await supabase
+                    .from('edit_history')
+                    .select('*')
+                    .order('timestamp', { ascending: false });
+
+                if (historyError) {
+                    console.error('Error loading history:', historyError);
+                    editHistory = [];
+                } else {
+                    editHistory = historyData || [];
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                editHistory = [];
             }
         }
 
         function clearHistory() {
             if (confirm('Are you sure you want to clear all edit history? This cannot be undone.')) {
                 editHistory = [];
-                saveHistory();
+                saveHistory(); // Keep as non-async for now
                 renderHistory();
             }
         }
@@ -2026,44 +2119,137 @@
         }
 
         // Load inventory from localStorage
-        function loadInventory() {
-            const saved = localStorage.getItem('furnitureInventory');
-            if (saved) {
-                inventory = JSON.parse(saved);
-                // Assign item numbers to existing items that don't have one
-                let needsSave = false;
-                inventory.forEach(item => {
-                    if (!item.itemNumber) {
-                        item.itemNumber = generateItemNumber();
-                        needsSave = true;
+        // Load inventory from Supabase
+        async function loadInventory() {
+            try {
+                // Load inventory items
+                const { data: inventoryData, error: inventoryError } = await supabase
+                    .from('inventory')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (inventoryError) {
+                    console.error('Error loading inventory:', inventoryError);
+                    inventory = [];
+                } else {
+                    inventory = inventoryData || [];
+                    // Assign item numbers to existing items that don't have one
+                    let needsSave = false;
+                    inventory.forEach(item => {
+                        if (!item.itemNumber) {
+                            item.itemNumber = generateItemNumber();
+                            needsSave = true;
+                        }
+                    });
+                    if (needsSave) {
+                        await saveInventory();
                     }
-                });
-                if (needsSave) {
-                    saveInventory();
                 }
+
+                // Load transactions
+                const { data: transactionsData, error: transactionsError } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (transactionsError) {
+                    console.error('Error loading transactions:', transactionsError);
+                    transactions = [];
+                } else {
+                    transactions = transactionsData || [];
+                }
+                
+                // Load history
+                await loadHistory();
+                
+                renderInventory();
+                updateStatistics();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                inventory = [];
+                transactions = [];
+                renderInventory();
+                updateStatistics();
             }
-            
-            // Load transactions
-            const savedTransactions = localStorage.getItem('furnitureTransactions');
-            if (savedTransactions) {
-                transactions = JSON.parse(savedTransactions);
-            }
-            
-            // Load history
-            loadHistory();
-            
-            renderInventory();
-            updateStatistics();
         }
 
-        // Save inventory to localStorage
-        function saveInventory() {
-            localStorage.setItem('furnitureInventory', JSON.stringify(inventory));
+        // Save inventory to Supabase
+        async function saveInventory() {
+            try {
+                // Convert inventory to database format
+                const inventoryToSave = inventory.map(item => ({
+                    item_number: item.itemNumber,
+                    name: item.name,
+                    purchase_date: item.purchaseDate,
+                    purchase_price: item.purchasePrice,
+                    sold_date: item.soldDate || null,
+                    sold_price: item.soldPrice || null,
+                    status: item.status,
+                    description: item.description || '',
+                    work_notes: item.workNotes || '',
+                    affect_balance: item.affectBalance !== false,
+                    add_to_balance: item.addToBalance !== false,
+                    photos: item.photos || [],
+                    work_photos: item.workPhotos || []
+                }));
+
+                // Clear existing data and insert new data
+                const { error: deleteError } = await supabase
+                    .from('inventory')
+                    .delete()
+                    .neq('id', 0); // Delete all records
+
+                if (deleteError) {
+                    console.error('Error clearing inventory:', deleteError);
+                }
+
+                if (inventoryToSave.length > 0) {
+                    const { error: insertError } = await supabase
+                        .from('inventory')
+                        .insert(inventoryToSave);
+
+                    if (insertError) {
+                        console.error('Error saving inventory:', insertError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving inventory:', error);
+            }
         }
 
-        // Save transactions to localStorage
-        function saveTransactions() {
-            localStorage.setItem('furnitureTransactions', JSON.stringify(transactions));
+        // Save transactions to Supabase
+        async function saveTransactions() {
+            try {
+                // Convert transactions to database format
+                const transactionsToSave = transactions.map(transaction => ({
+                    description: transaction.description,
+                    amount: transaction.amount,
+                    type: transaction.type,
+                    date: transaction.date
+                }));
+
+                // Clear existing data and insert new data
+                const { error: deleteError } = await supabase
+                    .from('transactions')
+                    .delete()
+                    .neq('id', 0); // Delete all records
+
+                if (deleteError) {
+                    console.error('Error clearing transactions:', deleteError);
+                }
+
+                if (transactionsToSave.length > 0) {
+                    const { error: insertError } = await supabase
+                        .from('transactions')
+                        .insert(transactionsToSave);
+
+                    if (insertError) {
+                        console.error('Error saving transactions:', insertError);
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving transactions:', error);
+            }
         }
 
         // Switch between tabs
@@ -2121,7 +2307,7 @@
             const checkAllLoaded = () => {
                 if (photosLoaded && workPhotosLoaded) {
                     inventory.push(item);
-                    saveInventory();
+                    saveInventory(); // Keep as non-async for now
                     
                     // Add to history
                     addHistoryEntry('add', item.name, item.itemNumber);
@@ -2380,7 +2566,7 @@
                 const item = inventory[editingIndex];
                 item.workPhotos.splice(photoIndex, 1);
                 displayEditWorkPhotos();
-                saveInventory();
+                saveInventory(); // Keep as non-async for now
             }
         }
 
@@ -2432,7 +2618,7 @@
                         loadedCount++;
                         
                         if (loadedCount === totalFiles) {
-                            saveInventory();
+                            saveInventory(); // Keep as non-async for now
                             renderInventory();
                             closeEditModal();
                         }
@@ -2440,7 +2626,7 @@
                     reader.readAsDataURL(workPhotoInput.files[i]);
                 }
             } else {
-                saveInventory();
+                saveInventory(); // Keep as non-async for now
                 renderInventory();
                 closeEditModal();
             }
@@ -2462,7 +2648,7 @@
                 addHistoryEntry('delete', deletedItem.name, deletedItem.itemNumber, null, deletedItem);
                 
                 inventory.splice(index, 1);
-                saveInventory();
+                saveInventory(); // Keep as non-async for now
                 renderInventory();
                 updateStatistics();
             }
@@ -2876,7 +3062,7 @@
             };
 
             transactions.push(transaction);
-            saveTransactions();
+            saveTransactions(); // Keep as non-async for now
             renderTransactions();
             updateStatistics();
             clearTransactionForm();
@@ -2893,7 +3079,7 @@
             };
 
             transactions.push(transaction);
-            saveTransactions();
+            saveTransactions(); // Keep as non-async for now
             renderTransactions();
             renderSoldItems(); // Refresh the sold items list
             updateStatistics();
@@ -2903,7 +3089,7 @@
         function deleteTransaction(id) {
             if (confirm('Delete this transaction?')) {
                 transactions = transactions.filter(t => t.id !== id);
-                saveTransactions();
+                saveTransactions(); // Keep as non-async for now
                 renderTransactions();
                 updateStatistics();
             }
