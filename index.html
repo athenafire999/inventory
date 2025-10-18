@@ -1548,14 +1548,118 @@
                 } else {
                     console.log('Supabase connection test successful:', data);
                 }
+                
+                // Test inventory table specifically
+                console.log('Testing inventory table access...');
+                const { data: testData, error: testError } = await supabase
+                    .from('inventory')
+                    .select('*')
+                    .limit(1);
+                
+                if (testError) {
+                    console.error('❌ Inventory table access failed:', testError);
+                    console.error('❌ Error details:', {
+                        message: testError.message,
+                        details: testError.details,
+                        hint: testError.hint,
+                        code: testError.code
+                    });
+                } else {
+                    console.log('✅ Inventory table access successful:', testData);
+                }
+                
+                // Test specific columns
+                console.log('Testing inventory table columns...');
+                const { data: colData, error: colError } = await supabase
+                    .from('inventory')
+                    .select('id, item_number, name, purchase_date, purchase_price, status')
+                    .limit(1);
+                
+                if (colError) {
+                    console.error('❌ Inventory column test failed:', colError);
+                } else {
+                    console.log('✅ Inventory column test successful:', colData);
+                }
+                
+                // Test transactions table for comparison
+                console.log('Testing transactions table access...');
+                const { data: transData, error: transError } = await supabase
+                    .from('transactions')
+                    .select('*')
+                    .limit(1);
+                
+                if (transError) {
+                    console.error('❌ Transactions table access failed:', transError);
+                } else {
+                    console.log('✅ Transactions table access successful:', transData);
+                }
+                
             } catch (err) {
                 console.error('Supabase connection test error:', err);
             }
         }
 
+        // Test inserting a simple item
+        async function testInventoryInsert() {
+            try {
+                console.log('🧪 Testing inventory insert...');
+                const testItem = {
+                    item_number: 'TEST-001',
+                    name: 'Test Item',
+                    purchase_date: '2024-01-01',
+                    purchase_price: 10.00,
+                    sold_date: null,
+                    sold_price: null,
+                    status: 'ready',
+                    description: 'Test item for debugging',
+                    work_notes: '',
+                    affect_balance: true,
+                    add_to_balance: true,
+                    photos: [],
+                    work_photos: []
+                };
+                
+                const { data, error } = await supabase
+                    .from('inventory')
+                    .insert([testItem])
+                    .select();
+                
+                if (error) {
+                    console.error('❌ Test insert failed:', error);
+                    console.error('❌ Insert error details:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
+                } else {
+                    console.log('✅ Test insert successful:', data);
+                    
+                    // Clean up test item
+                    if (data && data.length > 0) {
+                        const { error: deleteError } = await supabase
+                            .from('inventory')
+                            .delete()
+                            .eq('id', data[0].id);
+                        
+                        if (deleteError) {
+                            console.error('❌ Test cleanup failed:', deleteError);
+                        } else {
+                            console.log('✅ Test cleanup successful');
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('❌ Test insert error:', err);
+            }
+        }
+
         // Run connection test after page loads
         window.addEventListener('load', () => {
-            setTimeout(testSupabaseConnection, 1000); // Wait 1 second for everything to load
+            setTimeout(async () => {
+                await testSupabaseConnection();
+                await testInventoryInsert();
+            }, 1000); // Wait 1 second for everything to load
         });
 
         // Authentication variables
@@ -2231,7 +2335,22 @@
 
                 if (inventoryError) {
                     console.error('❌ Error loading inventory:', inventoryError);
-                    inventory = [];
+                    console.error('❌ Inventory error details:', {
+                        message: inventoryError.message,
+                        details: inventoryError.details,
+                        hint: inventoryError.hint,
+                        code: inventoryError.code
+                    });
+                    
+                    // Check if it's a table doesn't exist error
+                    if (inventoryError.code === 'PGRST116' || inventoryError.message.includes('relation "inventory" does not exist')) {
+                        console.log('🔧 Inventory table does not exist. Creating fallback...');
+                        inventory = [];
+                        // Try to create a simple test item to see if we can insert
+                        await testInventoryInsert();
+                    } else {
+                        inventory = [];
+                    }
                 } else {
                     inventory = inventoryData || [];
                     console.log('✅ Loaded inventory items:', inventory.length);
