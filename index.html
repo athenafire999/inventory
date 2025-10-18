@@ -1123,8 +1123,8 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('statistics')">Statistics</button>
-            <button class="tab" onclick="switchTab('inventory')">Inventory (<span id="inventoryCount">0</span>)</button>
             <button class="tab" onclick="switchTab('additem')">New Items</button>
+            <button class="tab" onclick="switchTab('inventory')">Inventory (<span id="inventoryCount">0</span>)</button>
             <button class="tab" onclick="switchTab('needswork')">Not Ready (<span id="needsworkCount">0</span>)</button>
             <button class="tab" onclick="switchTab('sold')">Sold (<span id="soldCount">0</span>)</button>
         </div>
@@ -1418,6 +1418,12 @@
                 <div class="form-group">
                     <label>Description</label>
                     <textarea id="editItemDescription" rows="2"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label>Main Item Photos</label>
+                    <div id="editMainPhotosPreview" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 10px;"></div>
+                    <input type="file" id="editMainPhotos" accept="image/*" multiple>
+                    <small style="color: #666; font-size: 0.85em;">Add or replace main photos of the item</small>
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label>Work Required Photos</label>
@@ -2441,7 +2447,15 @@
         async function saveInventory() {
             try {
                 console.log('🔄 Saving inventory to Supabase...', inventory.length, 'items');
+                alert('🔄 Saving ' + inventory.length + ' items to Supabase'); // Mobile debug
                 console.log('📊 Inventory data:', inventory);
+                
+                // Check for any invalid items
+                inventory.forEach((item, index) => {
+                    if (!item.name || !item.purchaseDate || isNaN(item.purchasePrice)) {
+                        console.error(`❌ Invalid item at index ${index}:`, item);
+                    }
+                });
                 
                 // Convert inventory to database format
                 const inventoryToSave = inventory.map(item => ({
@@ -2494,6 +2508,7 @@
                     } else {
                         console.log('✅ Successfully saved inventory to Supabase');
                         console.log('✅ Inserted items:', insertData?.length || 0);
+                        alert('✅ Successfully saved ' + (insertData?.length || 0) + ' items to Supabase'); // Mobile debug
                     }
                 } else {
                     console.log('ℹ️ No inventory items to save');
@@ -2918,10 +2933,42 @@
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
             
+            // Display existing main photos
+            displayEditMainPhotos();
+            
             // Display existing work photos
             displayEditWorkPhotos();
             
             document.getElementById('editModal').classList.add('active');
+        }
+
+        // Display main photos in edit modal
+        function displayEditMainPhotos() {
+            if (editingIndex === -1) return;
+            
+            const item = inventory[editingIndex];
+            const previewDiv = document.getElementById('editMainPhotosPreview');
+            
+            if (!item.photos || item.photos.length === 0) {
+                previewDiv.innerHTML = '';
+                return;
+            }
+            
+            previewDiv.innerHTML = item.photos.map((photo, index) => `
+                <div style="position: relative;">
+                    <img src="${photo}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #667eea;">
+                    <button onclick="removeEditMainPhoto(${index})" style="position: absolute; top: 5px; right: 5px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Remove main photo from edit
+        function removeEditMainPhoto(index) {
+            if (editingIndex === -1) return;
+            
+            const item = inventory[editingIndex];
+            item.photos.splice(index, 1);
+            displayEditMainPhotos();
         }
 
         // Display work photos in edit modal
@@ -2957,37 +3004,147 @@
 
         // Save edit
         function saveEdit() {
-            if (editingIndex === -1) return;
+            console.log('💾 saveEdit called, editingIndex:', editingIndex);
+            alert('💾 saveEdit called, editingIndex: ' + editingIndex); // Mobile debug
+            if (editingIndex === -1) {
+                console.log('❌ No item being edited');
+                alert('❌ No item being edited'); // Mobile debug
+                return;
+            }
             
             const oldItem = {...inventory[editingIndex]}; // Create a copy of the old item
             const item = inventory[editingIndex];
             
-            item.name = document.getElementById('editItemName').value;
-            item.purchaseDate = document.getElementById('editPurchaseDate').value;
-            item.purchasePrice = parseFloat(document.getElementById('editPurchasePrice').value);
-            item.affectBalance = document.getElementById('editAffectBalance').value === 'yes';
-            item.soldDate = document.getElementById('editSoldDate').value;
-            item.soldPrice = parseFloat(document.getElementById('editSoldPrice').value) || 0;
-            item.addToBalance = document.getElementById('editAddToBalance').value === 'yes';
-            item.status = document.getElementById('editItemStatus').value;
-            item.description = document.getElementById('editItemDescription').value;
-            item.workNotes = document.getElementById('editItemWorkNotes').value;
+            console.log('📝 Original item:', oldItem);
+            console.log('📝 Inventory before edit:', inventory.length, 'items');
+            alert('📝 Inventory before edit: ' + inventory.length + ' items'); // Mobile debug
+            
+            // Get form values with mobile-safe parsing
+            const nameEl = document.getElementById('editItemName');
+            const purchaseDateEl = document.getElementById('editPurchaseDate');
+            const purchasePriceEl = document.getElementById('editPurchasePrice');
+            const affectBalanceEl = document.getElementById('editAffectBalance');
+            const soldDateEl = document.getElementById('editSoldDate');
+            const soldPriceEl = document.getElementById('editSoldPrice');
+            const addToBalanceEl = document.getElementById('editAddToBalance');
+            const statusEl = document.getElementById('editItemStatus');
+            const descriptionEl = document.getElementById('editItemDescription');
+            const workNotesEl = document.getElementById('editItemWorkNotes');
+            
+            console.log('📱 Form elements found:', {
+                name: !!nameEl,
+                purchaseDate: !!purchaseDateEl,
+                purchasePrice: !!purchasePriceEl,
+                affectBalance: !!affectBalanceEl,
+                soldDate: !!soldDateEl,
+                soldPrice: !!soldPriceEl,
+                addToBalance: !!addToBalanceEl,
+                status: !!statusEl,
+                description: !!descriptionEl,
+                workNotes: !!workNotesEl
+            });
+            
+            const formData = {
+                name: nameEl?.value || '',
+                purchaseDate: purchaseDateEl?.value || '',
+                purchasePrice: parseFloat(purchasePriceEl?.value || '0'),
+                affectBalance: affectBalanceEl?.value === 'yes',
+                soldDate: soldDateEl?.value || '',
+                soldPrice: parseFloat(soldPriceEl?.value || '0') || 0,
+                addToBalance: addToBalanceEl?.value === 'yes',
+                status: statusEl?.value || 'ready',
+                description: descriptionEl?.value || '',
+                workNotes: workNotesEl?.value || ''
+            };
+            
+            console.log('📋 Form data:', formData);
+            
+            // Update item with form data
+            item.name = formData.name;
+            item.purchaseDate = formData.purchaseDate;
+            item.purchasePrice = formData.purchasePrice;
+            item.affectBalance = formData.affectBalance;
+            item.soldDate = formData.soldDate;
+            item.soldPrice = formData.soldPrice;
+            item.addToBalance = formData.addToBalance;
+            item.status = formData.status;
+            item.description = formData.description;
+            item.workNotes = formData.workNotes;
             
             // Auto-set status to sold if sold date and price are provided
             if (item.soldDate && item.soldPrice > 0) {
                 item.status = 'sold';
+                console.log('🔄 Auto-set status to sold');
             }
+            
+            console.log('📝 Updated item:', item);
             
             // Detect changes and add to history
             const changes = detectChanges(oldItem, item);
             if (changes.length > 0) {
+                console.log('📊 Changes detected:', changes);
                 const action = changes.some(c => c.field === 'Status') ? 'status' : 'edit';
                 addHistoryEntry(action, item.name, item.itemNumber, changes, oldItem);
+            } else {
+                console.log('ℹ️ No changes detected');
+            }
+            
+            // Handle new main photos
+            const mainPhotoInput = document.getElementById('editMainPhotos');
+            console.log('📸 Main photos input:', mainPhotoInput.files?.length || 0, 'files');
+            
+            let mainPhotosLoaded = false;
+            let workPhotosLoaded = false;
+            
+            // Function to check if all photos are loaded
+            const checkAllPhotosLoaded = () => {
+                if (mainPhotosLoaded && workPhotosLoaded) {
+                    console.log('💾 All photos loaded, saving inventory...');
+                    console.log('📝 Final inventory before save:', inventory.length, 'items');
+                    alert('💾 Saving inventory with ' + inventory.length + ' items'); // Mobile debug
+                    saveInventory(); // Keep as non-async for now
+                    renderInventory();
+                    closeEditModal();
+                }
+            };
+            
+            // Handle main photos
+            if (mainPhotoInput.files && mainPhotoInput.files.length > 0) {
+                console.log('📸 Processing main photos...');
+                let loadedCount = 0;
+                const totalFiles = mainPhotoInput.files.length;
+                
+                // Initialize photos array if it doesn't exist
+                if (!item.photos) {
+                    item.photos = [];
+                }
+                
+                for (let i = 0; i < totalFiles; i++) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        item.photos.push(e.target.result);
+                        loadedCount++;
+                        
+                        console.log(`📸 Main photo ${loadedCount}/${totalFiles} loaded`);
+                        
+                        if (loadedCount === totalFiles) {
+                            mainPhotosLoaded = true;
+                            checkAllPhotosLoaded();
+                        }
+                    };
+                    reader.readAsDataURL(mainPhotoInput.files[i]);
+                }
+            } else {
+                mainPhotosLoaded = true;
+                checkAllPhotosLoaded();
             }
             
             // Handle new work photos
             const workPhotoInput = document.getElementById('editWorkPhotos');
+            console.log('📸 Work photos input:', workPhotoInput.files?.length || 0, 'files');
+            
             if (workPhotoInput.files && workPhotoInput.files.length > 0) {
+                console.log('📸 Processing work photos...');
                 let loadedCount = 0;
                 const totalFiles = workPhotoInput.files.length;
                 
@@ -3002,24 +3159,25 @@
                         item.workPhotos.push(e.target.result);
                         loadedCount++;
                         
+                        console.log(`📸 Photo ${loadedCount}/${totalFiles} loaded`);
+                        
                         if (loadedCount === totalFiles) {
-                            saveInventory(); // Keep as non-async for now
-                            renderInventory();
-                            closeEditModal();
+                            workPhotosLoaded = true;
+                            checkAllPhotosLoaded();
                         }
                     };
                     reader.readAsDataURL(workPhotoInput.files[i]);
                 }
             } else {
-                saveInventory(); // Keep as non-async for now
-                renderInventory();
-                closeEditModal();
+                workPhotosLoaded = true;
+                checkAllPhotosLoaded();
             }
         }
 
         // Close edit modal
         function closeEditModal() {
             document.getElementById('editModal').classList.remove('active');
+            document.getElementById('editMainPhotos').value = '';
             document.getElementById('editWorkPhotos').value = '';
             editingIndex = -1;
         }
