@@ -1423,6 +1423,25 @@
         </div>
     </div>
 
+    <!-- Full View Modal -->
+    <div id="fullViewModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <span id="fullViewItemName">Item Details</span>
+                <button onclick="closeFullViewModal()" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #666;">✕</button>
+            </div>
+            
+            <div id="fullViewContent" style="padding: 20px;">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="editFromFullView()">Edit Item</button>
+                <button class="btn btn-secondary" onclick="closeFullViewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Balance Modal -->
     <div id="balanceModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
@@ -1859,8 +1878,8 @@
                 inventory.forEach(item => {
                     if (item.status === 'sold' && item.soldPrice > 0) {
                         // Always include revenue and cost for sold items in profit calculation
-                        soldItemsRevenue += item.soldPrice;
-                        soldItemsCost += item.purchasePrice;
+                            soldItemsRevenue += item.soldPrice;
+                            soldItemsCost += item.purchasePrice;
                     }
                 });
                 const totalProfit = soldItemsRevenue - soldItemsCost;
@@ -1904,6 +1923,7 @@
         // Initialize variables first
         let inventory = [];
         let editingIndex = -1;
+        let currentFullViewItemNumber = null;
         let transactions = [];
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
@@ -2153,20 +2173,20 @@
                     inventory = [];
                 } else {
                     inventory = inventoryData || [];
-                    // Assign item numbers to existing items that don't have one
-                    let needsSave = false;
-                    inventory.forEach(item => {
-                        if (!item.itemNumber) {
-                            item.itemNumber = generateItemNumber();
-                            needsSave = true;
-                        }
-                    });
-                    if (needsSave) {
-                        await saveInventory();
+                // Assign item numbers to existing items that don't have one
+                let needsSave = false;
+                inventory.forEach(item => {
+                    if (!item.itemNumber) {
+                        item.itemNumber = generateItemNumber();
+                        needsSave = true;
                     }
+                });
+                if (needsSave) {
+                        await saveInventory();
                 }
-
-                // Load transactions
+            }
+            
+            // Load transactions
                 const { data: transactionsData, error: transactionsError } = await supabase
                     .from('transactions')
                     .select('*')
@@ -2177,19 +2197,19 @@
                     transactions = [];
                 } else {
                     transactions = transactionsData || [];
-                }
-                
-                // Load history
+            }
+            
+            // Load history
                 await loadHistory();
-                
-                renderInventory();
-                updateStatistics();
+            
+            renderInventory();
+            updateStatistics();
             } catch (error) {
                 console.error('Error loading data:', error);
                 inventory = [];
                 transactions = [];
-                renderInventory();
-                updateStatistics();
+            renderInventory();
+            updateStatistics();
             }
         }
 
@@ -2482,7 +2502,7 @@
             const priceLabel = item.soldPrice > 0 ? 'Sold for' : 'Purchase Price';
             
             return `
-                <div class="inventory-list-item" onclick="openEditModal(${index})" style="
+                <div class="inventory-list-item" onclick="openFullViewModal(${index})" style="
                     display: flex;
                     align-items: center;
                     padding: 15px;
@@ -2634,8 +2654,11 @@
 
         // Edit item
         function editItem(index) {
+            console.log('editItem called with index:', index);
             editingIndex = index;
             const item = inventory[index];
+            
+            console.log('Editing item:', item.name);
             
             document.getElementById('editItemNumber').value = item.itemNumber || 'N/A';
             document.getElementById('editItemName').value = item.name;
@@ -2755,6 +2778,183 @@
             editingIndex = -1;
         }
 
+        // Open full view modal
+        function openFullViewModal(index) {
+            console.log('openFullViewModal called with index:', index);
+            const item = inventory[index];
+            currentFullViewItemNumber = item.itemNumber;
+            
+            console.log('Setting currentFullViewItemNumber to:', item.itemNumber);
+            console.log('Item details:', { name: item.name, itemNumber: item.itemNumber, status: item.status });
+            
+            // Update modal header
+            document.getElementById('fullViewItemName').textContent = item.name;
+            
+            // Calculate days in stock
+            const purchaseDate = new Date(item.purchaseDate);
+            const endDate = item.soldDate ? new Date(item.soldDate) : new Date();
+            const daysInStock = Math.floor((endDate - purchaseDate) / (1000 * 60 * 60 * 24));
+            
+            // Handle photos
+            const photos = item.photos && item.photos.length > 0 ? item.photos : 
+                          (item.photo ? [item.photo] : []);
+            
+            const statusClass = item.status === 'sold' ? 'status-sold' : 
+                               item.status === 'ready' ? 'status-ready' : 'status-needs-work';
+            const statusText = item.status === 'sold' ? 'Sold' : 
+                              item.status === 'ready' ? 'Ready to Sell' : 'Needs Work';
+            
+            const profit = item.soldPrice - item.purchasePrice;
+            
+            // Create full view content
+            const content = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                    <!-- Left Column - Photos -->
+                    <div>
+                        <h3 style="margin-bottom: 15px;">Photos</h3>
+                        ${photos.length > 0 ? `
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+                                ${photos.map((photo, photoIdx) => `
+                                    <div style="position: relative; cursor: pointer;" onclick="openPhotoModal(${index}, ${photoIdx})">
+                                        <img src="${photo}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e9ecef;">
+                                        ${photos.length > 1 ? `<div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">${photoIdx + 1}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : `
+                            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
+                                <div style="font-size: 3em; margin-bottom: 10px;">📷</div>
+                                <div>No photos available</div>
+                            </div>
+                        `}
+                        
+                        ${item.workPhotos && item.workPhotos.length > 0 ? `
+                            <h4 style="margin: 20px 0 10px 0;">Work Photos</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;">
+                                ${item.workPhotos.map((photo, photoIdx) => `
+                                    <div style="position: relative; cursor: pointer;" onclick="openWorkPhotoModal(${index}, ${photoIdx})">
+                                        <img src="${photo}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #ffc107;">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Right Column - Details -->
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="margin: 0;">Item Information</h3>
+                            <span class="status-badge ${statusClass}" style="
+                                padding: 6px 12px;
+                                border-radius: 15px;
+                                font-size: 0.9em;
+                                font-weight: 600;
+                                text-transform: uppercase;
+                            ">${statusText}</span>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <strong>Item Number:</strong><br>
+                                    <span style="color: #3498db; font-weight: 600;">${item.itemNumber || 'N/A'}</span>
+                                </div>
+                                <div>
+                                    <strong>Purchase Date:</strong><br>
+                                    ${new Date(item.purchaseDate).toLocaleDateString()}
+                                </div>
+                                <div>
+                                    <strong>Purchase Price:</strong><br>
+                                    <span style="font-weight: 600;">£${item.purchasePrice.toFixed(2)}</span>
+                                </div>
+                                <div>
+                                    <strong>Days in Stock:</strong><br>
+                                    <span style="font-weight: 700; color: ${daysInStock > 90 ? '#e74c3c' : daysInStock > 30 ? '#f39c12' : '#27ae60'};">${daysInStock} days</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${item.soldDate ? `
+                            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; color: #28a745;">Sale Information</h4>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div>
+                                        <strong>Sold Date:</strong><br>
+                                        ${new Date(item.soldDate).toLocaleDateString()}
+                                    </div>
+                                    <div>
+                                        <strong>Sold Price:</strong><br>
+                                        <span style="font-weight: 600;">£${item.soldPrice.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
+                                    <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total Profit</div>
+                                    <div style="font-size: 1.8em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${profit.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${item.description ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4>Description</h4>
+                                <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
+                                    ${item.description}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${item.workNotes ? `
+                            <div style="margin-bottom: 20px;">
+                                <h4>Work Notes</h4>
+                                <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border: 1px solid #ffeaa7;">
+                                    ${item.workNotes}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 0.9em; color: #666;">
+                            <div><strong>Affects Balance:</strong> ${item.affectBalance !== false ? 'Yes' : 'No'}</div>
+                            <div><strong>Add to Balance:</strong> ${item.addToBalance !== false ? 'Yes' : 'No'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('fullViewContent').innerHTML = content;
+            document.getElementById('fullViewModal').classList.add('active');
+        }
+
+        // Close full view modal
+        function closeFullViewModal() {
+            document.getElementById('fullViewModal').classList.remove('active');
+            currentFullViewItemNumber = null; // Reset the itemNumber reference
+        }
+
+        // Edit item from full view
+        function editFromFullView() {
+            console.log('editFromFullView called, currentFullViewItemNumber:', currentFullViewItemNumber);
+            if (currentFullViewItemNumber) {
+                console.log('Finding index for itemNumber:', currentFullViewItemNumber);
+                closeFullViewModal();
+                
+                // Find the actual index in the inventory array using itemNumber
+                const actualIndex = inventory.findIndex(item => item.itemNumber === currentFullViewItemNumber);
+                console.log('Actual inventory index:', actualIndex);
+                
+                if (actualIndex !== -1) {
+                    editItem(actualIndex);
+                } else {
+                    console.error('Could not find item in inventory array');
+                    console.log('Available items:', inventory.map(item => ({ name: item.name, itemNumber: item.itemNumber })));
+                    alert('Error: Could not find item to edit');
+                }
+                
+                currentFullViewItemNumber = null; // Reset after use
+            } else {
+                console.log('No item selected for editing');
+            }
+        }
+
         // Delete item
         function deleteItem(index) {
             if (confirm('Are you sure you want to delete this item?')) {
@@ -2797,7 +2997,7 @@
                 if (item.status === 'sold' && item.soldPrice > 0) {
                     // Always include revenue and cost for sold items in profit calculation
                     soldItemsRevenue += item.soldPrice;
-                    soldItemsCost += item.purchasePrice;
+                        soldItemsCost += item.purchasePrice;
                 }
             });
             const totalProfit = soldItemsRevenue - soldItemsCost;
@@ -3378,6 +3578,12 @@
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeEditModal();
+            }
+        });
+
+        document.getElementById('fullViewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFullViewModal();
             }
         });
 
