@@ -1647,7 +1647,7 @@
                     </div>
 
                     <div class="delivery-form-group">
-                        <label>Driver should get payment for item *</label>
+                        <label>Driver should take payment for item *</label>
                         <div class="delivery-radio-group">
                             <div class="delivery-radio-item">
                                 <input type="radio" id="paymentYes" name="driverPaymentItem" value="Yes" checked>
@@ -4690,7 +4690,7 @@
                     <span class="preview-value">${driverCollectCode}</span>
                 </div>
                 <div class="preview-field">
-                    <span class="preview-label">Driver should get payment for item:</span>
+                    <span class="preview-label">Driver should take payment for item:</span>
                     <span class="preview-value">${driverPaymentItem}</span>
                 </div>
                 <div class="preview-field">
@@ -4731,7 +4731,7 @@
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = url;
-                        const filename = `Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
+                        const filename = `photo/Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
                         link.download = filename;
                         document.body.appendChild(link);
                         link.click();
