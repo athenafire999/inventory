@@ -4643,6 +4643,19 @@
             document.getElementById('deliveryForm').reset();
         }
 
+        // Helper function for fallback download
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('Delivery form JPEG downloaded successfully!');
+        }
+
         function generateDeliveryPDF(event) {
             event.preventDefault();
             
@@ -4727,22 +4740,41 @@
                     useCORS: true
                 }).then(canvas => {
                     // Convert canvas to JPEG and download
-                    canvas.toBlob(function(blob) {
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
+                    canvas.toBlob(async function(blob) {
                         const filename = `photo_Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
                         
-                        // Show success message
-                        alert('Delivery form JPEG downloaded successfully!');
-                        
-                        // Optionally reset the form after successful download
-                        // resetDeliveryForm();
+                        // Try to use File System Access API to let user choose save location
+                        if ('showSaveFilePicker' in window) {
+                            try {
+                                const fileHandle = await window.showSaveFilePicker({
+                                    suggestedName: filename,
+                                    types: [{
+                                        description: 'JPEG Image',
+                                        accept: {
+                                            'image/jpeg': ['.jpg']
+                                        }
+                                    }]
+                                });
+                                
+                                const writable = await fileHandle.createWritable();
+                                await writable.write(blob);
+                                await writable.close();
+                                
+                                alert('Delivery form JPEG saved successfully!');
+                            } catch (err) {
+                                if (err.name !== 'AbortError') {
+                                    console.error('Error saving file:', err);
+                                    // Fallback to regular download
+                                    downloadFile(blob, filename);
+                                } else {
+                                    // User cancelled the save dialog
+                                    console.log('Save cancelled by user');
+                                }
+                            }
+                        } else {
+                            // Fallback for browsers that don't support File System Access API
+                            downloadFile(blob, filename);
+                        }
                     }, 'image/jpeg', 0.95); // 0.95 quality (95%)
                 }).catch(error => {
                     console.error('Error generating image:', error);
