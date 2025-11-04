@@ -4731,7 +4731,7 @@
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement('a');
                         link.href = url;
-                        const filename = `photo/Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
+                        const filename = `photo_Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
                         link.download = filename;
                         document.body.appendChild(link);
                         link.click();
