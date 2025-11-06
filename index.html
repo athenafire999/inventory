@@ -214,6 +214,7 @@
         }
 
         .delivery-form-group input[type="text"],
+        .delivery-form-group input[type="date"],
         .delivery-form-group textarea {
             width: 100%;
             padding: 10px;
@@ -1614,10 +1615,16 @@
             <div style="max-width: 800px; margin: 0 auto;">
                 <h2 style="margin-bottom: 25px; color: #333;">Delivery Form</h2>
                 
-                <form id="deliveryForm" onsubmit="generateDeliveryPDF(event)">
+                <form id="deliveryForm" onsubmit="showCompletedForm(event)">
                     <div class="delivery-form-group">
                         <label for="deliveryJobCode">Job Number *</label>
                         <input type="text" id="deliveryJobCode" placeholder="e.g., 1-1, 1-2, 2-1" required>
+                    </div>
+
+                    <div class="delivery-form-group">
+                        <label for="deliveryDate">Delivery Date *</label>
+                        <input type="date" id="deliveryDate" required onchange="updateDeliveryDateDisplay()">
+                        <div id="deliveryDateDisplay" style="margin-top: 5px; font-weight: 600; color: #3498db;"></div>
                     </div>
 
                     <div class="delivery-form-group">
@@ -1696,9 +1703,20 @@
 
                     <div style="display: flex; gap: 10px; margin-top: 25px;">
                         <button type="button" class="btn btn-danger" onclick="resetDeliveryForm()" style="flex: 1;">Reset Form</button>
-                        <button type="submit" class="btn btn-success" style="flex: 1;">Download JPEG</button>
+                        <button type="submit" class="btn btn-success" style="flex: 1;">Done</button>
                     </div>
                 </form>
+
+                <!-- Completed Form View -->
+                <div id="completedFormView" style="display: none; max-width: 800px; margin: 0 auto;">
+                    <div id="completedFormContent" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 100%; box-sizing: border-box;">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 25px;">
+                        <button type="button" class="btn btn-primary" onclick="editDeliveryForm()" style="flex: 1;">Edit</button>
+                        <button type="button" class="btn btn-success" onclick="downloadCompletedFormPDF()" style="flex: 1;">Download PDF</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4641,6 +4659,155 @@
 
         function resetDeliveryForm() {
             document.getElementById('deliveryForm').reset();
+            document.getElementById('deliveryDateDisplay').textContent = '';
+            document.getElementById('completedFormView').style.display = 'none';
+            document.getElementById('deliveryForm').style.display = 'block';
+        }
+
+        // Update delivery date display with day of week
+        function updateDeliveryDateDisplay() {
+            const dateInput = document.getElementById('deliveryDate');
+            const displayDiv = document.getElementById('deliveryDateDisplay');
+            
+            if (dateInput.value) {
+                const date = new Date(dateInput.value + 'T00:00:00');
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayOfWeek = days[date.getDay()];
+                const formattedDate = date.toLocaleDateString('en-GB', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+                displayDiv.textContent = formattedDate;
+            } else {
+                displayDiv.textContent = '';
+            }
+        }
+
+        // Show completed form view
+        function showCompletedForm(event) {
+            event.preventDefault();
+            
+            // Get form values
+            const jobNumber = document.getElementById('deliveryJobCode').value;
+            const deliveryDateInput = document.getElementById('deliveryDate').value;
+            const creatorName = currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown';
+            const soldOnCheckboxes = document.querySelectorAll('input[name="soldOn"]:checked');
+            const soldOn = Array.from(soldOnCheckboxes).map(cb => cb.value).join(', ') || 'Not specified';
+            const driverCollectCode = document.getElementById('driverCollectCode').checked ? 'Yes' : 'No';
+            const driverPaymentItem = document.querySelector('input[name="driverPaymentItem"]:checked').value;
+            const driverPaymentDelivery = document.querySelector('input[name="driverPaymentDelivery"]:checked').value;
+            const specialComments = document.getElementById('deliverySpecialComments').value || 'None';
+            const streetName = document.getElementById('deliveryStreetName').value;
+            const county = document.getElementById('deliveryCounty').value;
+            const postcode = document.getElementById('deliveryPostcode').value;
+            
+            // Validate required fields
+            if (!jobNumber || !deliveryDateInput || !streetName || !county || !postcode) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Check if at least one "Sold On" checkbox is selected
+            if (soldOnCheckboxes.length === 0) {
+                alert('Please select at least one option for "Sold On"');
+                return;
+            }
+            
+            // Format delivery date with day of week
+            const deliveryDate = new Date(deliveryDateInput + 'T00:00:00');
+            const formattedDeliveryDate = deliveryDate.toLocaleDateString('en-GB', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            // Populate completed form view - optimized for mobile screenshots
+            const completedContent = document.getElementById('completedFormContent');
+            completedContent.innerHTML = `
+                <div style="max-width: 100%; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    <h1 style="text-align: center; margin: 0 0 15px 0; font-size: 22px; color: #333; font-weight: bold;">DELIVERY FORM</h1>
+                    <hr style="border: none; border-top: 2px solid #333; margin: 0 0 15px 0;">
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        <div style="margin-bottom: 10px;"><strong>Job:</strong> ${jobNumber}</div>
+                        <div style="margin-bottom: 10px;"><strong>Date:</strong> ${formattedDeliveryDate}</div>
+                        <div style="margin-bottom: 10px;"><strong>Created By:</strong> ${creatorName}</div>
+                        <div style="margin-bottom: 10px;"><strong>Sold On:</strong> ${soldOn}</div>
+                        <div style="margin-bottom: 10px;"><strong>Collect Code:</strong> ${driverCollectCode}</div>
+                        <div style="margin-bottom: 10px;"><strong>Payment for Item:</strong> ${driverPaymentItem}</div>
+                        <div style="margin-bottom: 10px;"><strong>Payment for Delivery:</strong> ${driverPaymentDelivery}</div>
+                        ${specialComments !== 'None' ? `<div style="margin-bottom: 10px;"><strong>Comments:</strong> ${specialComments.replace(/\n/g, ' ')}</div>` : ''}
+                        <div style="margin-bottom: 10px;"><strong>Address:</strong> ${streetName}, ${county}, ${postcode}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Hide form and show completed view
+            document.getElementById('deliveryForm').style.display = 'none';
+            document.getElementById('completedFormView').style.display = 'block';
+            
+            // Scroll to top of completed view
+            document.getElementById('completedFormView').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Edit delivery form (go back to form)
+        function editDeliveryForm() {
+            document.getElementById('completedFormView').style.display = 'none';
+            document.getElementById('deliveryForm').style.display = 'block';
+            document.getElementById('deliveryForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Download completed form as PDF (screenshot)
+        async function downloadCompletedFormPDF() {
+            const completedContent = document.getElementById('completedFormContent');
+            
+            try {
+                const canvas = await html2canvas(completedContent, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                });
+                
+                canvas.toBlob(async function(blob) {
+                    const jobNumber = document.getElementById('deliveryJobCode').value;
+                    const today = new Date().toLocaleDateString('en-GB');
+                    const filename = `photo_Delivery_Form_${jobNumber.replace(/[^a-zA-Z0-9]/g, '_')}_${today.replace(/\//g, '_')}.jpg`;
+                    
+                    // Try to use File System Access API to let user choose save location
+                    if ('showSaveFilePicker' in window) {
+                        try {
+                            const fileHandle = await window.showSaveFilePicker({
+                                suggestedName: filename,
+                                types: [{
+                                    description: 'JPEG Image',
+                                    accept: {
+                                        'image/jpeg': ['.jpg']
+                                    }
+                                }]
+                            });
+                            
+                            const writable = await fileHandle.createWritable();
+                            await writable.write(blob);
+                            await writable.close();
+                            
+                            alert('Delivery form saved successfully to Photos!');
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                console.error('Error saving file:', err);
+                                downloadFile(blob, filename);
+                            }
+                        }
+                    } else {
+                        downloadFile(blob, filename);
+                    }
+                }, 'image/jpeg', 0.95);
+            } catch (error) {
+                console.error('Error generating image:', error);
+                alert('Error generating delivery form image. Please try again.');
+            }
         }
 
         // Helper function for fallback download
