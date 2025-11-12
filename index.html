@@ -1618,7 +1618,12 @@
                 <form id="deliveryForm" onsubmit="showCompletedForm(event)">
                     <div class="delivery-form-group">
                         <label for="deliveryJobCode">Job Number *</label>
-                        <input type="text" id="deliveryJobCode" placeholder="e.g., 1-1, 1-2, 2-1" required>
+                        <input type="text" id="deliveryJobCode" placeholder="e.g., 1-1, 1-2, 2-1" required style="max-width: 200px;">
+                    </div>
+
+                    <div class="delivery-form-group">
+                        <label for="deliveryItemName">Item Name *</label>
+                        <input type="text" id="deliveryItemName" placeholder="Enter item name..." required>
                     </div>
 
                     <div class="delivery-form-group">
@@ -1648,7 +1653,7 @@
                     <div class="delivery-form-group">
                         <label>Driver to get collect code</label>
                         <div class="delivery-checkbox-item">
-                            <input type="checkbox" id="driverCollectCode">
+                            <input type="checkbox" id="driverCollectCode" checked>
                             <label for="driverCollectCode" style="margin: 0; font-weight: normal;">Driver should get collect code</label>
                         </div>
                     </div>
@@ -1657,11 +1662,11 @@
                         <label>Driver should take payment for item *</label>
                         <div class="delivery-radio-group">
                             <div class="delivery-radio-item">
-                                <input type="radio" id="paymentYes" name="driverPaymentItem" value="Yes" checked>
+                                <input type="radio" id="paymentYes" name="driverPaymentItem" value="Yes">
                                 <label for="paymentYes" style="margin: 0; font-weight: normal;">Yes</label>
                             </div>
                             <div class="delivery-radio-item">
-                                <input type="radio" id="paymentNo" name="driverPaymentItem" value="No">
+                                <input type="radio" id="paymentNo" name="driverPaymentItem" value="No" checked>
                                 <label for="paymentNo" style="margin: 0; font-weight: normal;">No</label>
                             </div>
                         </div>
@@ -1671,11 +1676,11 @@
                         <label>Driver should take payment for delivery *</label>
                         <div class="delivery-radio-group">
                             <div class="delivery-radio-item">
-                                <input type="radio" id="deliveryPaymentYes" name="driverPaymentDelivery" value="Yes" checked>
+                                <input type="radio" id="deliveryPaymentYes" name="driverPaymentDelivery" value="Yes">
                                 <label for="deliveryPaymentYes" style="margin: 0; font-weight: normal;">Yes</label>
                             </div>
                             <div class="delivery-radio-item">
-                                <input type="radio" id="deliveryPaymentNo" name="driverPaymentDelivery" value="No">
+                                <input type="radio" id="deliveryPaymentNo" name="driverPaymentDelivery" value="No" checked>
                                 <label for="deliveryPaymentNo" style="margin: 0; font-weight: normal;">No</label>
                             </div>
                         </div>
@@ -1687,18 +1692,8 @@
                     </div>
 
                     <div class="delivery-form-group">
-                        <label for="deliveryStreetName">Street Name *</label>
-                        <input type="text" id="deliveryStreetName" placeholder="Enter street name and number..." required>
-                    </div>
-
-                    <div class="delivery-form-group">
-                        <label for="deliveryCounty">County *</label>
-                        <input type="text" id="deliveryCounty" placeholder="Enter county..." required>
-                    </div>
-
-                    <div class="delivery-form-group">
-                        <label for="deliveryPostcode">Postcode *</label>
-                        <input type="text" id="deliveryPostcode" placeholder="Enter postcode..." required>
+                        <label for="deliveryAddress">Address *</label>
+                        <textarea id="deliveryAddress" rows="3" placeholder="Enter full address (street, county, postcode)..." required></textarea>
                     </div>
 
                     <div style="display: flex; gap: 10px; margin-top: 25px;">
@@ -4692,6 +4687,7 @@
             // Get form values
             const jobNumber = document.getElementById('deliveryJobCode').value;
             const deliveryDateInput = document.getElementById('deliveryDate').value;
+            const itemName = document.getElementById('deliveryItemName').value;
             const creatorName = currentUser ? currentUser.charAt(0).toUpperCase() + currentUser.slice(1) : 'Unknown';
             const soldOnCheckboxes = document.querySelectorAll('input[name="soldOn"]:checked');
             const soldOn = Array.from(soldOnCheckboxes).map(cb => cb.value).join(', ') || 'Not specified';
@@ -4699,12 +4695,10 @@
             const driverPaymentItem = document.querySelector('input[name="driverPaymentItem"]:checked').value;
             const driverPaymentDelivery = document.querySelector('input[name="driverPaymentDelivery"]:checked').value;
             const specialComments = document.getElementById('deliverySpecialComments').value || 'None';
-            const streetName = document.getElementById('deliveryStreetName').value;
-            const county = document.getElementById('deliveryCounty').value;
-            const postcode = document.getElementById('deliveryPostcode').value;
+            const address = document.getElementById('deliveryAddress').value;
             
             // Validate required fields
-            if (!jobNumber || !deliveryDateInput || !streetName || !county || !postcode) {
+            if (!jobNumber || !deliveryDateInput || !itemName || !address) {
                 alert('Please fill in all required fields');
                 return;
             }
@@ -4733,13 +4727,14 @@
                     <div style="font-size: 14px; line-height: 1.6;">
                         <div style="margin-bottom: 10px;"><strong>Job:</strong> ${jobNumber}</div>
                         <div style="margin-bottom: 10px;"><strong>Date:</strong> ${formattedDeliveryDate}</div>
+                        <div style="margin-bottom: 10px;"><strong>Item Name:</strong> ${itemName}</div>
                         <div style="margin-bottom: 10px;"><strong>Created By:</strong> ${creatorName}</div>
                         <div style="margin-bottom: 10px;"><strong>Sold On:</strong> ${soldOn}</div>
-                        <div style="margin-bottom: 10px;"><strong>Collect Code:</strong> ${driverCollectCode}</div>
-                        <div style="margin-bottom: 10px;"><strong>Payment for Item:</strong> ${driverPaymentItem}</div>
-                        <div style="margin-bottom: 10px;"><strong>Payment for Delivery:</strong> ${driverPaymentDelivery}</div>
+                        <div style="margin-bottom: 10px;"><strong>Courier should get Collect Code:</strong> ${driverCollectCode}</div>
+                        <div style="margin-bottom: 10px;"><strong>Courier should take Payment for Item:</strong> ${driverPaymentItem}</div>
+                        <div style="margin-bottom: 10px;"><strong>Courier should take Payment for Delivery:</strong> ${driverPaymentDelivery}</div>
                         ${specialComments !== 'None' ? `<div style="margin-bottom: 10px;"><strong>Comments:</strong> ${specialComments.replace(/\n/g, ' ')}</div>` : ''}
-                        <div style="margin-bottom: 10px;"><strong>Address:</strong> ${streetName}, ${county}, ${postcode}</div>
+                        <div style="margin-bottom: 10px;"><strong>Address:</strong> ${address.replace(/\n/g, ', ')}</div>
                     </div>
                 </div>
             `;
