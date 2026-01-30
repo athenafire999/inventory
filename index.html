@@ -1798,19 +1798,19 @@
                     <div class="breakdown-row">
                         <span class="breakdown-label">Sales Revenue:</span>
                         <span class="breakdown-value positive" id="balanceMoneyIn">£0.00</span>
-                    </div>
+                        </div>
                     <div class="breakdown-row">
                         <span class="breakdown-label">Inventory Purchases:</span>
                         <span class="breakdown-value negative" id="balanceMoneyOut">-£0.00</span>
-                    </div>
+                        </div>
                     <div class="breakdown-row">
                         <span class="breakdown-label">Additional Income:</span>
                         <span class="breakdown-value positive" id="balanceAdditionalIncome">£0.00</span>
-                    </div>
+                        </div>
                     <div class="breakdown-row">
                         <span class="breakdown-label">Additional Expenses:</span>
                         <span class="breakdown-value negative" id="balanceAdditionalExpenses">-£0.00</span>
-                    </div>
+                        </div>
                     <div class="breakdown-row" style="border-top: 2px solid var(--accent-primary); padding-top: 16px; margin-top: 8px;">
                         <span class="breakdown-label" style="color: var(--text-primary); font-weight: 600;">Total Balance:</span>
                         <span class="breakdown-value" style="color: var(--accent-primary); font-size: 1.1rem;" id="balanceTotal">£0.00</span>
@@ -2369,6 +2369,56 @@
         const JSONBIN_API_KEY = '$2a$10$wKD6wmdekKhY5AbAtKUeu.d9hVdOrNHxBRCFBHuk995OFxmRUtqd.';
         const JSONBIN_BIN_ID = null; // Will be auto-created on first save
         const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
+        
+        // ==================== ImgBB IMAGE HOSTING ====================
+        const IMGBB_API_KEY = '7b7e0bffd8117c5b4d3acda729d328b2';
+        
+        // Upload image to ImgBB and return URL
+        async function uploadToImgBB(base64Data) {
+            try {
+                // Remove data URL prefix if present
+                const base64Image = base64Data.replace(/^data:image\/[a-z]+;base64,/, '');
+                
+                const formData = new FormData();
+                formData.append('key', IMGBB_API_KEY);
+                formData.append('image', base64Image);
+                
+                console.log('📤 Uploading image to ImgBB...');
+                const response = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('📸 ✅ Image uploaded to ImgBB:', result.data.url);
+                    return result.data.url;
+                } else {
+                    console.error('📸 ❌ ImgBB upload failed:', result);
+                    return base64Data; // Fallback to base64 if upload fails
+                }
+            } catch (error) {
+                console.error('📸 ❌ ImgBB error:', error);
+                return base64Data; // Fallback to base64 if upload fails
+            }
+        }
+        
+        // Upload multiple images to ImgBB
+        async function uploadMultipleToImgBB(base64Array) {
+            const uploadedUrls = [];
+            for (const base64Data of base64Array) {
+                // Skip if already a URL (not base64)
+                if (base64Data.startsWith('http')) {
+                    uploadedUrls.push(base64Data);
+                } else {
+                    const url = await uploadToImgBB(base64Data);
+                    uploadedUrls.push(url);
+                }
+            }
+            return uploadedUrls;
+        }
+        // ==============================================================
         
         // Store bin ID in localStorage once created
         let jsonBinId = localStorage.getItem('furniture_jsonbin_id') || null;
@@ -3428,23 +3478,23 @@
                         console.log('☁️ Syncing local data to cloud...');
                         setTimeout(() => saveInventory(), 1000);
                     }
-                } else {
+                    } else {
                     // No data anywhere, start fresh
-                    inventory = [];
+                        inventory = [];
                     transactions = [];
                     console.log('📭 No data found - starting fresh');
                 }
                 
                 // Assign item numbers to items that don't have one
-                let needsSave = false;
-                inventory.forEach(item => {
-                    if (!item.itemNumber) {
-                        item.itemNumber = generateItemNumber();
-                        needsSave = true;
-                    }
-                });
-                if (needsSave) {
-                    await saveInventory();
+                    let needsSave = false;
+                    inventory.forEach(item => {
+                        if (!item.itemNumber) {
+                            item.itemNumber = generateItemNumber();
+                            needsSave = true;
+                        }
+                    });
+                    if (needsSave) {
+                        await saveInventory();
                 }
                 
                 // Update UI
@@ -3463,8 +3513,8 @@
                     transactions = transBackupStr ? JSON.parse(transBackupStr) : [];
                     console.log('🔄 Recovered from localStorage:', inventory.length, 'items');
                 } catch (localError) {
-                    inventory = [];
-                    transactions = [];
+                inventory = [];
+                transactions = [];
                 }
                 
                 renderInventory();
@@ -3514,9 +3564,9 @@
                 const cloudSaved = await jsonBinSave(cloudData);
                 if (cloudSaved) {
                     console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
-                } else {
+                    } else {
                     console.log('☁️ ⚠️ Cloud save failed - data safe in localStorage');
-                }
+                    }
                 
             } catch (error) {
                 console.error('❌ Error saving inventory:', error);
@@ -3581,17 +3631,28 @@
             let photosLoaded = false;
             let workPhotosLoaded = false;
 
-            // Function to check if all photos are loaded
-            const checkAllLoaded = () => {
+            // Function to check if all photos are loaded, then upload to ImgBB
+            const checkAllLoaded = async () => {
                 if (photosLoaded && workPhotosLoaded) {
+                    // Upload photos to ImgBB before saving
+                    if (item.photos.length > 0) {
+                        console.log('📤 Uploading', item.photos.length, 'main photos to ImgBB...');
+                        item.photos = await uploadMultipleToImgBB(item.photos);
+                    }
+                    if (item.workPhotos.length > 0) {
+                        console.log('📤 Uploading', item.workPhotos.length, 'work photos to ImgBB...');
+                        item.workPhotos = await uploadMultipleToImgBB(item.workPhotos);
+                    }
+                    
                     inventory.push(item);
-                    saveInventory(); // Keep as non-async for now
+                    await saveInventory();
                     
                     // Add to history
                     addHistoryEntry('add', item.name, item.itemNumber);
                     
                     renderInventory();
                     clearForm();
+                    console.log('✅ Item added with cloud-hosted images!');
                 }
             };
 
@@ -4095,15 +4156,26 @@
             let mainPhotosLoaded = false;
             let workPhotosLoaded = false;
             
-            // Function to check if all photos are loaded
-            const checkAllPhotosLoaded = () => {
+            // Function to check if all photos are loaded, then upload to ImgBB
+            const checkAllPhotosLoaded = async () => {
                 if (mainPhotosLoaded && workPhotosLoaded) {
-                    console.log('💾 All photos loaded, saving inventory...');
-                    console.log('📝 Final inventory before save:', inventory.length, 'items');
-                    alert('💾 Saving inventory with ' + inventory.length + ' items'); // Mobile debug
-                    saveInventory(); // Keep as non-async for now
+                    console.log('💾 All photos loaded, uploading to ImgBB...');
+                    
+                    // Upload any new base64 photos to ImgBB
+                    if (item.photos && item.photos.length > 0) {
+                        console.log('📤 Uploading main photos to ImgBB...');
+                        item.photos = await uploadMultipleToImgBB(item.photos);
+                    }
+                    if (item.workPhotos && item.workPhotos.length > 0) {
+                        console.log('📤 Uploading work photos to ImgBB...');
+                        item.workPhotos = await uploadMultipleToImgBB(item.workPhotos);
+                    }
+                    
+                    console.log('📝 Saving inventory with', inventory.length, 'items');
+                    await saveInventory();
                     renderInventory();
                     closeEditModal();
+                    console.log('✅ Item updated with cloud-hosted images!');
                 }
             };
             
