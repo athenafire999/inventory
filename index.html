@@ -2364,7 +2364,95 @@
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script>
-        // Supabase configuration
+        // ==================== JSONBin.io CONFIGURATION ====================
+        // This is your cloud storage - data syncs across all devices!
+        const JSONBIN_API_KEY = '$2a$10$wKD6wmdekKhY5AbAtKUeu.d9hVdOrNHxBRCFBHuk995OFxmRUtqd.';
+        const JSONBIN_BIN_ID = null; // Will be auto-created on first save
+        const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
+        
+        // Store bin ID in localStorage once created
+        let jsonBinId = localStorage.getItem('furniture_jsonbin_id') || null;
+        
+        // JSONBin.io API functions
+        async function jsonBinSave(data) {
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': JSONBIN_API_KEY
+                };
+                
+                if (jsonBinId) {
+                    // Update existing bin
+                    const response = await fetch(`${JSONBIN_BASE_URL}/b/${jsonBinId}`, {
+                        method: 'PUT',
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (result.metadata) {
+                        console.log('☁️ ✅ Data saved to JSONBin.io');
+                        return true;
+                    } else {
+                        console.error('☁️ ❌ JSONBin save error:', result);
+                        return false;
+                    }
+                } else {
+                    // Create new bin
+                    const response = await fetch(`${JSONBIN_BASE_URL}/b`, {
+                        method: 'POST',
+                        headers: {
+                            ...headers,
+                            'X-Bin-Name': 'furniture-inventory',
+                            'X-Bin-Private': 'true'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    const result = await response.json();
+                    if (result.metadata && result.metadata.id) {
+                        jsonBinId = result.metadata.id;
+                        localStorage.setItem('furniture_jsonbin_id', jsonBinId);
+                        console.log('☁️ ✅ Created new JSONBin:', jsonBinId);
+                        return true;
+                    } else {
+                        console.error('☁️ ❌ JSONBin create error:', result);
+                        return false;
+                    }
+                }
+            } catch (error) {
+                console.error('☁️ ❌ JSONBin error:', error);
+                return false;
+            }
+        }
+        
+        async function jsonBinLoad() {
+            try {
+                if (!jsonBinId) {
+                    console.log('☁️ No JSONBin ID found - will create on first save');
+                    return null;
+                }
+                
+                const response = await fetch(`${JSONBIN_BASE_URL}/b/${jsonBinId}/latest`, {
+                    method: 'GET',
+                    headers: {
+                        'X-Master-Key': JSONBIN_API_KEY
+                    }
+                });
+                const result = await response.json();
+                if (result.record) {
+                    console.log('☁️ ✅ Data loaded from JSONBin.io');
+                    return result.record;
+                } else {
+                    console.error('☁️ ❌ JSONBin load error:', result);
+                    return null;
+                }
+            } catch (error) {
+                console.error('☁️ ❌ JSONBin load error:', error);
+                return null;
+            }
+        }
+        // ==================================================================
+        
+        // Supabase configuration (kept as backup)
         const supabaseUrl = 'https://ipygreexokruwqjqvuuk.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlweWdyZWV4b2tydXdxanF2dXVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3Mjg0NjcsImV4cCI6MjA3NjMwNDQ2N30.1itsG_KGK4_wqA7y1La9neJ9AkH4hDe0ouEwM1xvYwA';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -3289,186 +3377,75 @@
             return changes;
         }
 
-        // Load inventory from Supabase with localStorage fallback
+        // Load inventory from JSONBin.io with localStorage fallback
         async function loadInventory() {
             try {
-                console.log('🔄 Loading inventory from Supabase...');
+                console.log('🔄 Loading data...');
                 
-                // Load inventory items
-                const { data: inventoryData, error: inventoryError } = await supabaseClient
-                    .from('inventory')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                console.log('📦 Supabase inventory response:', { data: inventoryData, error: inventoryError });
-
-                let useLocalBackup = false;
-                let localBackupData = null;
-                
-                // Check if we have localStorage backup
+                // First, try to load from localStorage (instant)
+                let localData = null;
                 try {
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
-                    const backupTimestamp = localStorage.getItem('furniture_inventory_backup_timestamp');
+                    const transBackupStr = localStorage.getItem('furniture_transactions_backup');
+                    const backupTimestamp = localStorage.getItem('furniture_backup_timestamp');
+                    
                     if (backupStr) {
-                        localBackupData = JSON.parse(backupStr);
-                        console.log('📁 Found localStorage backup:', localBackupData.length, 'items, saved at:', backupTimestamp);
+                        localData = {
+                            inventory: JSON.parse(backupStr),
+                            transactions: transBackupStr ? JSON.parse(transBackupStr) : []
+                        };
+                        console.log('📁 Found localStorage backup:', localData.inventory.length, 'items, saved at:', backupTimestamp);
                     }
                 } catch (localError) {
-                    console.error('❌ Error reading localStorage backup:', localError);
-                }
-
-                if (inventoryError) {
-                    console.error('❌ Error loading inventory:', inventoryError);
-                    console.error('❌ Inventory error details:', {
-                        message: inventoryError.message,
-                        details: inventoryError.details,
-                        hint: inventoryError.hint,
-                        code: inventoryError.code
-                    });
-                    
-                    // Use localStorage backup if available
-                    if (localBackupData && localBackupData.length > 0) {
-                        console.log('🔄 Using localStorage backup due to Supabase error');
-                        useLocalBackup = true;
-                    } else if (inventoryError.code === 'PGRST116' || inventoryError.message.includes('relation "inventory" does not exist')) {
-                        console.log('🔧 Inventory table does not exist. Creating fallback...');
-                        inventory = [];
-                        await testInventoryInsert();
-                    } else {
-                        inventory = [];
-                    }
-                } else {
-                    // Check if Supabase returned empty but we have local backup with data
-                    if ((!inventoryData || inventoryData.length === 0) && localBackupData && localBackupData.length > 0) {
-                        console.log('⚠️ Supabase returned empty but localStorage has', localBackupData.length, 'items');
-                        console.log('🔄 Using localStorage backup to prevent data loss');
-                        useLocalBackup = true;
-                    } else {
-                        inventory = inventoryData || [];
-                        console.log('✅ Loaded inventory items from Supabase:', inventory.length);
-                    }
+                    console.error('❌ Error reading localStorage:', localError);
                 }
                 
-                // Use localStorage backup if needed
-                if (useLocalBackup && localBackupData) {
-                    inventory = localBackupData;
-                    console.log('✅ Loaded inventory from localStorage backup:', inventory.length, 'items');
+                // Try to load from JSONBin.io (cloud)
+                console.log('☁️ Loading from cloud...');
+                const cloudData = await jsonBinLoad();
+                
+                if (cloudData && cloudData.inventory) {
+                    // Cloud data found
+                    inventory = cloudData.inventory || [];
+                    transactions = cloudData.transactions || [];
+                    console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions');
                     
-                    // Try to sync back to Supabase
-                    console.log('🔄 Attempting to sync localStorage data back to Supabase...');
-                    setTimeout(() => {
-                        saveInventory().then(() => {
-                            console.log('✅ Synced localStorage backup to Supabase');
-                        }).catch(err => {
-                            console.error('❌ Failed to sync to Supabase:', err);
-                        });
-                    }, 2000);
-                } else if (inventory.length > 0) {
-                    // Convert database field names to app field names
-                    inventory.forEach(item => {
-                        // Convert item_number to itemNumber
-                        if (item.item_number && !item.itemNumber) {
-                            item.itemNumber = item.item_number;
-                        }
-                        // Convert other database fields if needed
-                        if (item.purchase_date && !item.purchaseDate) {
-                            item.purchaseDate = item.purchase_date;
-                        }
-                        if (item.purchase_price !== undefined && item.purchasePrice === undefined) {
-                            item.purchasePrice = item.purchase_price;
-                        }
-                        if (item.sold_date && !item.soldDate) {
-                            item.soldDate = item.sold_date;
-                        }
-                        if (item.sold_price !== undefined && item.soldPrice === undefined) {
-                            item.soldPrice = item.sold_price;
-                        }
-                        if (item.work_notes && !item.workNotes) {
-                            item.workNotes = item.work_notes;
-                        }
-                        if (item.work_photos && !item.workPhotos) {
-                            item.workPhotos = item.work_photos;
-                        }
-                        if (item.affect_balance !== undefined && item.affectBalance === undefined) {
-                            item.affectBalance = item.affect_balance;
-                        }
-                        if (item.add_to_balance !== undefined && item.addToBalance === undefined) {
-                            item.addToBalance = item.add_to_balance;
-                        }
-                    });
-                    
-                    // Assign item numbers to existing items that don't have one
-                    let needsSave = false;
-                    inventory.forEach(item => {
-                        if (!item.itemNumber) {
-                            item.itemNumber = generateItemNumber();
-                            needsSave = true;
-                        }
-                    });
-                    if (needsSave) {
-                        console.log('💾 Saving inventory with new item numbers...');
-                        await saveInventory();
-                    }
-                    
-                    // Update localStorage backup with fresh Supabase data
+                    // Update localStorage with cloud data
                     try {
                         localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
-                        localStorage.setItem('furniture_inventory_backup_timestamp', new Date().toISOString());
-                        console.log('💾 Updated localStorage backup from Supabase');
-                    } catch (localError) {
-                        console.error('❌ Failed to update localStorage backup:', localError);
-                    }
-                }
-                
-                // Load transactions
-                console.log('💰 Loading transactions from Supabase...');
-                const { data: transactionsData, error: transactionsError } = await supabaseClient
-                    .from('transactions')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                console.log('💳 Supabase transactions response:', { data: transactionsData, error: transactionsError });
-                
-                // Check localStorage backup for transactions
-                let localTransactionsBackup = null;
-                try {
-                    const transBackupStr = localStorage.getItem('furniture_transactions_backup');
-                    if (transBackupStr) {
-                        localTransactionsBackup = JSON.parse(transBackupStr);
-                        console.log('📁 Found localStorage transactions backup:', localTransactionsBackup.length, 'items');
-                    }
-                } catch (localError) {
-                    console.error('❌ Error reading localStorage transactions backup:', localError);
-                }
-
-                if (transactionsError) {
-                    console.error('❌ Error loading transactions:', transactionsError);
-                    if (localTransactionsBackup && localTransactionsBackup.length > 0) {
-                        transactions = localTransactionsBackup;
-                        console.log('✅ Loaded transactions from localStorage backup');
-                    } else {
-                        transactions = [];
+                        localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
+                        localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
+                    } catch (e) {}
+                    
+                } else if (localData) {
+                    // No cloud data, use local backup
+                    inventory = localData.inventory || [];
+                    transactions = localData.transactions || [];
+                    console.log('📁 Using localStorage backup:', inventory.length, 'items');
+                    
+                    // Sync local data to cloud
+                    if (inventory.length > 0 || transactions.length > 0) {
+                        console.log('☁️ Syncing local data to cloud...');
+                        setTimeout(() => saveInventory(), 1000);
                     }
                 } else {
-                    // Check if Supabase returned empty but we have local backup
-                    if ((!transactionsData || transactionsData.length === 0) && localTransactionsBackup && localTransactionsBackup.length > 0) {
-                        transactions = localTransactionsBackup;
-                        console.log('✅ Using localStorage transactions backup');
-                        // Sync back to Supabase
-                        setTimeout(() => saveTransactions(), 2500);
-                    } else {
-                        transactions = transactionsData || [];
-                        console.log('✅ Loaded transactions:', transactions.length);
-                        // Update localStorage backup
-                        try {
-                            localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
-                        } catch (e) {}
-                    }
+                    // No data anywhere, start fresh
+                    inventory = [];
+                    transactions = [];
+                    console.log('📭 No data found - starting fresh');
                 }
                 
-                // Load history
-                console.log('📚 Loading history from Supabase...');
-                await loadHistory();
+                // Assign item numbers to items that don't have one
+                let needsSave = false;
+                inventory.forEach(item => {
+                    if (!item.itemNumber) {
+                        item.itemNumber = generateItemNumber();
+                        needsSave = true;
+                    }
+                });
+                if (needsSave) {
+                    await saveInventory();
+                }
                 
                 // Update UI
                 renderInventory();
@@ -3478,24 +3455,14 @@
             } catch (error) {
                 console.error('❌ Error loading data:', error);
                 
-                // Try to recover from localStorage backup
+                // Final fallback to localStorage
                 try {
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
                     const transBackupStr = localStorage.getItem('furniture_transactions_backup');
-                    if (backupStr) {
-                        inventory = JSON.parse(backupStr);
-                        console.log('🔄 Recovered inventory from localStorage backup:', inventory.length, 'items');
-                    } else {
-                        inventory = [];
-                    }
-                    if (transBackupStr) {
-                        transactions = JSON.parse(transBackupStr);
-                        console.log('🔄 Recovered transactions from localStorage backup:', transactions.length, 'items');
-                    } else {
-                        transactions = [];
-                    }
+                    inventory = backupStr ? JSON.parse(backupStr) : [];
+                    transactions = transBackupStr ? JSON.parse(transBackupStr) : [];
+                    console.log('🔄 Recovered from localStorage:', inventory.length, 'items');
                 } catch (localError) {
-                    console.error('❌ Failed to recover from localStorage:', localError);
                     inventory = [];
                     transactions = [];
                 }
@@ -3505,17 +3472,15 @@
             }
         }
 
-        // Save inventory to Supabase + localStorage backup
+        // Save inventory to JSONBin.io + localStorage backup
         async function saveInventory() {
             try {
-                console.log('🔄 Saving inventory to Supabase...', inventory.length, 'items');
-                console.log('📊 Inventory data:', inventory);
+                console.log('🔄 Saving inventory...', inventory.length, 'items');
                 
                 // Check for any invalid items
                 inventory.forEach((item, index) => {
                     if (!item || !item.name || !item.purchaseDate || isNaN(item.purchasePrice)) {
                         console.error(`❌ Invalid item at index ${index}:`, item);
-                        console.error(`❌ This item will be skipped during save`);
                     }
                 });
                 
@@ -3526,132 +3491,43 @@
                 
                 if (validInventory.length !== inventory.length) {
                     console.log(`⚠️ Filtered out ${inventory.length - validInventory.length} invalid items`);
-                    inventory = validInventory; // Update the main array
+                    inventory = validInventory;
                 }
                 
                 // ========== LOCALSTORAGE BACKUP ==========
-                // Always save to localStorage first as backup
                 try {
                     localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
-                    localStorage.setItem('furniture_inventory_backup_timestamp', new Date().toISOString());
-                    console.log('💾 ✅ Saved inventory backup to localStorage:', inventory.length, 'items');
+                    localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
+                    localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
+                    console.log('💾 ✅ Saved backup to localStorage');
                 } catch (localError) {
                     console.error('❌ Failed to save localStorage backup:', localError);
                 }
-                // ==========================================
                 
-                // Convert inventory to database format
-                const inventoryToSave = inventory.map(item => ({
-                    item_number: item.itemNumber,
-                    name: item.name,
-                    purchase_date: item.purchaseDate,
-                    purchase_price: item.purchasePrice,
-                    sold_date: item.soldDate || null,
-                    sold_price: item.soldPrice || null,
-                    status: item.status,
-                    description: item.description || '',
-                    work_notes: item.workNotes || '',
-                    affect_balance: item.affectBalance !== false,
-                    add_to_balance: item.addToBalance !== false,
-                    photos: item.photos || [],
-                    work_photos: item.workPhotos || []
-                }));
-
-                console.log('💾 Inventory to save:', inventoryToSave);
-
-                // Clear existing data and insert new data
-                const { error: deleteError } = await supabaseClient
-                    .from('inventory')
-                    .delete()
-                    .neq('id', 0); // Delete all records
-
-                console.log('🗑️ Delete result:', deleteError);
-
-                if (deleteError) {
-                    console.error('❌ Error clearing inventory:', deleteError);
-                    console.log('⚠️ Data is still safe in localStorage backup');
-                    return; // Don't try to insert if delete failed
-                }
-
-                if (inventoryToSave.length > 0) {
-                    const { data: insertData, error: insertError } = await supabaseClient
-                        .from('inventory')
-                        .insert(inventoryToSave)
-                        .select();
-
-                    console.log('💾 Insert result:', { data: insertData, error: insertError });
-
-                    if (insertError) {
-                        console.error('❌ Error saving inventory:', insertError);
-                        console.error('❌ Insert error details:', {
-                            message: insertError.message,
-                            details: insertError.details,
-                            hint: insertError.hint,
-                            code: insertError.code
-                        });
-                        console.log('⚠️ Data is still safe in localStorage backup');
-                    } else {
-                        console.log('✅ Successfully saved inventory to Supabase');
-                        console.log('✅ Inserted items:', insertData?.length || 0);
-                    }
+                // ========== JSONBIN.IO CLOUD SAVE ==========
+                const cloudData = {
+                    inventory: inventory,
+                    transactions: transactions,
+                    lastUpdated: new Date().toISOString()
+                };
+                
+                const cloudSaved = await jsonBinSave(cloudData);
+                if (cloudSaved) {
+                    console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
                 } else {
-                    console.log('ℹ️ No inventory items to save');
+                    console.log('☁️ ⚠️ Cloud save failed - data safe in localStorage');
                 }
+                
             } catch (error) {
                 console.error('❌ Error saving inventory:', error);
                 console.log('⚠️ Data is still safe in localStorage backup');
             }
         }
 
-        // Save transactions to Supabase + localStorage backup
+        // Save transactions (uses the unified saveInventory function)
         async function saveTransactions() {
-            try {
-                // ========== LOCALSTORAGE BACKUP ==========
-                // Always save to localStorage first as backup
-                try {
-                    localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
-                    localStorage.setItem('furniture_transactions_backup_timestamp', new Date().toISOString());
-                    console.log('💾 ✅ Saved transactions backup to localStorage:', transactions.length, 'items');
-                } catch (localError) {
-                    console.error('❌ Failed to save localStorage transactions backup:', localError);
-                }
-                // ==========================================
-                
-                // Convert transactions to database format
-                const transactionsToSave = transactions.map(transaction => ({
-                    description: transaction.description,
-                    amount: transaction.amount,
-                    type: transaction.type,
-                    date: transaction.date
-                }));
-
-                // Clear existing data and insert new data
-                const { error: deleteError } = await supabaseClient
-                    .from('transactions')
-                    .delete()
-                    .neq('id', 0); // Delete all records
-
-                if (deleteError) {
-                    console.error('Error clearing transactions:', deleteError);
-                    console.log('⚠️ Transactions are still safe in localStorage backup');
-                }
-
-                if (transactionsToSave.length > 0) {
-                    const { error: insertError } = await supabaseClient
-                        .from('transactions')
-                        .insert(transactionsToSave);
-
-                    if (insertError) {
-                        console.error('Error saving transactions:', insertError);
-                        console.log('⚠️ Transactions are still safe in localStorage backup');
-                    } else {
-                        console.log('✅ Successfully saved transactions to Supabase');
-                    }
-                }
-            } catch (error) {
-                console.error('Error saving transactions:', error);
-                console.log('⚠️ Transactions are still safe in localStorage backup');
-            }
+            // Save everything together to JSONBin.io
+            await saveInventory();
         }
 
         // Switch between tabs
