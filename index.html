@@ -2420,8 +2420,9 @@
         }
         // ==============================================================
         
-        // Store bin ID in localStorage once created
-        let jsonBinId = localStorage.getItem('furniture_jsonbin_id') || null;
+        // ✅ SHARED BIN ID - All devices sync to this same bin!
+        const SHARED_BIN_ID = '697cadacd0ea881f40930514';
+        let jsonBinId = SHARED_BIN_ID;
         
         // JSONBin.io API functions
         async function jsonBinSave(data) {
