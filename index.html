@@ -1970,7 +1970,12 @@
         <!-- Delivery Form Tab -->
         <div id="deliveryform" class="tab-content">
             <div style="max-width: 800px; margin: 0 auto;">
-                <h2 style="margin-bottom: 25px; color: #333;">Delivery Form</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="margin: 0; color: var(--text-primary);">Delivery Form</h2>
+                    <button type="button" class="btn btn-warning" onclick="openReceiptGenerator()" style="display: flex; align-items: center; gap: 8px;">
+                        🧾 Generate Receipt
+                    </button>
+                </div>
                 
                 <form id="deliveryForm" onsubmit="showCompletedForm(event)">
                     <div class="delivery-form-group">
@@ -2067,6 +2072,96 @@
                     <div style="display: flex; gap: 10px; margin-top: 25px;">
                         <button type="button" class="btn btn-primary" onclick="editDeliveryForm()" style="flex: 1;">Edit</button>
                         <button type="button" class="btn btn-success" onclick="downloadCompletedFormPDF()" style="flex: 1;">Download PDF</button>
+                        <button type="button" class="btn btn-warning" onclick="openReceiptGenerator()" style="flex: 1;">🧾 Generate Receipt</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipt Generator Modal -->
+        <div id="receiptModal" class="modal">
+            <div class="modal-content" style="max-width: 900px; background: var(--bg-card); padding: 0; overflow: hidden;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-default);">
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0;">🧾 Receipt Generator</h2>
+                    <button onclick="closeReceiptModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">✕</button>
+                </div>
+                <div style="padding: 24px;">
+                    <div class="no-print-receipt" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button onclick="printReceipt()" class="btn btn-primary">🖨️ Print / Save PDF</button>
+                        <button onclick="addReceiptRow()" class="btn btn-success">+ Add Item</button>
+                        <button onclick="prefillFromDelivery()" class="btn btn-warning">📋 Fill from Delivery Form</button>
+                    </div>
+                    
+                    <div id="receiptContent" style="background: #fff; color: #333; padding: 30px; border-radius: var(--radius-md);">
+                        <!-- Receipt Header -->
+                        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 20px;">
+                            <h1 style="margin: 0; text-transform: uppercase; letter-spacing: 3px; font-size: 24px; color: #2c3e50;">Windlesora Modern</h1>
+                            <div style="font-size: 14px; color: #555; margin-top: 8px; line-height: 1.6;">
+                                Unit 4 & 5, 65 Straight Road<br>
+                                Old Windsor, SL4 2SA<br>
+                                <strong>Tel: 07469 203722</strong>
+                            </div>
+                        </div>
+
+                        <h2 style="text-align: center; font-weight: normal; border: 2px solid #333; display: inline-block; padding: 8px 30px; margin: 0 auto 20px; width: auto; font-size: 1.1rem;">RECEIPT</h2>
+
+                        <!-- Info Section -->
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 25px; flex-wrap: wrap; gap: 20px;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <strong>Received From:</strong><br>
+                                <div contenteditable="true" id="receiptCustomerName" style="border: 1px dashed #ddd; padding: 8px; background: #fffdf0; margin-top: 5px; min-height: 60px;">
+                                    [Customer Name]<br>
+                                    [Address Line 1]<br>
+                                    [Postcode]
+                                </div>
+                            </div>
+                            <div style="flex: 1; min-width: 200px; text-align: right;">
+                                <strong>Date:</strong> <span id="receiptDate" contenteditable="true" style="border: 1px dashed #ddd; padding: 2px 8px; background: #fffdf0;"></span><br>
+                                <strong>Receipt #:</strong> <span id="receiptNumber" contenteditable="true" style="border: 1px dashed #ddd; padding: 2px 8px; background: #fffdf0;">001</span><br>
+                                <strong>Payment:</strong> <span id="receiptPayment" contenteditable="true" style="border: 1px dashed #ddd; padding: 2px 8px; background: #fffdf0;">Card / BACS</span>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <table id="receiptItemsTable" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                            <thead>
+                                <tr>
+                                    <th style="background: #f8f8f8; padding: 12px; text-align: left; border-bottom: 2px solid #333; font-weight: bold;">Description</th>
+                                    <th style="background: #f8f8f8; padding: 12px; text-align: right; border-bottom: 2px solid #333; font-weight: bold; width: 80px;">Qty</th>
+                                    <th style="background: #f8f8f8; padding: 12px; text-align: right; border-bottom: 2px solid #333; font-weight: bold; width: 100px;">Price (£)</th>
+                                    <th style="background: #f8f8f8; padding: 12px; text-align: right; border-bottom: 2px solid #333; font-weight: bold; width: 100px;">Total (£)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receiptTableBody">
+                                <tr>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;" contenteditable="true">Furniture Item</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-qty" value="1" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-price" value="0.00" step="0.01" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;" class="receipt-row-total">0.00</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;" contenteditable="true">Delivery</td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-qty" value="1" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-price" value="0.00" step="0.01" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                                    <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;" class="receipt-row-total">0.00</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" style="padding: 15px; font-weight: bold; font-size: 1.1em; background: #fafafa; border-top: 2px solid #333; text-align: right;">TOTAL PAID</td>
+                                    <td id="receiptGrandTotal" style="padding: 15px; font-weight: bold; font-size: 1.1em; background: #fafafa; border-top: 2px solid #333; text-align: right;">£0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <div style="margin-top: 30px; text-align: center;">
+                            <p><strong>Payment Status:</strong> <span id="receiptPaymentStatus" contenteditable="true" style="border: 1px dashed #ddd; padding: 2px 8px; background: #fffdf0;">PAID IN FULL</span></p>
+                            <p style="font-style: italic; color: #666;">Thank you for your business!</p>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 15px;">
+                            Windlesora Modern | Unit 4 & 5 Old Windsor, 65 Straight Road, SL4 2SA | Tel: 07469 203722
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2505,6 +2600,120 @@
             }
         }
 
+        // ==================== RECEIPT GENERATOR FUNCTIONS ====================
+        
+        // Open receipt modal
+        function openReceiptGenerator() {
+            document.getElementById('receiptModal').classList.add('active');
+            // Set today's date
+            document.getElementById('receiptDate').innerText = new Date().toLocaleDateString('en-GB');
+            calculateReceiptTotal();
+        }
+        
+        // Close receipt modal
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+        }
+        
+        // Calculate receipt totals
+        function calculateReceiptTotal() {
+            const tbody = document.getElementById('receiptTableBody');
+            const rows = tbody.getElementsByTagName('tr');
+            let grandTotal = 0;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const qtyInput = rows[i].querySelector('.receipt-qty');
+                const priceInput = rows[i].querySelector('.receipt-price');
+                const totalCell = rows[i].querySelector('.receipt-row-total');
+                
+                if (qtyInput && priceInput && totalCell) {
+                    const qty = parseFloat(qtyInput.value) || 0;
+                    const price = parseFloat(priceInput.value) || 0;
+                    const rowTotal = qty * price;
+                    totalCell.innerText = rowTotal.toFixed(2);
+                    grandTotal += rowTotal;
+                }
+            }
+            
+            document.getElementById('receiptGrandTotal').innerText = '£' + grandTotal.toFixed(2);
+        }
+        
+        // Add new row to receipt
+        function addReceiptRow() {
+            const tbody = document.getElementById('receiptTableBody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td style="padding: 12px; border-bottom: 1px solid #eee;" contenteditable="true">New Item</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-qty" value="1" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;"><input type="number" class="receipt-price" value="0.00" step="0.01" oninput="calculateReceiptTotal()" style="width: 100%; padding: 6px; border: 1px dashed #ddd; background: #fffdf0; text-align: right;"></td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;" class="receipt-row-total">0.00</td>
+            `;
+            tbody.appendChild(newRow);
+        }
+        
+        // Prefill receipt from delivery form
+        function prefillFromDelivery() {
+            const itemName = document.getElementById('deliveryItemName').value;
+            const address = document.getElementById('deliveryAddress').value;
+            
+            if (itemName) {
+                // Update first row description
+                const tbody = document.getElementById('receiptTableBody');
+                const firstRow = tbody.querySelector('tr td[contenteditable]');
+                if (firstRow) {
+                    firstRow.innerText = itemName;
+                }
+            }
+            
+            if (address) {
+                document.getElementById('receiptCustomerName').innerHTML = address.replace(/\n/g, '<br>');
+            }
+            
+            calculateReceiptTotal();
+        }
+        
+        // Print receipt
+        function printReceipt() {
+            const receiptContent = document.getElementById('receiptContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Receipt - Windlesora Modern</title>
+                    <style>
+                        body {
+                            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                            color: #333;
+                            padding: 20px;
+                            max-width: 800px;
+                            margin: 0 auto;
+                        }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { padding: 10px; }
+                        [contenteditable], input {
+                            border: none !important;
+                            background: none !important;
+                            padding: 0 !important;
+                        }
+                        input { text-align: right; font-size: inherit; font-family: inherit; }
+                        @media print {
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${receiptContent}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
 
         // Show history in a modal overlay
         function showHiddenHistory() {
