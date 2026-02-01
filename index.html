@@ -485,6 +485,137 @@
             display: none !important;
         }
 
+        /* ==================== SEARCH BAR ==================== */
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 2px solid var(--border-default);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            transition: all var(--transition-normal);
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-icon {
+            font-size: 1.2em;
+            margin-right: 12px;
+            opacity: 0.6;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-clear {
+            background: var(--bg-elevated);
+            border: none;
+            color: var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            transition: all var(--transition-fast);
+            margin-left: 8px;
+        }
+
+        .search-clear:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .search-results-info {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-top: 10px;
+            padding-left: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .search-box {
+                padding: 10px 14px;
+            }
+
+            .search-input {
+                font-size: 0.95rem;
+            }
+
+            .search-input::placeholder {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ==================== INVENTORY GRID LAYOUT ==================== */
+        .inventory-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .inventory-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .inventory-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .inventory-list-item {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            border-left: 4px solid var(--warning);
+            position: relative;
+        }
+
+        .inventory-list-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .inventory-list-item.status-ready-border {
+            border-left-color: var(--success);
+        }
+
+        .inventory-list-item.status-sold-border {
+            border-left-color: var(--text-muted);
+        }
+
+        .inventory-list-item.status-needs-work-border {
+            border-left-color: var(--warning);
+        }
+
         /* ==================== HISTORY ENTRIES ==================== */
         .history-entry {
             background: var(--bg-card);
@@ -1241,6 +1372,206 @@
             font-weight: 600;
             margin-bottom: 24px;
             color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ==================== FULL VIEW MODAL MOBILE STYLES ==================== */
+        .full-view-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .full-view-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .full-view-photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .full-view-photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .full-view-work-photos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .full-view-work-photos-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .full-view-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 480px) {
+            .full-view-info-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+
+        .full-view-section-title {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+
+        .full-view-info-box {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .full-view-info-box {
+                padding: 15px;
+            }
+        }
+
+        .full-view-info-item {
+            margin-bottom: 8px;
+        }
+
+        .full-view-info-item strong {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 4px;
+        }
+
+        .full-view-info-item span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .full-view-sale-box {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        @media (max-width: 480px) {
+            .full-view-sale-box {
+                padding: 15px;
+            }
+        }
+
+        .full-view-profit-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .full-view-profit-box.positive {
+            background: rgba(16, 185, 129, 0.15);
+            border-left: 4px solid var(--success);
+        }
+
+        .full-view-profit-box.negative {
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 4px solid var(--danger);
+        }
+
+        .full-view-desc-box {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .full-view-work-notes {
+            background: rgba(245, 158, 11, 0.1);
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .full-view-modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 480px) {
+            .full-view-modal-buttons {
+                flex-direction: column;
+            }
+            .full-view-modal-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .no-photo-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            color: var(--text-muted);
+        }
+
+        .no-photo-placeholder .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .photo-thumbnail {
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .photo-thumbnail img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-thumbnail .photo-number {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+        }
+
+        .work-photo-thumbnail img {
+            height: 100px;
+            border: 2px solid var(--warning);
         }
 
         .image-preview {
@@ -1897,6 +2228,13 @@
 
         <!-- Inventory Tab -->
         <div id="inventory" class="tab-content">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="inventorySearch" class="search-input" placeholder="Search by name, item number, or description..." oninput="filterInventory()">
+                    <button class="search-clear" onclick="clearSearch('inventorySearch')" style="display: none;">✕</button>
+                </div>
+            </div>
             <div id="inventoryList" style="padding: 20px 0;"></div>
         </div>
 
@@ -1959,11 +2297,25 @@
 
         <!-- Needs Work Tab -->
         <div id="needswork" class="tab-content">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="needsWorkSearch" class="search-input" placeholder="Search by name, item number, or description..." oninput="filterInventory()">
+                    <button class="search-clear" onclick="clearSearch('needsWorkSearch')" style="display: none;">✕</button>
+                </div>
+            </div>
             <div id="needsWorkList" style="padding: 20px 0;"></div>
         </div>
 
         <!-- Sold Tab -->
         <div id="sold" class="tab-content">
+            <div class="search-container">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="soldSearch" class="search-input" placeholder="Search by name, item number, or description..." oninput="filterInventory()">
+                    <button class="search-clear" onclick="clearSearch('soldSearch')" style="display: none;">✕</button>
+                </div>
+            </div>
             <div id="soldList" style="padding: 20px 0;"></div>
         </div>
 
@@ -2299,7 +2651,7 @@
                 <!-- Content will be populated by JavaScript -->
             </div>
             
-            <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+            <div class="full-view-modal-buttons">
                 <button class="btn btn-danger" onclick="deleteFromFullView()">Delete Item</button>
                 <button class="btn btn-primary" onclick="editFromFullView()">Edit Item</button>
                 <button class="btn btn-secondary" onclick="closeFullViewModal()">Close</button>
@@ -3725,26 +4077,81 @@
         }
 
         // Render inventory
+        // Search/filter helper function
+        function matchesSearch(item, searchTerm) {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            return (
+                (item.name && item.name.toLowerCase().includes(term)) ||
+                (item.itemNumber && item.itemNumber.toLowerCase().includes(term)) ||
+                (item.description && item.description.toLowerCase().includes(term)) ||
+                (item.workNotes && item.workNotes.toLowerCase().includes(term))
+            );
+        }
+
+        // Filter inventory based on search
+        function filterInventory() {
+            renderInventory();
+            
+            // Update clear button visibility for each search field
+            ['inventorySearch', 'needsWorkSearch', 'soldSearch'].forEach(id => {
+                const input = document.getElementById(id);
+                const clearBtn = input?.nextElementSibling;
+                if (input && clearBtn) {
+                    clearBtn.style.display = input.value ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Clear search input
+        function clearSearch(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = '';
+                filterInventory();
+                input.focus();
+            }
+        }
+
         function renderInventory() {
             const inventoryList = document.getElementById('inventoryList');
             const needsWorkList = document.getElementById('needsWorkList');
             const soldList = document.getElementById('soldList');
             
-            // Separate items by status
-            const readyItems = inventory.filter(item => item.status === 'ready');
-            const needsWorkItems = inventory.filter(item => item.status === 'needs-work');
-            const soldItems = inventory.filter(item => item.status === 'sold');
+            // Get search terms
+            const inventorySearchTerm = document.getElementById('inventorySearch')?.value || '';
+            const needsWorkSearchTerm = document.getElementById('needsWorkSearch')?.value || '';
+            const soldSearchTerm = document.getElementById('soldSearch')?.value || '';
+            
+            // Separate items by status and apply search filter
+            const readyItems = inventory.filter(item => item.status === 'ready' && matchesSearch(item, inventorySearchTerm));
+            const needsWorkItems = inventory.filter(item => item.status === 'needs-work' && matchesSearch(item, needsWorkSearchTerm));
+            const soldItems = inventory.filter(item => item.status === 'sold' && matchesSearch(item, soldSearchTerm));
+            
+            // Get total counts (without search filter) for showing search results info
+            const totalReady = inventory.filter(item => item.status === 'ready').length;
+            const totalNeedsWork = inventory.filter(item => item.status === 'needs-work').length;
+            const totalSold = inventory.filter(item => item.status === 'sold').length;
             
             // Render ready to sell inventory
-            if (readyItems.length === 0) {
+            if (totalReady === 0) {
                 inventoryList.innerHTML = `
                     <div class="empty-state">
                         <h3>No items ready to sell</h3>
                         <p>Items marked as "Ready to Sell" will appear here!</p>
                     </div>
                 `;
+            } else if (readyItems.length === 0 && inventorySearchTerm) {
+                inventoryList.innerHTML = `
+                    <div class="search-results-info">No items found matching "${inventorySearchTerm}"</div>
+                    <div class="empty-state">
+                        <h3>🔍 No matching items</h3>
+                        <p>Try a different search term</p>
+                    </div>
+                `;
             } else {
-                inventoryList.innerHTML = '<div class="inventory-list">' +
+                const searchInfo = inventorySearchTerm ? `<div class="search-results-info">Showing ${readyItems.length} of ${totalReady} items</div>` : '';
+                inventoryList.innerHTML = searchInfo + '<div class="inventory-list">' +
                     readyItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
                         return renderItemList(item, index);
@@ -3753,15 +4160,25 @@
             }
             
             // Render needs work items
-            if (needsWorkItems.length === 0) {
+            if (totalNeedsWork === 0) {
                 needsWorkList.innerHTML = `
                     <div class="empty-state">
                         <h3>No items need work</h3>
                         <p>Items marked as "Needs Work" will appear here!</p>
                     </div>
                 `;
-            } else {
+            } else if (needsWorkItems.length === 0 && needsWorkSearchTerm) {
                 needsWorkList.innerHTML = `
+                    <div class="search-results-info">No items found matching "${needsWorkSearchTerm}"</div>
+                    <div class="empty-state">
+                        <h3>🔍 No matching items</h3>
+                        <p>Try a different search term</p>
+                    </div>
+                `;
+            } else {
+                const searchInfo = needsWorkSearchTerm ? `<div class="search-results-info">Showing ${needsWorkItems.length} of ${totalNeedsWork} items</div>` : '';
+                needsWorkList.innerHTML = `
+                    ${searchInfo}
                     <div style="background: #e8f4fd; border: 1px solid #b3d9ff; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center;">
                         <div style="color: #0066cc; font-weight: 600; margin-bottom: 5px;">📋 Job Queue</div>
                         <div style="color: #666; font-size: 0.9em;">Hover over items to see ↑↓ buttons for reordering (1 = highest priority)</div>
@@ -3775,15 +4192,24 @@
             }
             
             // Render sold items
-            if (soldItems.length === 0) {
+            if (totalSold === 0) {
                 soldList.innerHTML = `
                     <div class="empty-state">
                         <h3>No sold items yet</h3>
                         <p>Items marked as sold will appear here!</p>
                     </div>
                 `;
+            } else if (soldItems.length === 0 && soldSearchTerm) {
+                soldList.innerHTML = `
+                    <div class="search-results-info">No items found matching "${soldSearchTerm}"</div>
+                    <div class="empty-state">
+                        <h3>🔍 No matching items</h3>
+                        <p>Try a different search term</p>
+                    </div>
+                `;
             } else {
-                soldList.innerHTML = '<div class="inventory-list">' +
+                const searchInfo = soldSearchTerm ? `<div class="search-results-info">Showing ${soldItems.length} of ${totalSold} items</div>` : '';
+                soldList.innerHTML = searchInfo + '<div class="inventory-list">' +
                     soldItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
                         return renderItemList(item, index);
@@ -3793,7 +4219,7 @@
         }
 
         // Render individual item card
-        // Render item in list view (compact)
+        // Render item in list view (card style for 3-column grid)
         function renderItemList(item, index, isDraggable = false) {
             const photos = item.photos && item.photos.length > 0 ? item.photos : 
                           (item.photo ? [item.photo] : []);
@@ -3815,22 +4241,10 @@
             ` : '';
             
             const itemClass = isDraggable ? 'inventory-list-item reorderable-item' : 'inventory-list-item';
+            const borderColor = item.status === 'ready' ? 'var(--success)' : item.status === 'sold' ? 'var(--text-muted)' : 'var(--warning)';
             
             return `
-                <div class="${itemClass}" style="
-                    display: flex;
-                    align-items: center;
-                    padding: 15px;
-                    background: white;
-                    border-radius: 8px;
-                    margin-bottom: 10px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    border-left: 4px solid ${item.status === 'ready' ? '#28a745' : item.status === 'sold' ? '#6c757d' : '#ffc107'};
-                    position: relative;
-                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" 
-                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                <div class="${itemClass}" onclick="openFullViewModal(${index})" style="border-left-color: ${borderColor};">
                     
                     <!-- Priority Indicator (for reorderable items) -->
                     ${isDraggable ? `<div class="priority-indicator">${index + 1}</div>` : ''}
@@ -3838,69 +4252,55 @@
                     <!-- Reorder Buttons (for reorderable items) -->
                     ${reorderButtons}
                     
-                    <!-- Photo (Clickable) -->
-                    <div onclick="openFullViewModal(${index}); event.stopPropagation();" style="width: 80px; height: 80px; margin-right: 15px; flex-shrink: 0; cursor: pointer;">
+                    <!-- Photo -->
+                    <div style="width: 100%; height: 160px; margin-bottom: 12px; border-radius: 8px; overflow: hidden;">
                         ${photos.length > 0 ? `
                             <img src="${photos[0]}" alt="${item.name}" style="
                                 width: 100%;
                                 height: 100%;
                                 object-fit: cover;
-                                border-radius: 6px;
-                                border: 2px solid #e9ecef;
                             ">
                         ` : `
                             <div style="
                                 width: 100%;
                                 height: 100%;
-                                background: #f8f9fa;
-                                border-radius: 6px;
+                                background: var(--bg-secondary);
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                color: #6c757d;
-                                font-size: 1.5em;
-                                border: 2px solid #e9ecef;
+                                color: var(--text-muted);
+                                font-size: 2.5em;
                             ">📷</div>
                         `}
                     </div>
                     
-                    <!-- Item Details -->
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px;">
-                            <h3 style="margin: 0; font-size: 1.2em; color: #333; font-weight: 600;">${item.name}</h3>
-                            <span class="status-badge ${statusClass}" style="
-                                padding: 4px 8px;
-                                border-radius: 12px;
-                                font-size: 0.8em;
-                                font-weight: 600;
-                                text-transform: uppercase;
-                            ">${statusText}</span>
-                        </div>
-                        
-                        <div style="color: #666; font-size: 0.9em; margin-bottom: 5px;">
-                            <strong>Item #:</strong> ${item.itemNumber || 'N/A'}
-                        </div>
-                        
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="color: #666; font-size: 0.9em;">
-                                <strong>${priceLabel}:</strong> £${(currentPrice || 0).toFixed(2)}
-                            </div>
-                            <div style="color: #666; font-size: 0.8em;">
-                                ${new Date(item.purchaseDate).toLocaleDateString()}
-                            </div>
-                        </div>
-                        
-                        ${item.description ? `
-                            <div style="color: #666; font-size: 0.85em; margin-top: 5px; 
-                                        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                ${item.description}
-                            </div>
-                        ` : ''}
+                    <!-- Status Badge -->
+                    <span class="status-badge ${statusClass}" style="
+                        padding: 4px 10px;
+                        border-radius: 12px;
+                        font-size: 0.75em;
+                        font-weight: 600;
+                        text-transform: uppercase;
+                        align-self: flex-start;
+                        margin-bottom: 8px;
+                    ">${statusText}</span>
+                    
+                    <!-- Item Name -->
+                    <h3 style="margin: 0 0 8px 0; font-size: 1.1em; color: var(--text-primary); font-weight: 600; line-height: 1.3;">${item.name}</h3>
+                    
+                    <!-- Item Number -->
+                    <div style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 6px;">
+                        <strong>Item #:</strong> ${item.itemNumber || 'N/A'}
                     </div>
                     
-                    <!-- Click indicator -->
-                    <div style="margin-left: 10px; color: #6c757d; font-size: 1.2em;">
-                        →
+                    <!-- Price & Date -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+                        <div style="color: var(--accent-primary); font-size: 1em; font-weight: 600;">
+                            £${(currentPrice || 0).toFixed(2)}
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.8em;">
+                            ${new Date(item.purchaseDate).toLocaleDateString()}
+                        </div>
                     </div>
                 </div>
             `;
@@ -4383,34 +4783,34 @@
             
             const profit = item.soldPrice - item.purchasePrice;
             
-            // Create full view content
+            // Create full view content with responsive classes
             const content = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div class="full-view-grid">
                     <!-- Left Column - Photos -->
                     <div>
-                        <h3 style="margin-bottom: 15px;">Photos</h3>
+                        <h3 class="full-view-section-title">Photos</h3>
                         ${photos.length > 0 ? `
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+                            <div class="full-view-photos-grid">
                                 ${photos.map((photo, photoIdx) => `
-                                    <div style="position: relative; cursor: pointer;" onclick="openPhotoModal(${index}, ${photoIdx})">
-                                        <img src="${photo}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid #e9ecef;">
-                                        ${photos.length > 1 ? `<div style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">${photoIdx + 1}</div>` : ''}
+                                    <div class="photo-thumbnail" onclick="openPhotoModal(${index}, ${photoIdx})">
+                                        <img src="${photo}" alt="Photo ${photoIdx + 1}">
+                                        ${photos.length > 1 ? `<span class="photo-number">${photoIdx + 1}</span>` : ''}
                                     </div>
                                 `).join('')}
                             </div>
                         ` : `
-                            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; color: #6c757d;">
-                                <div style="font-size: 3em; margin-bottom: 10px;">📷</div>
+                            <div class="no-photo-placeholder">
+                                <div class="icon">📷</div>
                                 <div>No photos available</div>
                             </div>
                         `}
                         
                         ${item.workPhotos && item.workPhotos.length > 0 ? `
-                            <h4 style="margin: 20px 0 10px 0;">Work Photos</h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;">
+                            <h4 style="margin: 20px 0 10px 0; color: var(--text-primary);">Work Photos</h4>
+                            <div class="full-view-work-photos-grid">
                                 ${item.workPhotos.map((photo, photoIdx) => `
-                                    <div style="position: relative; cursor: pointer;" onclick="openWorkPhotoModal(${index}, ${photoIdx})">
-                                        <img src="${photo}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #ffc107;">
+                                    <div class="photo-thumbnail work-photo-thumbnail" onclick="openWorkPhotoModal(${index}, ${photoIdx})">
+                                        <img src="${photo}" alt="Work Photo ${photoIdx + 1}">
                                     </div>
                                 `).join('')}
                             </div>
@@ -4419,79 +4819,75 @@
                     
                     <!-- Right Column - Details -->
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3 style="margin: 0;">Item Information</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="margin: 0; color: var(--text-primary);">Item Information</h3>
                             <span class="status-badge ${statusClass}" style="
                                 padding: 6px 12px;
                                 border-radius: 15px;
-                                font-size: 0.9em;
+                                font-size: 0.85em;
                                 font-weight: 600;
                                 text-transform: uppercase;
                             ">${statusText}</span>
                         </div>
                         
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                <div>
-                                    <strong>Item Number:</strong><br>
-                                    <span style="color: #3498db; font-weight: 600;">${item.itemNumber || 'N/A'}</span>
+                        <div class="full-view-info-box">
+                            <div class="full-view-info-grid">
+                                <div class="full-view-info-item">
+                                    <strong>Item Number</strong>
+                                    <span style="color: var(--info);">${item.itemNumber || 'N/A'}</span>
                                 </div>
-                                <div>
-                                    <strong>Purchase Date:</strong><br>
-                                    ${new Date(item.purchaseDate).toLocaleDateString()}
+                                <div class="full-view-info-item">
+                                    <strong>Purchase Date</strong>
+                                    <span>${new Date(item.purchaseDate).toLocaleDateString()}</span>
                                 </div>
-                                <div>
-                                    <strong>Purchase Price:</strong><br>
-                                    <span style="font-weight: 600;">£${(item.purchasePrice || 0).toFixed(2)}</span>
+                                <div class="full-view-info-item">
+                                    <strong>Purchase Price</strong>
+                                    <span style="color: var(--accent-primary);">£${(item.purchasePrice || 0).toFixed(2)}</span>
                                 </div>
-                                <div>
-                                    <strong>Days in Stock:</strong><br>
-                                    <span style="font-weight: 700; color: ${daysInStock > 90 ? '#e74c3c' : daysInStock > 30 ? '#f39c12' : '#27ae60'};">${daysInStock} days</span>
+                                <div class="full-view-info-item">
+                                    <strong>Days in Stock</strong>
+                                    <span style="color: ${daysInStock > 90 ? 'var(--danger)' : daysInStock > 30 ? 'var(--warning)' : 'var(--success)'};">${daysInStock} days</span>
                                 </div>
                             </div>
                         </div>
                         
                         ${item.soldDate ? `
-                            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                                <h4 style="margin-top: 0; color: #28a745;">Sale Information</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                    <div>
-                                        <strong>Sold Date:</strong><br>
-                                        ${new Date(item.soldDate).toLocaleDateString()}
+                            <div class="full-view-sale-box">
+                                <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--success);">Sale Information</h4>
+                                <div class="full-view-info-grid">
+                                    <div class="full-view-info-item">
+                                        <strong>Sold Date</strong>
+                                        <span>${new Date(item.soldDate).toLocaleDateString()}</span>
                                     </div>
-                                    <div>
-                                        <strong>Sold Price:</strong><br>
-                                        <span style="font-weight: 600;">£${(item.soldPrice || 0).toFixed(2)}</span>
+                                    <div class="full-view-info-item">
+                                        <strong>Sold Price</strong>
+                                        <span style="color: var(--success);">£${(item.soldPrice || 0).toFixed(2)}</span>
                                     </div>
                                 </div>
-                                <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
-                                    <div style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Total Profit</div>
-                                    <div style="font-size: 1.8em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${(profit || 0).toFixed(2)}</div>
+                                <div class="full-view-profit-box ${profit >= 0 ? 'positive' : 'negative'}">
+                                    <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px;">Total Profit</div>
+                                    <div style="font-size: 1.6em; font-weight: 700; color: ${profit >= 0 ? 'var(--success)' : 'var(--danger)'};">£${(profit || 0).toFixed(2)}</div>
                                 </div>
                             </div>
                         ` : ''}
                         
                         ${item.description ? `
                             <div style="margin-bottom: 20px;">
-                                <h4>Description</h4>
-                                <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e9ecef;">
-                                    ${item.description}
-                                </div>
+                                <h4 style="margin-bottom: 10px; color: var(--text-primary);">Description</h4>
+                                <div class="full-view-desc-box">${item.description}</div>
                             </div>
                         ` : ''}
                         
                         ${item.workNotes ? `
                             <div style="margin-bottom: 20px;">
-                                <h4>Work Notes</h4>
-                                <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border: 1px solid #ffeaa7;">
-                                    ${item.workNotes}
-                                </div>
+                                <h4 style="margin-bottom: 10px; color: var(--text-primary);">Work Notes</h4>
+                                <div class="full-view-work-notes">${item.workNotes}</div>
                             </div>
                         ` : ''}
                         
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 0.9em; color: #666;">
-                            <div><strong>Affects Balance:</strong> ${item.affectBalance !== false ? 'Yes' : 'No'}</div>
-                            <div><strong>Add to Balance:</strong> ${item.addToBalance !== false ? 'Yes' : 'No'}</div>
+                        <div class="full-view-info-box" style="font-size: 0.9em;">
+                            <div style="margin-bottom: 5px;"><strong style="color: var(--text-secondary);">Affects Balance:</strong> <span style="color: var(--text-primary);">${item.affectBalance !== false ? 'Yes' : 'No'}</span></div>
+                            <div><strong style="color: var(--text-secondary);">Add to Balance:</strong> <span style="color: var(--text-primary);">${item.addToBalance !== false ? 'Yes' : 'No'}</span></div>
                         </div>
                     </div>
                 </div>
