@@ -572,6 +572,7 @@
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 20px;
+            align-items: stretch;
         }
 
         @media (max-width: 768px) {
@@ -613,6 +614,7 @@
             transition: all var(--transition-normal);
             border-left: 4px solid var(--warning);
             position: relative;
+            height: 100%;
         }
 
         .inventory-list-item:hover {
@@ -675,6 +677,11 @@
             color: var(--text-primary);
             font-weight: 600;
             line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.6em;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
@@ -1908,7 +1915,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 8px;
+            margin-top: auto;
             padding-top: 8px;
             border-top: 1px solid var(--border-color);
         }
