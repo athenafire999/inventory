@@ -639,6 +639,7 @@
             margin-bottom: 12px;
             border-radius: 8px;
             overflow: hidden;
+            position: relative;
         }
 
         .item-photo {
@@ -1905,15 +1906,17 @@
         
         .reorder-buttons {
             position: absolute;
-            top: 12px;
-            right: 12px;
+            top: 6px;
+            right: 6px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
             opacity: 0;
             transition: opacity var(--transition-normal);
+            z-index: 2;
         }
         
+        .item-photo-container:hover .reorder-buttons,
         .reorderable-item:hover .reorder-buttons {
             opacity: 1;
         }
@@ -1929,15 +1932,16 @@
             color: var(--bg-primary);
             border: none;
             border-radius: var(--radius-sm);
-            width: 28px;
-            height: 24px;
-            font-size: 12px;
+            width: 26px;
+            height: 22px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all var(--transition-fast);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
         @media (max-width: 768px) {
@@ -1946,6 +1950,30 @@
                 height: 28px;
                 font-size: 14px;
             }
+            
+            .reorder-buttons {
+                gap: 5px;
+            }
+            
+            .priority-indicator {
+                width: 28px;
+                height: 28px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .reorder-btn {
+                width: 28px;
+                height: 26px;
+                font-size: 13px;
+            }
+            
+            .priority-indicator {
+                width: 24px;
+                height: 24px;
+                font-size: 0.75rem;
+            }
         }
         
         .reorder-btn:hover {
@@ -1953,25 +1981,29 @@
             box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
         }
         
+        /* Active state for mobile tap feedback */
         .reorder-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.9);
+            background: var(--accent-secondary);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
         
         .priority-indicator {
             position: absolute;
-            top: 12px;
-            left: 12px;
+            top: 6px;
+            left: 6px;
             background: var(--accent-primary);
             color: var(--bg-primary);
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.75rem;
             font-weight: 700;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 2;
         }
 
         /* ==================== PHOTO MODAL ==================== */
@@ -4359,7 +4391,7 @@
                     <div class="inventory-list">` +
                     needsWorkItems.map((item, idx) => {
                         const index = inventory.indexOf(item);
-                        return renderItemList(item, index, true); // Make reorderable
+                        return renderItemList(item, index, true, idx + 1); // Make reorderable, pass display position (1-based)
                     }).join('') +
                     '</div>';
             }
@@ -4393,7 +4425,7 @@
 
         // Render individual item card
         // Render item in list view (card style for 3-column grid)
-        function renderItemList(item, index, isDraggable = false) {
+        function renderItemList(item, index, isDraggable = false, displayPosition = null) {
             const photos = item.photos && item.photos.length > 0 ? item.photos : 
                           (item.photo ? [item.photo] : []);
             
@@ -4405,7 +4437,7 @@
             const currentPrice = item.soldPrice > 0 ? item.soldPrice : item.purchasePrice;
             const priceLabel = item.soldPrice > 0 ? 'Sold for' : 'Purchase Price';
             
-            // Add reorder buttons for "Not Ready" items
+            // Add reorder buttons for "Not Ready" items (positioned on photo)
             const reorderButtons = isDraggable ? `
                 <div class="reorder-buttons">
                     <button onclick="moveItemUp(${index}); event.stopPropagation();" class="reorder-btn up-btn" title="Move Up">↑</button>
@@ -4413,25 +4445,24 @@
                 </div>
             ` : '';
             
+            // Priority indicator with correct sequential numbering (1, 2, 3, 4...)
+            const priorityIndicator = isDraggable && displayPosition ? `<div class="priority-indicator">${displayPosition}</div>` : '';
+            
             const itemClass = isDraggable ? 'inventory-list-item reorderable-item' : 'inventory-list-item';
             const borderColor = item.status === 'ready' ? 'var(--success)' : item.status === 'sold' ? 'var(--text-muted)' : 'var(--warning)';
             
             return `
                 <div class="${itemClass}" onclick="openFullViewModal(${index})" style="border-left-color: ${borderColor};">
                     
-                    <!-- Priority Indicator (for reorderable items) -->
-                    ${isDraggable ? `<div class="priority-indicator">${index + 1}</div>` : ''}
-                    
-                    <!-- Reorder Buttons (for reorderable items) -->
-                    ${reorderButtons}
-                    
-                    <!-- Photo -->
+                    <!-- Photo with Priority Indicator and Reorder Buttons -->
                     <div class="item-photo-container">
                         ${photos.length > 0 ? `
                             <img src="${photos[0]}" alt="${item.name}" class="item-photo">
                         ` : `
                             <div class="item-no-photo">📷</div>
                         `}
+                        ${priorityIndicator}
+                        ${reorderButtons}
                     </div>
                     
                     <!-- Status Badge -->
