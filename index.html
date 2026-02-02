@@ -4475,6 +4475,7 @@
                     <!-- Item Name -->
                     <h3 class="item-name">${item.name}</h3>
                     
+                    ${!isDraggable ? `
                     <!-- Item Number -->
                     <div class="item-number">
                         #${item.itemNumber || 'N/A'}
@@ -4489,6 +4490,7 @@
                             ${new Date(item.purchaseDate).toLocaleDateString()}
                         </div>
                     </div>
+                    ` : ''}
                 </div>
             `;
         }
