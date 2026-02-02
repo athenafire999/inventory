@@ -1906,11 +1906,11 @@
         
         .reorder-buttons {
             position: absolute;
-            top: 6px;
-            right: 6px;
+            bottom: 8px;
+            right: 8px;
             display: flex;
-            flex-direction: column;
-            gap: 3px;
+            flex-direction: row;
+            gap: 4px;
             opacity: 0;
             transition: opacity var(--transition-normal);
             z-index: 2;
@@ -1990,8 +1990,8 @@
         
         .priority-indicator {
             position: absolute;
-            top: 6px;
-            left: 6px;
+            bottom: 8px;
+            left: 8px;
             background: var(--accent-primary);
             color: var(--bg-primary);
             border-radius: 50%;
@@ -2002,7 +2002,7 @@
             justify-content: center;
             font-size: 0.75rem;
             font-weight: 700;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             z-index: 2;
         }
 
@@ -4454,15 +4454,19 @@
             return `
                 <div class="${itemClass}" onclick="openFullViewModal(${index})" style="border-left-color: ${borderColor};">
                     
-                    <!-- Photo with Priority Indicator and Reorder Buttons -->
+                    <!-- Priority Indicator (positioned on card) -->
+                    ${priorityIndicator}
+                    
+                    <!-- Reorder Buttons (positioned on card) -->
+                    ${reorderButtons}
+                    
+                    <!-- Photo -->
                     <div class="item-photo-container">
                         ${photos.length > 0 ? `
                             <img src="${photos[0]}" alt="${item.name}" class="item-photo">
                         ` : `
                             <div class="item-no-photo">📷</div>
                         `}
-                        ${priorityIndicator}
-                        ${reorderButtons}
                     </div>
                     
                     <!-- Status Badge -->
