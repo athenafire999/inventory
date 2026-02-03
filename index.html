@@ -2600,6 +2600,42 @@
                             <span>£<span id="mikeRemaining">1,000.00</span> remaining</span>
                         </div>
                     </div>
+                    
+                    <!-- Rent Card -->
+                    <div class="withdrawal-card" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 1.3em;">🏠 Rent</h3>
+                            <span style="font-size: 0.9em; color: var(--text-muted);">Fixed: £1,300</span>
+                        </div>
+                        <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
+                            £<span id="rentTotal">0.00</span>
+                        </div>
+                        <div style="background: var(--bg-secondary); border-radius: 10px; height: 24px; overflow: hidden; position: relative;">
+                            <div id="rentProgressBar" style="height: 100%; width: 0%; background: #22c55e; transition: all 0.5s ease; border-radius: 10px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85em; color: var(--text-muted);">
+                            <span id="rentPercentage">0%</span>
+                            <span>£<span id="rentRemaining">1,300.00</span> remaining</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Tin Collection Card -->
+                    <div class="withdrawal-card" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 1.3em;">🪙 Tin Collection</h3>
+                            <span style="font-size: 0.9em; color: var(--text-muted);">No Limit</span>
+                        </div>
+                        <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
+                            £<span id="tinTotal">0.00</span>
+                        </div>
+                        <div style="background: var(--bg-secondary); border-radius: 10px; height: 24px; overflow: hidden; position: relative;">
+                            <div id="tinProgressBar" style="height: 100%; width: 100%; background: #3b82f6; transition: all 0.5s ease; border-radius: 10px;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85em; color: var(--text-muted);">
+                            <span id="tinPercentage">∞</span>
+                            <span>Unlimited</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Add Withdrawal Form -->
@@ -2607,10 +2643,12 @@
                     <h3 style="margin: 0 0 20px 0;">Add Withdrawal</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
                         <div>
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Person</label>
+                            <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Category</label>
                             <select id="withdrawalPerson" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary);">
                                 <option value="dee">Dee</option>
                                 <option value="mike">Mike</option>
+                                <option value="rent">🏠 Rent</option>
+                                <option value="tin">🪙 Tin Collection</option>
                             </select>
                         </div>
                         <div>
@@ -3865,7 +3903,9 @@
         let withdrawals = [];
         const WITHDRAWAL_LIMITS = {
             dee: 4000,
-            mike: 1000
+            mike: 1000,
+            rent: 1300,
+            tin: null  // No limit
         };
         let editHistory = [];
 
@@ -4288,13 +4328,15 @@
                 return;
             }
             
-            // Check if this would exceed the limit
+            // Check if this would exceed the limit (tin has no limit)
             const currentTotal = getWithdrawalTotal(person);
             const limit = WITHDRAWAL_LIMITS[person];
             
-            if (currentTotal + amount > limit) {
+            // Only check limit if there is one (tin has null limit = no limit)
+            if (limit !== null && currentTotal + amount > limit) {
                 const remaining = limit - currentTotal;
-                alert(`This would exceed ${person === 'dee' ? 'Dee' : 'Mike'}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
+                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection' };
+                alert(`This would exceed ${categoryNames[person]}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
                 return;
             }
             
@@ -4331,7 +4373,7 @@
         
         function resetWithdrawals() {
             if (confirm('Are you sure you want to reset ALL withdrawals? This cannot be undone.')) {
-                if (confirm('This will clear all withdrawal history for both Mike and Dee. Continue?')) {
+                if (confirm('This will clear all withdrawal history for Dee, Mike, Rent, and Tin Collection. Continue?')) {
                     withdrawals = [];
                     saveInventory();
                     renderWithdrawals();
@@ -4350,12 +4392,16 @@
             // Calculate totals
             const deeTotal = getWithdrawalTotal('dee');
             const mikeTotal = getWithdrawalTotal('mike');
+            const rentTotal = getWithdrawalTotal('rent');
+            const tinTotal = getWithdrawalTotal('tin');
             
             const deeLimit = WITHDRAWAL_LIMITS.dee;
             const mikeLimit = WITHDRAWAL_LIMITS.mike;
+            const rentLimit = WITHDRAWAL_LIMITS.rent;
             
             const deePercentage = Math.min((deeTotal / deeLimit) * 100, 100);
             const mikePercentage = Math.min((mikeTotal / mikeLimit) * 100, 100);
+            const rentPercentage = Math.min((rentTotal / rentLimit) * 100, 100);
             
             // Update Dee's card
             document.getElementById('deeTotal').textContent = deeTotal.toFixed(2);
@@ -4373,6 +4419,22 @@
             mikeBar.style.width = mikePercentage + '%';
             mikeBar.style.background = getProgressColor(mikePercentage);
             
+            // Update Rent card
+            document.getElementById('rentTotal').textContent = rentTotal.toFixed(2);
+            document.getElementById('rentPercentage').textContent = Math.round(rentPercentage) + '%';
+            document.getElementById('rentRemaining').textContent = Math.max(0, rentLimit - rentTotal).toFixed(2);
+            const rentBar = document.getElementById('rentProgressBar');
+            rentBar.style.width = rentPercentage + '%';
+            rentBar.style.background = getProgressColor(rentPercentage);
+            
+            // Update Tin Collection card (no limit)
+            document.getElementById('tinTotal').textContent = tinTotal.toFixed(2);
+            // Tin has no limit, so always show a full blue bar
+            document.getElementById('tinPercentage').textContent = '∞';
+            const tinBar = document.getElementById('tinProgressBar');
+            tinBar.style.width = '100%';
+            tinBar.style.background = '#3b82f6';
+            
             // Render withdrawal list
             const listContainer = document.getElementById('withdrawalsList');
             
@@ -4385,19 +4447,30 @@
                 return;
             }
             
+            // Category display info
+            const categoryInfo = {
+                dee: { name: 'Dee', color: '#8b5cf6', icon: 'D' },
+                mike: { name: 'Mike', color: '#3b82f6', icon: 'M' },
+                rent: { name: 'Rent', color: '#f59e0b', icon: '🏠' },
+                tin: { name: 'Tin Collection', color: '#10b981', icon: '🪙' }
+            };
+            
             // Sort by date (newest first)
             const sortedWithdrawals = [...withdrawals].sort((a, b) => new Date(b.date) - new Date(a.date));
             
-            listContainer.innerHTML = sortedWithdrawals.map(w => `
+            listContainer.innerHTML = sortedWithdrawals.map(w => {
+                const info = categoryInfo[w.person] || categoryInfo.dee;
+                const isEmoji = info.icon.length > 1;
+                return `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: background 0.2s;" 
                      onmouseover="this.style.background='var(--bg-secondary)'" 
                      onmouseout="this.style.background='transparent'">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${w.person === 'dee' ? '#8b5cf6' : '#3b82f6'}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                            ${w.person === 'dee' ? 'D' : 'M'}
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${info.color}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: ${isEmoji ? '1.2em' : '1em'};">
+                            ${info.icon}
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: var(--text-primary);">${w.person === 'dee' ? 'Dee' : 'Mike'}</div>
+                            <div style="font-weight: 600; color: var(--text-primary);">${info.name}</div>
                             <div style="font-size: 0.85em; color: var(--text-muted);">
                                 ${new Date(w.date).toLocaleDateString()} ${new Date(w.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                 ${w.note ? ` • ${w.note}` : ''}
@@ -4409,7 +4482,7 @@
                         <button onclick="deleteWithdrawal(${w.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px; font-size: 1.2em;" title="Delete">🗑️</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         // Switch between tabs
