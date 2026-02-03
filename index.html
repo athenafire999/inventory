@@ -1,282 +1,1825 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt - Windlesora Modern</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #333;
-            background-color: #f4f4f4;
-            padding: 20px;
-        }
-        .receipt-box {
-            max-width: 800px;
-            margin: auto;
-            padding: 30px;
-            border: 1px solid #ccc;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
-        }
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-        }
-        .header h1 {
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-size: 26px;
-            color: #2c3e50;
-        }
-        .address {
-            font-size: 14px;
-            color: #555;
-            margin-top: 8px;
-            line-height: 1.6;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#667eea">
+  <title>Accountability Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        /* Receipt Info */
-        .info-section {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            margin-top: 20px;
-        }
-        .customer-details, .receipt-meta {
-            width: 48%;
-        }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      height: 100vh;
+      height: 100dvh;
+      padding: 10px;
+      padding-top: env(safe-area-inset-top, 10px);
+      padding-bottom: env(safe-area-inset-bottom, 10px);
+      overflow: hidden;
+    }
 
-        /* Editable Text Areas */
-        [contenteditable="true"] {
-            border: 1px dashed #ddd;
-            padding: 2px;
-            background: #fffdf0;
-            min-width: 50px;
-            display: inline-block;
-        }
-        [contenteditable="true"]:focus {
-            border: 1px solid #000;
-            background: #fff;
-            outline: none;
-        }
+    html {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
 
-        /* Table */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th {
-            background-color: #f8f8f8;
-            padding: 10px;
-            text-align: left;
-            border-bottom: 2px solid #333;
-            font-weight: bold;
-        }
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            vertical-align: middle;
-        }
-        
-        /* Input styling for Math */
-        input.qty, input.price {
-            width: 100%;
-            padding: 5px;
-            border: 1px dashed #ddd;
-            background: #fffdf0;
-            font-size: 16px;
-            text-align: right;
-            box-sizing: border-box;
-        }
-        input.qty:focus, input.price:focus {
-            border: 1px solid #333;
-            background: #fff;
-            outline: none;
-        }
-        
-        .total-cell {
-            text-align: right;
-            font-weight: bold;
-            padding-right: 15px;
-        }
+    #root {
+      width: 100%;
+      height: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .total-row td {
-            font-weight: bold;
-            font-size: 1.2em;
-            background-color: #fafafa;
-            border-top: 2px solid #333;
-            text-align: right;
-        }
+    .app {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
 
-        /* Buttons (Hidden on Print) */
-        .no-print {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        button {
-            background-color: #2c3e50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 5px;
-        }
-        button:hover { background-color: #444; }
-        .add-btn {
-            background-color: #27ae60;
-        }
+    .app-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 12px;
-            color: #777;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
+    .app-header h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 2px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
 
-        @media print {
-            .no-print, .add-row-btn { display: none; }
-            body { background-color: #fff; padding: 0; }
-            .receipt-box { box-shadow: none; border: none; padding: 0; width: 100%; }
-            [contenteditable="true"], input.qty, input.price { 
-                border: none; 
-                background: none; 
-                padding: 0;
-            }
-            input.qty, input.price { text-align: right; }
-        }
-    </style>
+    .app-header .date {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    /* Quote Section - Hidden on mobile by default */
+    .quote-section {
+      display: none;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0;
+    }
+
+    .quote-text {
+      font-size: 0.85rem;
+      color: white;
+      font-style: italic;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .quote-author {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+    }
+
+    /* Tab Navigation */
+    .tab-nav {
+      display: flex;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 10px;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .app-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .panel-card {
+      background: white;
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .progress-section {
+      display: none;
+    }
+
+    /* Mobile: Combined card with inline progress */
+    .mobile-progress-bar {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .mobile-progress-circle {
+      width: 50px;
+      height: 50px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .mobile-progress-circle svg {
+      transform: rotate(-90deg);
+    }
+
+    .mobile-progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .mobile-progress-stats {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .mobile-stat {
+      text-align: center;
+    }
+
+    .mobile-stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .mobile-stat-label {
+      font-size: 0.65rem;
+      color: #888;
+      text-transform: uppercase;
+    }
+
+    .progress-stats {
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .progress-circle-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-circle {
+      transform: rotate(-90deg);
+    }
+
+    .progress-circle-bg {
+      stroke: #e0e0e0;
+    }
+
+    .progress-circle-fill {
+      stroke: #667eea;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .progress-circle-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-percentage {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #667eea;
+      line-height: 1;
+    }
+
+    .progress-label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .habit-list {
+      background: white;
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .habit-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .habit-list-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .add-habit-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: inherit;
+    }
+
+    .add-habit-btn:active {
+      transform: scale(0.95);
+    }
+
+    .add-habit-form {
+      display: none;
+      background: #f8f9ff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      border: 2px solid #667eea30;
+    }
+
+    .add-habit-form.visible {
+      display: block;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .form-input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .form-input.emoji-input {
+      width: 60px;
+      flex: none;
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 10px;
+    }
+
+    .form-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .form-checkbox input {
+      width: 20px;
+      height: 20px;
+      accent-color: #667eea;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #666;
+    }
+
+    .habits-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .habit-wrapper {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fafafa;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .habit-item:active {
+      transform: scale(0.98);
+    }
+
+    .habit-item.completed {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-color: #667eea;
+    }
+
+    .habit-checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #667eea;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: white;
+      transition: all 0.2s ease;
+    }
+
+    .habit-item.completed .habit-checkbox {
+      background: #667eea;
+      border-color: #667eea;
+    }
+
+    .checkmark {
+      width: 14px;
+      height: 14px;
+      color: white;
+    }
+
+    .habit-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .habit-emoji {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .habit-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #333;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .habit-item.completed .habit-label {
+      color: #667eea;
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+
+    .habit-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .expand-btn, .delete-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .expand-btn:active, .delete-btn:active {
+      transform: scale(0.9);
+    }
+
+    .delete-btn {
+      background: #ff6b6b;
+      font-size: 0.8rem;
+    }
+
+    .expand-btn.expanded {
+      background: #764ba2;
+    }
+
+    .dropdown-section {
+      margin-top: 10px;
+      padding: 14px;
+      background: #f8f9ff;
+      border-radius: 12px;
+      border: 2px solid #667eea30;
+      display: none;
+    }
+
+    .dropdown-section.expanded {
+      display: block;
+    }
+
+    .input-group {
+      margin-bottom: 10px;
+    }
+
+    .input-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #666;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      background: white;
+      -webkit-appearance: none;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .input-field.filled {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+    }
+
+    .dropdown-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #667eea;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .filled-count {
+      background: #667eea;
+      color: white;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+
+    /* Calendar Styles */
+    .calendar-section {
+      width: 100%;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .calendar-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .calendar-nav-btn {
+      background: #667eea;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.3rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+    }
+
+    .calendar-nav-btn:active {
+      transform: scale(0.9);
+    }
+
+    .calendar-month-year {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      min-width: 130px;
+      text-align: center;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .calendar-day-header {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #666;
+      padding: 6px 2px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      border: 2px solid transparent;
+    }
+
+    .calendar-day.empty {
+      background: transparent;
+      cursor: default;
+    }
+
+    .calendar-day:not(.empty):active {
+      transform: scale(0.95);
+    }
+
+    .calendar-day.today {
+      border: 3px solid #667eea;
+      font-weight: 700;
+    }
+
+    .calendar-day .day-number {
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+    }
+
+    .calendar-day .day-progress {
+      font-size: 0.6rem;
+      color: #666;
+    }
+
+    .calendar-day.level-0 { background: #f0f0f0; }
+    .calendar-day.level-1 { background: #c7d2fe; }
+    .calendar-day.level-2 { background: #a5b4fc; }
+    .calendar-day.level-3 { background: #818cf8; color: white; }
+    .calendar-day.level-4 { background: #667eea; color: white; }
+    .calendar-day.level-5 { background: #4f46e5; color: white; }
+
+    .calendar-day.level-3 .day-progress,
+    .calendar-day.level-4 .day-progress,
+    .calendar-day.level-5 .day-progress {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .calendar-legend {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .legend-item {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+    }
+
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      border: 2px solid #667eea20;
+    }
+
+    .stat-card-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+
+    .stat-card-label {
+      font-size: 0.65rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Rest Day & Weekend Styles */
+    .rest-day-message {
+      text-align: center;
+      padding: 30px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .rest-emoji {
+      font-size: 3rem;
+      margin-bottom: 12px;
+    }
+
+    .rest-day-message h3 {
+      font-size: 1.3rem;
+      color: #667eea;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .rest-day-message p {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .rest-subtext {
+      font-size: 0.8rem !important;
+      color: #888 !important;
+      font-style: italic;
+    }
+
+    .weekend-notice {
+      background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+      border: 2px solid #667eea30;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #667eea;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Desktop styles */
+    @media (min-width: 768px) {
+      body {
+        padding: 24px;
+        overflow: auto;
+        height: auto;
+      }
+
+      html {
+        height: auto;
+        overflow: auto;
+      }
+
+      #root {
+        height: auto;
+      }
+
+      .app {
+        height: auto;
+      }
+
+      .app-header {
+        margin-bottom: 20px;
+      }
+
+      .app-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 6px;
+      }
+
+      .app-header .date {
+        font-size: 1.1rem;
+      }
+
+      .quote-section {
+        display: block;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+      }
+
+      .quote-text {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+      }
+
+      .quote-author {
+        font-size: 0.85rem;
+      }
+
+      .tab-nav {
+        display: none;
+      }
+
+      .tab-content {
+        display: block !important;
+        flex: none;
+      }
+
+      .app-content {
+        display: grid;
+        grid-template-columns: 1fr 1.4fr;
+        gap: 25px;
+        flex: none;
+      }
+
+      .left-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .right-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      .mobile-progress-bar {
+        display: none;
+      }
+
+      .progress-section {
+        display: flex;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .panel-card {
+        padding: 20px;
+        border-radius: 20px;
+        flex: none;
+        overflow: visible;
+      }
+
+      .habit-list {
+        padding: 25px;
+        border-radius: 20px;
+        flex: none;
+        overflow: visible;
+      }
+
+      .habit-list-header {
+        margin-bottom: 16px;
+      }
+
+      .habit-list-title {
+        font-size: 1.25rem;
+      }
+
+      .add-habit-btn {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+      }
+
+      .habits-container {
+        max-height: 500px;
+        overflow-y: auto;
+        gap: 10px;
+      }
+
+      .habit-item {
+        padding: 14px;
+        border-radius: 14px;
+        gap: 12px;
+      }
+
+      .habit-checkbox {
+        width: 28px;
+        height: 28px;
+        border-width: 3px;
+        border-radius: 8px;
+      }
+
+      .checkmark {
+        width: 16px;
+        height: 16px;
+      }
+
+      .habit-emoji {
+        font-size: 1.4rem;
+      }
+
+      .habit-label {
+        font-size: 0.95rem;
+      }
+
+      .expand-btn, .delete-btn {
+        width: 32px;
+        height: 32px;
+      }
+
+      .weekend-notice {
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+      }
+
+      .rest-day-message {
+        padding: 50px 20px;
+      }
+
+      .rest-emoji {
+        font-size: 5rem;
+      }
+
+      .rest-day-message h3 {
+        font-size: 1.8rem;
+      }
+
+      .rest-day-message p {
+        font-size: 1.1rem;
+      }
+
+      .calendar-grid {
+        gap: 8px;
+      }
+
+      .calendar-day {
+        font-size: 0.9rem;
+      }
+
+      .stat-card {
+        padding: 15px;
+      }
+
+      .stat-card-value {
+        font-size: 1.8rem;
+      }
+
+      .stat-card-label {
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .app-header h1 {
+        font-size: 2.8rem;
+      }
+
+      .quote-section {
+        padding: 25px 40px;
+      }
+
+      .quote-text {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div id="root"></div>
 
-    <div class="no-print">
-        <button onclick="window.print()">🖨️ Print Receipt / Save PDF</button>
-        <button class="add-btn" onclick="addRow()">+ Add New Item</button>
-        <p style="font-size:12px; color: #666;">Tip: Edit the quantities and prices, and the total will calculate automatically.</p>
-    </div>
+  <script>
+    // Motivational Quotes
+    const QUOTES = [
+      { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+      { text: "It's not about perfect. It's about effort.", author: "Jillian Michaels" },
+      { text: "Small daily improvements are the key to staggering long-term results.", author: "Robin Sharma" },
+      { text: "Success is the sum of small efforts repeated day in and day out.", author: "Robert Collier" },
+      { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+      { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+      { text: "Your limitation—it's only your imagination.", author: "Unknown" },
+      { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+      { text: "Great things never come from comfort zones.", author: "Unknown" },
+      { text: "Dream it. Wish it. Do it.", author: "Unknown" },
+      { text: "Stay focused and never give up.", author: "Unknown" },
+      { text: "The harder you work, the luckier you get.", author: "Gary Player" },
+      { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+      { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
+      { text: "Success doesn't come from what you do occasionally, it comes from what you do consistently.", author: "Marie Forleo" },
+      { text: "The difference between who you are and who you want to be is what you do.", author: "Unknown" },
+      { text: "A year from now you may wish you had started today.", author: "Karen Lamb" },
+      { text: "Do something today that your future self will thank you for.", author: "Sean Patrick Flanery" },
+      { text: "Little by little, one travels far.", author: "J.R.R. Tolkien" },
+      { text: "You don't have to be great to start, but you have to start to be great.", author: "Zig Ziglar" },
+      { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+      { text: "Your future is created by what you do today, not tomorrow.", author: "Robert Kiyosaki" },
+      { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+      { text: "Winners are not people who never fail, but people who never quit.", author: "Unknown" },
+      { text: "The only bad workout is the one that didn't happen.", author: "Unknown" },
+      { text: "Progress, not perfection.", author: "Unknown" },
+      { text: "Make each day your masterpiece.", author: "John Wooden" },
+      { text: "Be stronger than your excuses.", author: "Unknown" },
+      { text: "What you do today can improve all your tomorrows.", author: "Ralph Marston" },
+      { text: "Strive for progress, not perfection.", author: "Unknown" },
+      { text: "The journey of a thousand miles begins with a single step.", author: "Lao Tzu" }
+    ];
 
-    <div class="receipt-box">
-        <!-- Header -->
-        <div class="header">
-            <h1>Windlesora Modern</h1>
-            <div class="address">
-                Unit 4 & 5, 65 Straight Road<br>
-                Old Windsor, SL4 2SA<br>
-                <strong>Tel: 07469 203722</strong>
-            </div>
-        </div>
+    // Default habits
+    const DEFAULT_HABITS = [
+      { id: 'read', label: 'Read 50 pages', emoji: '📚', isDefault: true },
+      { id: 'meditate', label: 'Meditate', emoji: '🧘', isDefault: true },
+      { id: 'writeIdeas', label: 'Write 5 ideas', emoji: '💡', hasDropdown: true, dropdownTitle: 'Your Ideas', inputLabel: 'Idea', isDefault: true },
+      { id: 'todoList', label: '5 to-do list items', emoji: '✅', hasDropdown: true, dropdownTitle: 'Your To-Do List', inputLabel: 'To-Do', isDefault: true },
+      { id: 'affirmations', label: '5 affirmations', emoji: '✨', hasDropdown: true, dropdownTitle: 'Your Affirmations', inputLabel: 'Affirmation', isDefault: true },
+      { id: 'exercise', label: 'Exercise', emoji: '💪', isDefault: true },
+      { id: 'eatHealthy', label: 'Eat healthy', emoji: '🥗', isDefault: true },
+    ];
 
-        <h2 style="text-align:center; font-weight: normal; border: 1px solid #333; display:block; padding: 5px 15px; margin: 0 auto; width: 200px;">RECEIPT</h2>
+    // Date utility functions
+    function startOfDay(date) {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
 
-        <!-- Info Section -->
-        <div class="info-section">
-            <div class="customer-details">
-                <strong>Received From:</strong><br>
-                <div contenteditable="true" style="width: 100%;">
-                    [Customer Name]<br>
-                    [Address Line 1]<br>
-                    [Postcode]
-                </div>
-            </div>
-            <div class="receipt-meta" style="text-align: right;">
-                <strong>Date:</strong> <span id="date" contenteditable="true">DD/MM/YYYY</span><br>
-                <strong>Receipt #:</strong> <span contenteditable="true">001</span><br>
-                <strong>Payment Method:</strong> <span contenteditable="true">Card / BACS</span>
-            </div>
-        </div>
+    function formatDate(date, formatStr) {
+      const d = new Date(date);
+      if (formatStr === 'yyyy-MM-dd') {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      if (formatStr === 'MMM d') {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${months[d.getMonth()]} ${d.getDate()}`;
+      }
+      if (formatStr === 'EEEE, MMMM d, yyyy') {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+      }
+      if (formatStr === 'MMMM yyyy') {
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        return `${months[d.getMonth()]} ${d.getFullYear()}`;
+      }
+      return d.toString();
+    }
 
-        <!-- Items Table -->
-        <table id="itemsTable">
-            <thead>
-                <tr>
-                    <th width="50%">Description</th>
-                    <th width="15%" style="text-align:right;">Qty</th>
-                    <th width="15%" style="text-align:right;">Price (£)</th>
-                    <th width="20%" style="text-align:right;">Total (£)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Item 1 -->
-                <tr>
-                    <td contenteditable="true">Furniture Item Name</td>
-                    <td><input type="number" class="qty" value="1" oninput="calculateTotal()"></td>
-                    <td><input type="number" class="price" value="0.00" step="0.01" oninput="calculateTotal()"></td>
-                    <td class="total-cell">0.00</td>
-                </tr>
-                <!-- Item 2 -->
-                <tr>
-                    <td contenteditable="true">Delivery / Assembly</td>
-                    <td><input type="number" class="qty" value="1" oninput="calculateTotal()"></td>
-                    <td><input type="number" class="price" value="0.00" step="0.01" oninput="calculateTotal()"></td>
-                    <td class="total-cell">0.00</td>
-                </tr>
-                 
-            </tbody>
-            <tfoot>
-                <tr class="total-row">
-                    <td colspan="3">TOTAL PAID</td>
-                    <td id="grandTotal">£0.00</td>
-                </tr>
-            </tfoot>
-        </table>
+    function subDays(date, days) {
+      const result = new Date(date);
+      result.setDate(result.getDate() - days);
+      return result;
+    }
 
-        <div style="margin-top: 30px; text-align: center;">
-            <p><strong>Payment Status:</strong> PAID IN FULL</p>
-            <p style="font-style: italic;">Thank you for your business!</p>
-        </div>
+    function getDaysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
 
-        <div class="footer">
-            Windlesora Modern | Unit 4 & 5 Old Windsor, 65 Straight Road, SL4 2SA | Tel: 07469 203722
-        </div>
-    </div>
+    function getFirstDayOfMonth(year, month) {
+      return new Date(year, month, 1).getDay();
+    }
 
-    <script>
-        // Set today's date
-        document.getElementById("date").innerText = new Date().toLocaleDateString('en-GB');
+    // App state
+    let habits = {};
+    let history = {};
+    let customHabits = [];
+    let expandedDropdowns = {};
+    let showAddForm = false;
+    let calendarMonth = new Date().getMonth();
+    let calendarYear = new Date().getFullYear();
+    let activeTab = 'habits';
 
-        // Calculation Function
-        function calculateTotal() {
-            let table = document.getElementById("itemsTable");
-            let rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
-            let grandTotal = 0;
+    // Get daily quote based on day of year
+    function getDailyQuote() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      const dayOfYear = Math.floor(diff / oneDay);
+      return QUOTES[dayOfYear % QUOTES.length];
+    }
 
-            for (let i = 0; i < rows.length; i++) {
-                let qtyInput = rows[i].getElementsByClassName("qty")[0];
-                let priceInput = rows[i].getElementsByClassName("price")[0];
-                let totalCell = rows[i].getElementsByClassName("total-cell")[0];
+    // Get all habits (default + custom) - filtered by day of week
+    function getAllHabits(date = new Date()) {
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+      
+      // Sunday - rest day, no habits
+      if (dayOfWeek === 0) {
+        return [];
+      }
+      
+      // Saturday - only exercise and eat healthy
+      if (dayOfWeek === 6) {
+        const saturdayHabits = DEFAULT_HABITS.filter(h => 
+          h.id === 'exercise' || h.id === 'eatHealthy'
+        );
+        return [...saturdayHabits, ...customHabits.filter(h => h.weekendOnly)];
+      }
+      
+      // Weekdays (Mon-Fri) - all habits
+      return [...DEFAULT_HABITS, ...customHabits];
+    }
+    
+    // Get habits for a specific date (used for calendar/history)
+    function getHabitsForDate(dateKey) {
+      const date = new Date(dateKey);
+      return getAllHabits(date);
+    }
 
-                let qty = parseFloat(qtyInput.value) || 0;
-                let price = parseFloat(priceInput.value) || 0;
-                
-                let rowTotal = qty * price;
-                totalCell.innerText = rowTotal.toFixed(2);
-                
-                grandTotal += rowTotal;
-            }
+    // Load data from localStorage
+    function loadData() {
+      const saved = localStorage.getItem('accountabilityData');
+      if (saved) {
+        history = JSON.parse(saved);
+        const todayKey = formatDate(startOfDay(new Date()), 'yyyy-MM-dd');
+        habits = history[todayKey] || {};
+      }
+      
+      const savedHabits = localStorage.getItem('customHabits');
+      if (savedHabits) {
+        customHabits = JSON.parse(savedHabits);
+      }
+    }
 
-            document.getElementById("grandTotal").innerText = "£" + grandTotal.toFixed(2);
+    // Save data to localStorage
+    function saveData() {
+      const todayKey = formatDate(startOfDay(new Date()), 'yyyy-MM-dd');
+      history[todayKey] = habits;
+      localStorage.setItem('accountabilityData', JSON.stringify(history));
+    }
+
+    // Save custom habits
+    function saveCustomHabits() {
+      localStorage.setItem('customHabits', JSON.stringify(customHabits));
+    }
+
+    // Switch tab
+    function switchTab(tab) {
+      activeTab = tab;
+      render();
+    }
+
+    // Add new habit
+    function addHabit() {
+      const label = document.getElementById('newHabitLabel').value.trim();
+      const emoji = document.getElementById('newHabitEmoji').value.trim() || '⭐';
+      const hasDropdown = document.getElementById('newHabitDropdown').checked;
+      
+      if (!label) {
+        alert('Please enter a habit name');
+        return;
+      }
+      
+      const newHabit = {
+        id: 'custom_' + Date.now(),
+        label: label,
+        emoji: emoji,
+        hasDropdown: hasDropdown,
+        dropdownTitle: hasDropdown ? `Your ${label}` : null,
+        inputLabel: hasDropdown ? label.replace(/[0-9]/g, '').trim() : null,
+        isCustom: true
+      };
+      
+      customHabits.push(newHabit);
+      saveCustomHabits();
+      showAddForm = false;
+      render();
+    }
+
+    // Delete habit
+    function deleteHabit(habitId, event) {
+      if (event) event.stopPropagation();
+      if (confirm('Delete this habit?')) {
+        customHabits = customHabits.filter(h => h.id !== habitId);
+        saveCustomHabits();
+        render();
+      }
+    }
+
+    // Toggle habit
+    function toggleHabit(habitId, event) {
+      if (event) event.stopPropagation();
+      habits[habitId] = !habits[habitId];
+      saveData();
+      render();
+    }
+
+    // Toggle dropdown
+    function toggleDropdown(habitId, event) {
+      if (event) event.stopPropagation();
+      expandedDropdowns[habitId] = !expandedDropdowns[habitId];
+      render();
+    }
+
+    // Toggle add form
+    function toggleAddForm() {
+      showAddForm = !showAddForm;
+      render();
+    }
+
+    // Navigate calendar
+    function navigateCalendar(direction) {
+      calendarMonth += direction;
+      if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      } else if (calendarMonth < 0) {
+        calendarMonth = 11;
+        calendarYear--;
+      }
+      render();
+    }
+
+    // Update input value
+    function updateInput(habitId, index, value) {
+      if (!habits[habitId + '_items']) {
+        habits[habitId + '_items'] = ['', '', '', '', ''];
+      }
+      habits[habitId + '_items'][index] = value;
+      
+      const filledCount = habits[habitId + '_items'].filter(item => item && item.trim() !== '').length;
+      habits[habitId] = filledCount >= 5;
+      
+      saveData();
+      updateProgressCircle();
+      
+      const input = document.querySelector(`[data-input-id="${habitId}-${index}"]`);
+      if (input) {
+        if (value && value.trim() !== '') {
+          input.classList.add('filled');
+        } else {
+          input.classList.remove('filled');
         }
+      }
+      
+      const filledCountEl = document.querySelector(`[data-filled-count="${habitId}"]`);
+      if (filledCountEl) {
+        filledCountEl.textContent = `${filledCount}/5`;
+      }
+      
+      const habitItem = document.querySelector(`[data-habit-id="${habitId}"]`);
+      const checkbox = habitItem?.querySelector('.habit-checkbox');
+      if (habits[habitId]) {
+        habitItem?.classList.add('completed');
+        if (checkbox) checkbox.innerHTML = `<svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" /></svg>`;
+      } else {
+        habitItem?.classList.remove('completed');
+        if (checkbox) checkbox.innerHTML = '';
+      }
+    }
 
-        // Function to Add New Rows
-        function addRow() {
-            let table = document.getElementById("itemsTable").getElementsByTagName('tbody')[0];
-            let newRow = table.insertRow();
-            newRow.innerHTML = `
-                <td contenteditable="true"></td>
-                <td><input type="number" class="qty" value="1" oninput="calculateTotal()"></td>
-                <td><input type="number" class="price" value="0.00" step="0.01" oninput="calculateTotal()"></td>
-                <td class="total-cell">0.00</td>
-            `;
+    // Update progress circle
+    function updateProgressCircle() {
+      const allHabits = getAllHabits();
+      const completedCount = allHabits.filter(h => habits[h.id]).length;
+      const totalHabits = allHabits.length;
+      const progress = totalHabits > 0 ? (completedCount / totalHabits) * 100 : 0;
+      
+      const radius = 60;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (progress / 100) * circumference;
+      
+      const progressFill = document.querySelector('.progress-circle-fill');
+      const progressPercentage = document.querySelector('.progress-percentage');
+      const completedStat = document.querySelector('.stat-value');
+      
+      if (progressFill) progressFill.setAttribute('stroke-dashoffset', offset);
+      if (progressPercentage) progressPercentage.textContent = Math.round(progress) + '%';
+      if (completedStat) completedStat.textContent = completedCount;
+    }
+
+    // Calculate progress
+    function getProgress() {
+      const allHabits = getAllHabits();
+      const completedCount = allHabits.filter(h => habits[h.id]).length;
+      const totalHabits = allHabits.length;
+      return totalHabits > 0 ? (completedCount / totalHabits) * 100 : 0;
+    }
+
+    // Get day progress
+    function getDayProgress(dateKey) {
+      const dayData = history[dateKey] || {};
+      const habitsForDay = getHabitsForDate(dateKey);
+      
+      // Sunday has no habits - show as 100% (rest day complete)
+      if (habitsForDay.length === 0) {
+        return 100;
+      }
+      
+      const completed = habitsForDay.filter(h => dayData[h.id]).length;
+      return habitsForDay.length > 0 ? (completed / habitsForDay.length) * 100 : 0;
+    }
+
+    // Get progress level (0-5)
+    function getProgressLevel(percentage) {
+      if (percentage === 0) return 0;
+      if (percentage <= 20) return 1;
+      if (percentage <= 40) return 2;
+      if (percentage <= 60) return 3;
+      if (percentage <= 80) return 4;
+      return 5;
+    }
+
+    // Calculate stats
+    function getStats() {
+      // 30-day average
+      let totalProgress = 0;
+      for (let i = 0; i < 30; i++) {
+        const date = subDays(new Date(), i);
+        const dateKey = formatDate(startOfDay(date), 'yyyy-MM-dd');
+        totalProgress += getDayProgress(dateKey);
+      }
+      const averageProgress = Math.round(totalProgress / 30);
+      
+      // Current streak - check each day with its specific habits
+      let streak = 0;
+      for (let i = 0; i < 365; i++) {
+        const date = subDays(new Date(), i);
+        const dateKey = formatDate(startOfDay(date), 'yyyy-MM-dd');
+        const dayData = history[dateKey] || {};
+        const habitsForDay = getHabitsForDate(dateKey);
+        
+        // Sunday is a rest day - counts as complete
+        if (habitsForDay.length === 0) {
+          streak++;
+          continue;
         }
-    </script>
+        
+        const habitIds = habitsForDay.map(h => h.id);
+        const completed = habitIds.filter(id => dayData[id]).length;
+        
+        if (completed === habitIds.length && habitIds.length > 0) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      
+      // Best streak
+      let bestStreak = 0;
+      let currentStreak = 0;
+      const sortedDates = Object.keys(history).sort();
+      for (const dateKey of sortedDates) {
+        const dayData = history[dateKey] || {};
+        const habitsForDay = getHabitsForDate(dateKey);
+        
+        // Sunday is a rest day - counts as complete
+        if (habitsForDay.length === 0) {
+          currentStreak++;
+          bestStreak = Math.max(bestStreak, currentStreak);
+          continue;
+        }
+        
+        const habitIds = habitsForDay.map(h => h.id);
+        const completed = habitIds.filter(id => dayData[id]).length;
+        
+        if (completed === habitIds.length && habitIds.length > 0) {
+          currentStreak++;
+          bestStreak = Math.max(bestStreak, currentStreak);
+        } else {
+          currentStreak = 0;
+        }
+      }
+      
+      return { averageProgress, streak, bestStreak };
+    }
+
+    // Render quote
+    function renderQuote() {
+      const quote = getDailyQuote();
+      return `
+        <div class="quote-section">
+          <p class="quote-text">"${quote.text}"</p>
+          <p class="quote-author">— ${quote.author}</p>
+        </div>
+      `;
+    }
+
+    // Render progress circle
+    function renderProgressCircle(progress) {
+      const radius = 60;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (progress / 100) * circumference;
+      const allHabits = getAllHabits();
+      const completedCount = allHabits.filter(h => habits[h.id]).length;
+      const totalHabits = allHabits.length;
+
+      return `
+        <div class="progress-circle-container">
+          <svg class="progress-circle" width="150" height="150">
+            <circle
+              class="progress-circle-bg"
+              cx="75"
+              cy="75"
+              r="${radius}"
+              fill="none"
+              stroke-width="10"
+            />
+            <circle
+              class="progress-circle-fill"
+              cx="75"
+              cy="75"
+              r="${radius}"
+              fill="none"
+              stroke-width="10"
+              stroke-dasharray="${circumference}"
+              stroke-dashoffset="${offset}"
+              transform="rotate(-90 75 75)"
+            />
+          </svg>
+          <div class="progress-circle-text">
+            <span class="progress-percentage">${Math.round(progress)}%</span>
+            <span class="progress-label">Today</span>
+          </div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat">
+            <span class="stat-value">${completedCount}</span>
+            <span class="stat-label">Done</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">${totalHabits}</span>
+            <span class="stat-label">Total</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render dropdown
+    function renderDropdown(habit) {
+      const items = habits[habit.id + '_items'] || ['', '', '', '', ''];
+      const filledCount = items.filter(item => item && item.trim() !== '').length;
+      const isExpanded = expandedDropdowns[habit.id];
+
+      const inputs = items.map((item, index) => {
+        const isFilled = item && item.trim() !== '';
+        return `
+          <div class="input-group">
+            <label>${habit.inputLabel} ${index + 1}</label>
+            <input 
+              type="text" 
+              class="input-field ${isFilled ? 'filled' : ''}"
+              data-input-id="${habit.id}-${index}"
+              value="${item || ''}"
+              placeholder="Enter ${habit.inputLabel.toLowerCase()} ${index + 1}..."
+              oninput="updateInput('${habit.id}', ${index}, this.value)"
+              onclick="event.stopPropagation()"
+            />
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="dropdown-section ${isExpanded ? 'expanded' : ''}">
+          <div class="dropdown-title">
+            ${habit.dropdownTitle}
+            <span class="filled-count" data-filled-count="${habit.id}">${filledCount}/5</span>
+          </div>
+          ${inputs}
+        </div>
+      `;
+    }
+
+    // Render add habit form
+    function renderAddForm() {
+      return `
+        <div class="add-habit-form ${showAddForm ? 'visible' : ''}">
+          <div class="form-row">
+            <input type="text" id="newHabitEmoji" class="form-input emoji-input" placeholder="📌" maxlength="2" />
+            <input type="text" id="newHabitLabel" class="form-input" placeholder="Habit name..." />
+          </div>
+          <label class="form-checkbox">
+            <input type="checkbox" id="newHabitDropdown" />
+            Add 5 input fields
+          </label>
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="addHabit()">Add</button>
+            <button class="btn btn-secondary" onclick="toggleAddForm()">Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render habit list
+    function renderHabitList() {
+      const allHabits = getAllHabits();
+      const dayOfWeek = new Date().getDay();
+      
+      // Sunday - rest day message
+      if (dayOfWeek === 0) {
+        return `
+          <div class="habit-list">
+            <div class="rest-day-message">
+              <div class="rest-emoji">😴</div>
+              <h3>It's Sunday!</h3>
+              <p>Take a break and recharge.</p>
+              <p class="rest-subtext">You've earned it!</p>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Saturday - weekend mode message
+      let weekendNotice = '';
+      if (dayOfWeek === 6) {
+        weekendNotice = `
+          <div class="weekend-notice">
+            <span>🏋️</span> Weekend Mode: Exercise & Eat Healthy only
+          </div>
+        `;
+      }
+      
+      const habitsHtml = allHabits.map(habit => {
+        const isCompleted = habits[habit.id] || false;
+        const hasDropdown = habit.hasDropdown;
+        const isExpanded = expandedDropdowns[habit.id];
+        const isCustom = habit.isCustom;
+        
+        return `
+          <div class="habit-wrapper">
+            <div class="habit-item ${isCompleted ? 'completed' : ''}" data-habit-id="${habit.id}" onclick="toggleHabit('${habit.id}', event)">
+              <div class="habit-checkbox">
+                ${isCompleted ? `
+                  <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ` : ''}
+              </div>
+              <div class="habit-content">
+                <span class="habit-emoji">${habit.emoji}</span>
+                <span class="habit-label">${habit.label}</span>
+              </div>
+              <div class="habit-actions">
+                ${hasDropdown ? `
+                  <button class="expand-btn ${isExpanded ? 'expanded' : ''}" onclick="toggleDropdown('${habit.id}', event)">
+                    ${isExpanded ? '−' : '+'}
+                  </button>
+                ` : ''}
+                ${isCustom ? `
+                  <button class="delete-btn" onclick="deleteHabit('${habit.id}', event)">✕</button>
+                ` : ''}
+              </div>
+            </div>
+            ${hasDropdown ? renderDropdown(habit) : ''}
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="habit-list">
+          <div class="habit-list-header">
+            <h2 class="habit-list-title">Daily Habits</h2>
+            <button class="add-habit-btn" onclick="toggleAddForm()">
+              <span>+</span> Add
+            </button>
+          </div>
+          ${renderMobileProgress()}
+          ${weekendNotice}
+          ${renderAddForm()}
+          <div class="habits-container">
+            ${habitsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    // Render mobile progress bar
+    function renderMobileProgress() {
+      const allHabits = getAllHabits();
+      const completedCount = allHabits.filter(h => habits[h.id]).length;
+      const totalHabits = allHabits.length;
+      const progress = totalHabits > 0 ? (completedCount / totalHabits) * 100 : 0;
+      
+      const radius = 18;
+      const circumference = 2 * Math.PI * radius;
+      const offset = circumference - (progress / 100) * circumference;
+      
+      return `
+        <div class="mobile-progress-bar">
+          <div class="mobile-progress-circle">
+            <svg width="50" height="50">
+              <circle cx="25" cy="25" r="${radius}" fill="none" stroke="#e0e0e0" stroke-width="4"/>
+              <circle cx="25" cy="25" r="${radius}" fill="none" stroke="#667eea" stroke-width="4"
+                stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+            </svg>
+            <div class="mobile-progress-text">${Math.round(progress)}%</div>
+          </div>
+          <div class="mobile-progress-stats">
+            <div class="mobile-stat">
+              <div class="mobile-stat-value">${completedCount}</div>
+              <div class="mobile-stat-label">Done</div>
+            </div>
+            <div class="mobile-stat">
+              <div class="mobile-stat-value">${totalHabits}</div>
+              <div class="mobile-stat-label">Total</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Render calendar
+    function renderCalendar() {
+      const daysInMonth = getDaysInMonth(calendarYear, calendarMonth);
+      const firstDay = getFirstDayOfMonth(calendarYear, calendarMonth);
+      const today = new Date();
+      const todayKey = formatDate(startOfDay(today), 'yyyy-MM-dd');
+      
+      const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      
+      let calendarDays = '';
+      
+      // Empty cells before first day
+      for (let i = 0; i < firstDay; i++) {
+        calendarDays += '<div class="calendar-day empty"></div>';
+      }
+      
+      // Days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(calendarYear, calendarMonth, day);
+        const dateKey = formatDate(startOfDay(date), 'yyyy-MM-dd');
+        const progress = getDayProgress(dateKey);
+        const level = getProgressLevel(progress);
+        const isToday = dateKey === todayKey;
+        
+        calendarDays += `
+          <div class="calendar-day level-${level} ${isToday ? 'today' : ''}">
+            <span class="day-number">${day}</span>
+            <span class="day-progress">${Math.round(progress)}%</span>
+          </div>
+        `;
+      }
+      
+      const stats = getStats();
+      
+      return `
+        <div class="panel-card">
+          <div class="calendar-section">
+            <div class="calendar-header">
+              <h2 class="calendar-title">Progress</h2>
+              <div class="calendar-nav">
+                <button class="calendar-nav-btn" onclick="navigateCalendar(-1)">‹</button>
+                <span class="calendar-month-year">${formatDate(new Date(calendarYear, calendarMonth), 'MMMM yyyy')}</span>
+                <button class="calendar-nav-btn" onclick="navigateCalendar(1)">›</button>
+              </div>
+            </div>
+            
+            <div class="stats-row">
+              <div class="stat-card">
+                <div class="stat-card-value">${stats.averageProgress}%</div>
+                <div class="stat-card-label">30-Day Avg</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-value">${stats.streak}</div>
+                <div class="stat-card-label">Streak</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-value">${stats.bestStreak}</div>
+                <div class="stat-card-label">Best</div>
+              </div>
+            </div>
+            
+            <div class="calendar-grid">
+              ${dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('')}
+              ${calendarDays}
+            </div>
+            
+            <div class="calendar-legend">
+              <span>Less</span>
+              <div class="legend-item level-0"></div>
+              <div class="legend-item level-1"></div>
+              <div class="legend-item level-2"></div>
+              <div class="legend-item level-3"></div>
+              <div class="legend-item level-4"></div>
+              <div class="legend-item level-5"></div>
+              <span>More</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Main render function
+    function render() {
+      const progress = getProgress();
+      const today = formatDate(new Date(), 'EEEE, MMMM d, yyyy');
+
+      const html = `
+        <div class="app">
+          <header class="app-header">
+            <h1>Accountability</h1>
+            <p class="date">${today}</p>
+          </header>
+
+          ${renderQuote()}
+
+          <div class="tab-nav">
+            <button class="tab-btn ${activeTab === 'habits' ? 'active' : ''}" onclick="switchTab('habits')">Habits</button>
+            <button class="tab-btn ${activeTab === 'calendar' ? 'active' : ''}" onclick="switchTab('calendar')">Calendar</button>
+          </div>
+
+          <div class="app-content">
+            <div class="left-panel tab-content ${activeTab === 'habits' ? 'active' : ''}">
+              <div class="progress-section">
+                ${renderProgressCircle(progress)}
+              </div>
+              ${renderHabitList()}
+            </div>
+
+            <div class="right-panel tab-content ${activeTab === 'calendar' ? 'active' : ''}">
+              ${renderCalendar()}
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('root').innerHTML = html;
+    }
+
+    // Initialize app
+    loadData();
+    render();
+
+    // Make functions available globally
+    window.toggleHabit = toggleHabit;
+    window.toggleDropdown = toggleDropdown;
+    window.updateInput = updateInput;
+    window.toggleAddForm = toggleAddForm;
+    window.addHabit = addHabit;
+    window.deleteHabit = deleteHabit;
+    window.navigateCalendar = navigateCalendar;
+    window.switchTab = switchTab;
+  </script>
 </body>
 </html>
