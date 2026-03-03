@@ -1148,8 +1148,33 @@
             }
             
             .header > div > div:last-child {
-                flex-direction: column;
+                flex-direction: row;
+                flex-wrap: nowrap;
                 width: 100%;
+                justify-content: flex-end;
+                gap: 6px;
+            }
+
+            .header > div > div:last-child > * {
+                flex-shrink: 1;
+            }
+
+            .header > div > div:last-child .theme-toggle {
+                padding: 6px 10px;
+                min-width: 36px;
+                min-height: 36px;
+                font-size: 1rem;
+            }
+
+            .header > div > div:last-child .logout-btn-header {
+                padding: 8px 12px !important;
+                font-size: 0.8rem !important;
+            }
+
+            /* Compact the user badge on mobile */
+            .header > div > div:last-child > div[style*="background: rgba(245"] {
+                padding: 6px 10px !important;
+                font-size: 0.8rem !important;
             }
             
             .btn-delivery {
