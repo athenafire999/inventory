@@ -2574,6 +2574,13 @@
             <div style="max-width: 900px; margin: 0 auto;">
                 <h2 style="margin: 0 0 25px 0; color: var(--text-primary);">💰 Withdrawals Tracker</h2>
                 
+                <!-- Month Navigator -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 20px; margin-bottom: 20px; background: linear-gradient(135deg, #ede9fe, #ddd6fe); border-radius: 12px; border: 1px solid #c4b5fd;">
+                    <button onclick="changeWithdrawalMonth(-1)" style="background: #fff; border: 1px solid #c4b5fd; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; color: #7c3aed; transition: all 0.2s;" onmouseover="this.style.background='#7c3aed';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#7c3aed'">◀</button>
+                    <div id="withdrawalMonthLabel" style="font-size: 1.15em; font-weight: 700; color: #5b21b6; min-width: 180px; text-align: center;"></div>
+                    <button onclick="changeWithdrawalMonth(1)" id="withdrawalMonthNextBtn" style="background: #fff; border: 1px solid #c4b5fd; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; color: #7c3aed; transition: all 0.2s;" onmouseover="this.style.background='#7c3aed';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#7c3aed'">▶</button>
+                </div>
+
                 <!-- Progress Charts -->
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
                     <!-- Dee's Card -->
@@ -2650,7 +2657,7 @@
                 </div>
                 
                 <!-- Add Withdrawal Form -->
-                <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+                <div id="addWithdrawalForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
                     <h3 style="margin: 0 0 20px 0;">Add Withdrawal</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
                         <div>
@@ -2680,7 +2687,7 @@
                 <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                         <h3 style="margin: 0;">Withdrawal History</h3>
-                        <button onclick="resetWithdrawals()" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.9em;">
+                        <button id="resetWithdrawalsBtn" onclick="resetWithdrawals()" class="btn btn-danger" style="padding: 8px 16px; font-size: 0.9em;">
                             Reset All
                         </button>
                     </div>
@@ -3977,6 +3984,28 @@
 
         // Withdrawals tracking
         let withdrawals = [];
+        let withdrawalMonthFilter = { month: new Date().getMonth(), year: new Date().getFullYear() };
+
+        // Change withdrawal month filter
+        function changeWithdrawalMonth(direction) {
+            let { month, year } = withdrawalMonthFilter;
+            month += direction;
+            if (month < 0) { month = 11; year--; }
+            if (month > 11) { month = 0; year++; }
+            const now = new Date();
+            if (year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth())) return;
+            withdrawalMonthFilter = { month, year };
+            renderWithdrawals();
+        }
+
+        // Get withdrawals for the selected month
+        function getMonthWithdrawals(person) {
+            return withdrawals.filter(w => {
+                if (person && w.person !== person) return false;
+                const d = new Date(w.date);
+                return d.getMonth() === withdrawalMonthFilter.month && d.getFullYear() === withdrawalMonthFilter.year;
+            });
+        }
         const WITHDRAWAL_LIMITS = {
             dee: 4000,
             mike: 1000,
@@ -4434,8 +4463,7 @@
         }
         
         function getWithdrawalTotal(person) {
-            return withdrawals
-                .filter(w => w.person === person)
+            return getMonthWithdrawals(person)
                 .reduce((sum, w) => sum + w.amount, 0);
         }
         
@@ -4465,7 +4493,32 @@
         }
         
         function renderWithdrawals() {
-            // Calculate totals
+            // Update month label
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+            const wLabel = document.getElementById('withdrawalMonthLabel');
+            const wNextBtn = document.getElementById('withdrawalMonthNextBtn');
+            if (wLabel) {
+                const now = new Date();
+                const isCurrent = withdrawalMonthFilter.month === now.getMonth() && withdrawalMonthFilter.year === now.getFullYear();
+                wLabel.textContent = monthNames[withdrawalMonthFilter.month] + ' ' + withdrawalMonthFilter.year + (isCurrent ? ' (Current)' : '');
+            }
+            if (wNextBtn) {
+                const now = new Date();
+                const isCurrent = withdrawalMonthFilter.month === now.getMonth() && withdrawalMonthFilter.year === now.getFullYear();
+                wNextBtn.style.opacity = isCurrent ? '0.3' : '1';
+                wNextBtn.style.pointerEvents = isCurrent ? 'none' : 'auto';
+            }
+
+            // Show/hide add form and reset button based on whether viewing current month
+            const nowCheck = new Date();
+            const isCurrentMonth = withdrawalMonthFilter.month === nowCheck.getMonth() && withdrawalMonthFilter.year === nowCheck.getFullYear();
+            const addForm = document.getElementById('addWithdrawalForm');
+            const resetBtn = document.getElementById('resetWithdrawalsBtn');
+            if (addForm) addForm.style.display = isCurrentMonth ? '' : 'none';
+            if (resetBtn) resetBtn.style.display = isCurrentMonth ? '' : 'none';
+
+            // Calculate totals for selected month
             const deeTotal = getWithdrawalTotal('dee');
             const mikeTotal = getWithdrawalTotal('mike');
             const rentTotal = getWithdrawalTotal('rent');
@@ -4511,13 +4564,14 @@
             tinBar.style.width = '100%';
             tinBar.style.background = '#3b82f6';
             
-            // Render withdrawal list
+            // Render withdrawal list (filtered by selected month)
             const listContainer = document.getElementById('withdrawalsList');
+            const monthWithdrawals = getMonthWithdrawals();
             
-            if (withdrawals.length === 0) {
+            if (monthWithdrawals.length === 0) {
                 listContainer.innerHTML = `
                     <div class="empty-state" style="padding: 40px; text-align: center; color: var(--text-muted);">
-                        <p>No withdrawals recorded yet</p>
+                        <p>No withdrawals for ${monthNames[withdrawalMonthFilter.month]} ${withdrawalMonthFilter.year}</p>
                     </div>
                 `;
                 return;
@@ -4532,7 +4586,7 @@
             };
             
             // Sort by date (newest first)
-            const sortedWithdrawals = [...withdrawals].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const sortedWithdrawals = [...monthWithdrawals].sort((a, b) => new Date(b.date) - new Date(a.date));
             
             listContainer.innerHTML = sortedWithdrawals.map(w => {
                 const info = categoryInfo[w.person] || categoryInfo.dee;
