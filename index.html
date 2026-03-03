@@ -64,6 +64,149 @@
             --radius-xl: 24px;
         }
 
+        /* ==================== LIGHT MODE ==================== */
+        [data-theme="light"] {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f9f9f9;
+            --bg-elevated: #e8e8e8;
+            
+            --accent-primary: #d97706;
+            --accent-secondary: #b45309;
+            --accent-glow: rgba(217, 119, 6, 0.2);
+            
+            --success: #059669;
+            --success-bg: rgba(5, 150, 105, 0.1);
+            --warning: #d97706;
+            --warning-bg: rgba(217, 119, 6, 0.1);
+            --danger: #dc2626;
+            --danger-bg: rgba(220, 38, 38, 0.1);
+            --info: #0891b2;
+            --info-bg: rgba(8, 145, 178, 0.1);
+            
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --text-muted: #888888;
+            
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --border-default: rgba(0, 0, 0, 0.12);
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.16);
+            --shadow-glow: 0 0 40px var(--accent-glow);
+        }
+
+        [data-theme="light"] body::before {
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(217, 119, 6, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(217, 119, 6, 0.05), transparent);
+        }
+
+        [data-theme="light"] .tabs {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="light"] .tab.active {
+            background: #f0f0f0;
+        }
+
+        [data-theme="light"] .login-card {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="light"] .stat-card.blue .stat-value { color: #0891b2; }
+        [data-theme="light"] .stat-card.green .stat-value { color: #059669; }
+        [data-theme="light"] .stat-card.red .stat-value { color: #dc2626; }
+        [data-theme="light"] .stat-card.orange .stat-value { color: #d97706; }
+
+        /* Light mode: inline white backgrounds get subtle shadow */
+        [data-theme="light"] .stat-card {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="light"] .balance-breakdown {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+        }
+
+        [data-theme="light"] .inventory-list-item {
+            background: #ffffff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="light"] .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        [data-theme="light"] .add-item-section {
+            background: #ffffff;
+        }
+
+        [data-theme="light"] .inventory-card {
+            background: #ffffff;
+        }
+
+        [data-theme="light"] .container {
+            background: #f5f5f5;
+        }
+
+        [data-theme="light"] .search-box {
+            background: #ffffff;
+            border-color: #e5e7eb;
+        }
+
+        [data-theme="light"] input,
+        [data-theme="light"] select,
+        [data-theme="light"] textarea {
+            background: #ffffff !important;
+            color: #1a1a1a !important;
+            border-color: #d1d5db !important;
+        }
+
+        [data-theme="light"] .btn {
+            color: #1a1a1a;
+        }
+
+        [data-theme="light"] .btn-primary {
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .btn-success {
+            color: #ffffff;
+        }
+
+        [data-theme="light"] .btn-danger {
+            color: #ffffff;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            min-width: 40px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-primary);
+            color: #000;
+            border-color: var(--accent-primary);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -2437,6 +2580,124 @@
             }
         }
 
+        /* ==================== TOAST NOTIFICATIONS ==================== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        @media (max-width: 480px) {
+            .toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            pointer-events: auto;
+            animation: toastSlideIn 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            min-width: 250px;
+            max-width: 380px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 480px) {
+            .toast {
+                min-width: unset;
+                max-width: 100%;
+                padding: 12px 16px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .toast.toast-exit {
+            animation: toastSlideOut 0.3s ease forwards;
+        }
+
+        .toast-icon {
+            font-size: 1.2em;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--info);
+        }
+
+        .toast-progress {
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .toast-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-default);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: toastSpin 0.6s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        @keyframes toastSlideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(40px) scale(0.95);
+            }
+        }
+
+        @keyframes toastSpin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Safe area insets for phones with notches */
         @supports (padding: env(safe-area-inset-bottom)) {
             body {
@@ -2451,6 +2712,9 @@
     </style>
 </head>
 <body>
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
         <div class="login-card">
@@ -2505,7 +2769,10 @@
                     <h1><span onclick="event.stopPropagation(); showHiddenHistory()" style="cursor: pointer; user-select: none;">🪑</span> Furniture Inventory</h1>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">🏠 Tap here for Statistics</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="toggleTheme()" class="theme-toggle" id="themeToggleBtn" title="Toggle Light/Dark Mode">
+                        🌙
+                    </button>
                     <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 10px 16px; border-radius: 8px; font-weight: 600; color: #f59e0b; font-size: 0.9rem;">
                         👤 <span id="currentUserHeader"></span>
                     </div>
@@ -3605,6 +3872,130 @@
             }, 1000); // Wait 1 second for everything to load
         });
 
+        // ==================== TOAST NOTIFICATION SYSTEM ====================
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️',
+                progress: ''
+            };
+
+            const spinnerHTML = type === 'progress' ? '<div class="toast-spinner"></div>' : '';
+            const iconHTML = icons[type] ? `<span class="toast-icon">${icons[type]}</span>` : spinnerHTML;
+
+            toast.innerHTML = `${iconHTML}<span class="toast-message">${message}</span>`;
+            container.appendChild(toast);
+
+            // Auto remove (not for progress toasts)
+            if (type !== 'progress') {
+                setTimeout(() => {
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+
+            return toast; // Return reference so progress toasts can be removed
+        }
+
+        // Remove a specific toast (used for progress → success transition)
+        function removeToast(toastEl) {
+            if (toastEl && toastEl.parentNode) {
+                toastEl.classList.add('toast-exit');
+                setTimeout(() => toastEl.remove(), 300);
+            }
+        }
+
+        // ==================== DARK/LIGHT THEME TOGGLE ====================
+        function initTheme() {
+            const saved = localStorage.getItem('furniture_theme') || 'dark';
+            applyTheme(saved);
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+                btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+            }
+            // Update theme-color meta for browser chrome
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                metaTheme.content = theme === 'dark' ? '#0f0f0f' : '#f5f5f5';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('furniture_theme', next);
+            applyTheme(next);
+            showToast(next === 'light' ? 'Switched to Light Mode ☀️' : 'Switched to Dark Mode 🌙', 'info', 2000);
+        }
+
+        // Apply theme immediately on load
+        initTheme();
+
+        // ==================== IMAGE COMPRESSION ====================
+        function compressImage(base64Data, maxWidth = 1200, quality = 0.75) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Only resize if larger than maxWidth
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Convert to JPEG for better compression
+                    const compressed = canvas.toDataURL('image/jpeg', quality);
+                    
+                    const originalSize = Math.round(base64Data.length * 0.75 / 1024);
+                    const compressedSize = Math.round(compressed.length * 0.75 / 1024);
+                    console.log(`📐 Image compressed: ${originalSize}KB → ${compressedSize}KB (${Math.round((1 - compressedSize/originalSize) * 100)}% reduction)`);
+                    
+                    resolve(compressed);
+                };
+                img.onerror = function() {
+                    console.warn('⚠️ Could not compress image, using original');
+                    resolve(base64Data);
+                };
+                img.src = base64Data;
+            });
+        }
+
+        async function compressMultipleImages(base64Array) {
+            const compressed = [];
+            for (const base64Data of base64Array) {
+                // Skip URLs (already hosted), only compress base64 data
+                if (base64Data.startsWith('http')) {
+                    compressed.push(base64Data);
+                } else {
+                    const result = await compressImage(base64Data);
+                    compressed.push(result);
+                }
+            }
+            return compressed;
+        }
+
         // Authentication variables
         let currentUser = null;
         let selectedUser = null;
@@ -4506,6 +4897,7 @@
 
         // Load inventory from JSONBin.io with localStorage fallback
         async function loadInventory() {
+            const loadingToast = showToast('Loading your data...', 'progress');
             try {
                 console.log('🔄 Loading data...');
                 
@@ -4546,12 +4938,18 @@
                         localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
                     } catch (e) {}
                     
+                    removeToast(loadingToast);
+                    showToast(`Loaded ${inventory.length} items from cloud`, 'success', 2500);
+                    
                 } else if (localData) {
                     // No cloud data, use local backup
                     inventory = localData.inventory || [];
                     transactions = localData.transactions || [];
                     withdrawals = localData.withdrawals || [];
                     console.log('📁 Using localStorage backup:', inventory.length, 'items');
+                    
+                    removeToast(loadingToast);
+                    showToast('Loaded from local backup', 'warning', 3000);
                     
                     // Sync local data to cloud
                     if (inventory.length > 0 || transactions.length > 0) {
@@ -4564,6 +4962,8 @@
                     transactions = [];
                     withdrawals = [];
                     console.log('📭 No data found - starting fresh');
+                    removeToast(loadingToast);
+                    showToast('Welcome! Starting fresh', 'info', 2500);
                 }
                 
                 // Assign item numbers to items that don't have one
@@ -4586,6 +4986,7 @@
                 
             } catch (error) {
                 console.error('❌ Error loading data:', error);
+                removeToast(loadingToast);
                 
                 // Final fallback to localStorage
                 try {
@@ -4596,10 +4997,12 @@
                     transactions = transBackupStr ? JSON.parse(transBackupStr) : [];
                     withdrawals = withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : [];
                     console.log('🔄 Recovered from localStorage:', inventory.length, 'items');
+                    showToast('Cloud unavailable — loaded local backup', 'warning', 4000);
                 } catch (localError) {
                 inventory = [];
                 transactions = [];
                 withdrawals = [];
+                showToast('Failed to load data', 'error', 4000);
                 }
                 
                 renderInventory();
@@ -4609,6 +5012,7 @@
         }
 
         // Save inventory to JSONBin.io + localStorage backup
+        let _saveToastTimeout = null;
         async function saveInventory() {
             try {
                 console.log('🔄 Saving inventory...', inventory.length, 'items');
@@ -4652,13 +5056,20 @@
                 const cloudSaved = await jsonBinSave(cloudData);
                 if (cloudSaved) {
                     console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
-                    } else {
+                    // Debounce toast so rapid saves don't spam
+                    if (_saveToastTimeout) clearTimeout(_saveToastTimeout);
+                    _saveToastTimeout = setTimeout(() => {
+                        showToast('Saved to cloud ☁️', 'success', 2000);
+                    }, 300);
+                } else {
                     console.log('☁️ ⚠️ Cloud save failed - data safe in localStorage');
-                    }
+                    showToast('Cloud save failed — saved locally', 'warning', 3500);
+                }
                 
             } catch (error) {
                 console.error('❌ Error saving inventory:', error);
                 console.log('⚠️ Data is still safe in localStorage backup');
+                showToast('Save error — data safe locally', 'error', 4000);
             }
         }
 
@@ -4979,18 +5390,26 @@
             let photosLoaded = false;
             let workPhotosLoaded = false;
 
-            // Function to check if all photos are loaded, then upload to ImgBB
+            // Function to check if all photos are loaded, compress, then upload to ImgBB
             const checkAllLoaded = async () => {
                 if (photosLoaded && workPhotosLoaded) {
-                    // Upload photos to ImgBB before saving
+                    const uploadToast = showToast('Compressing & uploading photos...', 'progress');
+                    
+                    // Compress photos before uploading
                     if (item.photos.length > 0) {
+                        console.log('📐 Compressing', item.photos.length, 'main photos...');
+                        item.photos = await compressMultipleImages(item.photos);
                         console.log('📤 Uploading', item.photos.length, 'main photos to ImgBB...');
                         item.photos = await uploadMultipleToImgBB(item.photos);
                     }
                     if (item.workPhotos.length > 0) {
+                        console.log('📐 Compressing', item.workPhotos.length, 'work photos...');
+                        item.workPhotos = await compressMultipleImages(item.workPhotos);
                         console.log('📤 Uploading', item.workPhotos.length, 'work photos to ImgBB...');
                         item.workPhotos = await uploadMultipleToImgBB(item.workPhotos);
                     }
+                    
+                    removeToast(uploadToast);
                     
                     inventory.push(item);
                     await saveInventory();
@@ -5000,6 +5419,7 @@
                     
                     renderInventory();
                     clearForm();
+                    showToast('Item added successfully!', 'success', 2500);
                     console.log('✅ Item added with cloud-hosted images!');
                 }
             };
@@ -5562,25 +5982,33 @@
             let mainPhotosLoaded = false;
             let workPhotosLoaded = false;
             
-            // Function to check if all photos are loaded, then upload to ImgBB
+            // Function to check if all photos are loaded, compress, then upload to ImgBB
             const checkAllPhotosLoaded = async () => {
                 if (mainPhotosLoaded && workPhotosLoaded) {
-                    console.log('💾 All photos loaded, uploading to ImgBB...');
+                    const uploadToast = showToast('Compressing & uploading photos...', 'progress');
+                    console.log('💾 All photos loaded, compressing & uploading to ImgBB...');
                     
-                    // Upload any new base64 photos to ImgBB
+                    // Compress then upload any new base64 photos to ImgBB
                     if (item.photos && item.photos.length > 0) {
+                        console.log('📐 Compressing main photos...');
+                        item.photos = await compressMultipleImages(item.photos);
                         console.log('📤 Uploading main photos to ImgBB...');
                         item.photos = await uploadMultipleToImgBB(item.photos);
                     }
                     if (item.workPhotos && item.workPhotos.length > 0) {
+                        console.log('📐 Compressing work photos...');
+                        item.workPhotos = await compressMultipleImages(item.workPhotos);
                         console.log('📤 Uploading work photos to ImgBB...');
                         item.workPhotos = await uploadMultipleToImgBB(item.workPhotos);
                     }
+                    
+                    removeToast(uploadToast);
                     
                     console.log('📝 Saving inventory with', inventory.length, 'items');
                     await saveInventory();
                     renderInventory();
                     closeEditModal();
+                    showToast('Item updated!', 'success', 2500);
                     console.log('✅ Item updated with cloud-hosted images!');
                 }
             };
@@ -6027,6 +6455,7 @@
                 saveInventory(); // Keep as non-async for now
                 renderInventory();
                 updateStatistics();
+                showToast(`"${deletedItem.name}" deleted`, 'info', 2500);
             }
         }
 
