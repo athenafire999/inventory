@@ -2548,6 +2548,13 @@
 
         <!-- Sold Tab -->
         <div id="sold" class="tab-content">
+            <!-- Month Navigator -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 14px 20px; margin-bottom: 10px; background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border-radius: 12px; border: 1px solid #a5d6a7;">
+                <button onclick="changeSoldMonth(-1)" style="background: #fff; border: 1px solid #a5d6a7; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; color: #388e3c; transition: all 0.2s;" onmouseover="this.style.background='#388e3c';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#388e3c'">◀</button>
+                <div id="soldMonthLabel" style="font-size: 1.15em; font-weight: 700; color: #2e7d32; min-width: 180px; text-align: center;"></div>
+                <button onclick="changeSoldMonth(1)" id="soldMonthNextBtn" style="background: #fff; border: 1px solid #a5d6a7; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; color: #388e3c; transition: all 0.2s;" onmouseover="this.style.background='#388e3c';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#388e3c'">▶</button>
+            </div>
+            <div id="soldMonthSummary" style="display: flex; gap: 12px; justify-content: center; margin-bottom: 10px;"></div>
             <div class="search-container">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -3899,6 +3906,71 @@
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
         
+        // Sold tab month filter (defaults to current month)
+        let soldMonthFilter = { month: new Date().getMonth(), year: new Date().getFullYear() };
+
+        // Change sold month filter (direction: -1 for prev, +1 for next)
+        function changeSoldMonth(direction) {
+            let { month, year } = soldMonthFilter;
+            month += direction;
+            if (month < 0) { month = 11; year--; }
+            if (month > 11) { month = 0; year++; }
+            // Don't allow going past the current month
+            const now = new Date();
+            if (year > now.getFullYear() || (year === now.getFullYear() && month > now.getMonth())) {
+                return;
+            }
+            soldMonthFilter = { month, year };
+            updateSoldMonthUI();
+            renderInventory();
+        }
+
+        // Update the month label and summary in the sold tab
+        function updateSoldMonthUI() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+            const label = document.getElementById('soldMonthLabel');
+            const nextBtn = document.getElementById('soldMonthNextBtn');
+            const summary = document.getElementById('soldMonthSummary');
+            if (label) {
+                const now = new Date();
+                const isCurrentMonth = soldMonthFilter.month === now.getMonth() && soldMonthFilter.year === now.getFullYear();
+                label.textContent = monthNames[soldMonthFilter.month] + ' ' + soldMonthFilter.year + (isCurrentMonth ? ' (Current)' : '');
+            }
+            // Disable next button if already on current month
+            if (nextBtn) {
+                const now = new Date();
+                const isCurrentMonth = soldMonthFilter.month === now.getMonth() && soldMonthFilter.year === now.getFullYear();
+                nextBtn.style.opacity = isCurrentMonth ? '0.3' : '1';
+                nextBtn.style.pointerEvents = isCurrentMonth ? 'none' : 'auto';
+            }
+            // Show summary stats for the selected month
+            if (summary) {
+                const monthItems = inventory.filter(item => {
+                    if (item.status !== 'sold' || !item.soldDate) return false;
+                    const d = new Date(item.soldDate);
+                    return d.getMonth() === soldMonthFilter.month && d.getFullYear() === soldMonthFilter.year;
+                });
+                const totalRevenue = monthItems.reduce((sum, item) => sum + (item.soldPrice || 0), 0);
+                const totalCost = monthItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+                const totalProfit = totalRevenue - totalCost;
+                summary.innerHTML = `
+                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid #c8e6c9; min-width: 100px;">
+                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Items Sold</div>
+                        <div style="font-size: 1.3em; font-weight: 700; color: #333;">${monthItems.length}</div>
+                    </div>
+                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid #c8e6c9; min-width: 100px;">
+                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Revenue</div>
+                        <div style="font-size: 1.3em; font-weight: 700; color: #333;">£${totalRevenue.toFixed(2)}</div>
+                    </div>
+                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid ${totalProfit >= 0 ? '#c8e6c9' : '#ffcdd2'}; min-width: 100px;">
+                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Profit</div>
+                        <div style="font-size: 1.3em; font-weight: 700; color: ${totalProfit >= 0 ? '#28a745' : '#dc3545'};">£${totalProfit.toFixed(2)}</div>
+                    </div>
+                `;
+            }
+        }
+
         // Withdrawals tracking
         let withdrawals = [];
         const WITHDRAWAL_LIMITS = {
@@ -4680,12 +4752,33 @@
             // Separate items by status and apply search filter
             const readyItems = inventory.filter(item => item.status === 'ready' && matchesSearch(item, inventorySearchTerm));
             const needsWorkItems = inventory.filter(item => item.status === 'needs-work' && matchesSearch(item, needsWorkSearchTerm));
-            const soldItems = inventory.filter(item => item.status === 'sold' && matchesSearch(item, soldSearchTerm));
+            
+            // Filter sold items by selected month
+            const soldItems = inventory.filter(item => {
+                if (item.status !== 'sold') return false;
+                if (!matchesSearch(item, soldSearchTerm)) return false;
+                // Filter by selected month/year
+                if (item.soldDate) {
+                    const d = new Date(item.soldDate);
+                    return d.getMonth() === soldMonthFilter.month && d.getFullYear() === soldMonthFilter.year;
+                }
+                // Items without soldDate: show in current month only
+                const now = new Date();
+                return soldMonthFilter.month === now.getMonth() && soldMonthFilter.year === now.getFullYear();
+            });
             
             // Get total counts (without search filter) for showing search results info
             const totalReady = inventory.filter(item => item.status === 'ready').length;
             const totalNeedsWork = inventory.filter(item => item.status === 'needs-work').length;
-            const totalSold = inventory.filter(item => item.status === 'sold').length;
+            const totalSold = inventory.filter(item => {
+                if (item.status !== 'sold') return false;
+                if (item.soldDate) {
+                    const d = new Date(item.soldDate);
+                    return d.getMonth() === soldMonthFilter.month && d.getFullYear() === soldMonthFilter.year;
+                }
+                const now = new Date();
+                return soldMonthFilter.month === now.getMonth() && soldMonthFilter.year === now.getFullYear();
+            }).length;
             
             // Render ready to sell inventory
             if (totalReady === 0) {
@@ -4745,12 +4838,17 @@
                     '</div>';
             }
             
+            // Update the sold month UI
+            updateSoldMonthUI();
+            
             // Render sold items
             if (totalSold === 0) {
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                    'July', 'August', 'September', 'October', 'November', 'December'];
                 soldList.innerHTML = `
                     <div class="empty-state">
-                        <h3>No sold items yet</h3>
-                        <p>Items marked as sold will appear here!</p>
+                        <h3>No sold items in ${monthNames[soldMonthFilter.month]} ${soldMonthFilter.year}</h3>
+                        <p>Use the arrows above to browse other months</p>
                     </div>
                 `;
             } else if (soldItems.length === 0 && soldSearchTerm) {
