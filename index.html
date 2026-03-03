@@ -4946,14 +4946,16 @@
                 try {
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
                     const transBackupStr = localStorage.getItem('furniture_transactions_backup');
+                    const withdrawalsBackupStr = localStorage.getItem('furniture_withdrawals_backup');
                     const backupTimestamp = localStorage.getItem('furniture_backup_timestamp');
                     
                     if (backupStr) {
                         localData = {
                             inventory: JSON.parse(backupStr),
-                            transactions: transBackupStr ? JSON.parse(transBackupStr) : []
+                            transactions: transBackupStr ? JSON.parse(transBackupStr) : [],
+                            withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : []
                         };
-                        console.log('📁 Found localStorage backup:', localData.inventory.length, 'items, saved at:', backupTimestamp);
+                        console.log('📁 Found localStorage backup:', localData.inventory.length, 'items,', localData.withdrawals.length, 'withdrawals, saved at:', backupTimestamp);
                     }
                 } catch (localError) {
                     console.error('❌ Error reading localStorage:', localError);
