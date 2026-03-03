@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Furniture Inventory Manager</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2259,6 +2262,192 @@
                 width: 100%;
             }
         }
+
+        /* ==================== MOBILE UX ENHANCEMENTS ==================== */
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Bottom tab bar for mobile - sticky tabs */
+        @media (max-width: 768px) {
+            .tabs {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                background: rgba(36, 36, 36, 0.92);
+                border-bottom: 1px solid var(--border-subtle);
+                box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* Better touch targets on mobile */
+        @media (max-width: 480px) {
+            button, .btn, select, input[type="submit"] {
+                min-height: 44px;
+            }
+
+            /* Improve form fields for mobile */
+            input[type="text"],
+            input[type="number"],
+            input[type="date"],
+            input[type="password"],
+            select,
+            textarea {
+                font-size: 16px !important; /* Prevents iOS zoom on focus */
+            }
+
+            /* Improve the section headers on mobile */
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .section-header .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Stat card values smaller on mobile */
+            .stat-value {
+                font-size: 1.5rem !important;
+            }
+
+            /* Chart container responsive */
+            #salesChart {
+                max-height: 250px !important;
+            }
+
+            /* Better breakdown rows on mobile */
+            .breakdown-row {
+                padding: 10px 12px !important;
+            }
+
+            /* Monthly breakdown cards */
+            #monthlyBreakdown > div {
+                padding: 16px !important;
+            }
+        }
+
+        /* Improved card hover/active states for touch */
+        @media (hover: none) {
+            .stat-card:hover {
+                transform: none;
+            }
+            
+            .inventory-list-item:hover {
+                transform: none;
+            }
+
+            .stat-card:active {
+                transform: scale(0.98);
+                transition: transform 0.1s ease;
+            }
+
+            .inventory-list-item:active {
+                transform: scale(0.97);
+                transition: transform 0.1s ease;
+            }
+        }
+
+        /* Smoother transitions globally */
+        .tab-content {
+            animation: fadeSlideIn 0.3s ease;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Better details/summary styling */
+        details {
+            transition: all 0.3s ease;
+        }
+
+        details[open] {
+            padding-bottom: 8px;
+        }
+
+        details summary {
+            padding: 12px 0;
+            transition: color 0.2s ease;
+        }
+
+        details summary:hover {
+            color: var(--accent-primary);
+        }
+
+        details[open] .dropdown-arrow {
+            transform: rotate(90deg);
+        }
+
+        /* Smoother progress bars */
+        .progress-bar, [style*="transition: width"] {
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        /* Pull-to-refresh visual indicator area */
+        @media (max-width: 768px) {
+            .container {
+                padding-bottom: 24px;
+            }
+        }
+
+        /* Improved scrollbar for desktop */
+        @media (min-width: 769px) {
+            ::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: var(--bg-primary);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: var(--bg-elevated);
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--accent-secondary);
+            }
+        }
+
+        /* Card glassmorphism effect */
+        .balance-breakdown, details[style*="background"] {
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* Withdrawal category cards - better mobile layout */
+        @media (max-width: 480px) {
+            [style*="grid-template-columns: repeat(2"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Safe area insets for phones with notches */
+        @supports (padding: env(safe-area-inset-bottom)) {
+            body {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .tabs {
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
     </style>
 </head>
 <body>
@@ -2344,9 +2533,6 @@
         <div id="statistics" class="tab-content active">
             <div class="section-header">
                 <h2>📊 Overall Statistics</h2>
-                <button onclick="exportToExcel()" class="btn btn-success">
-                    📥 Export to Excel
-                </button>
             </div>
             <div class="stats-grid">
                 <div class="stat-card blue">
@@ -2467,6 +2653,13 @@
                     <tbody id="detailsTableBody"></tbody>
                 </table>
             </details>
+
+            <!-- Export to Excel at bottom -->
+            <div style="display: flex; justify-content: center; margin-top: 32px; margin-bottom: 16px;">
+                <button onclick="exportToExcel()" class="btn btn-success" style="padding: 14px 32px; font-size: 1rem; border-radius: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);">
+                    📥 Export to Excel
+                </button>
+            </div>
         </div>
 
         <!-- Inventory Tab -->
