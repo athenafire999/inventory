@@ -2113,6 +2113,14 @@
             background: var(--text-muted);
         }
 
+        /* ==================== COLLAPSIBLE DROPDOWN ARROWS ==================== */
+        details[open] .dropdown-arrow {
+            transform: rotate(90deg);
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+
         /* ==================== BALANCE BREAKDOWN SECTION ==================== */
         .balance-breakdown {
             background: var(--bg-card);
@@ -2368,9 +2376,12 @@
                 </div>
             </div>
 
-            <div class="balance-breakdown" style="margin-top: 24px;">
-                <h3>💰 Balance Breakdown</h3>
-                <div style="display: grid; gap: 0;">
+            <details class="balance-breakdown" style="margin-top: 24px; cursor: pointer;">
+                <summary style="list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+                    <h3 style="margin: 0;">💰 Balance Breakdown</h3>
+                    <span class="dropdown-arrow" style="font-size: 1.2em; transition: transform 0.3s; color: var(--text-secondary);">▶</span>
+                </summary>
+                <div style="display: grid; gap: 0; margin-top: 20px;">
                     <div class="breakdown-row">
                         <span class="breakdown-label">Sales Revenue:</span>
                         <span class="breakdown-value positive" id="balanceMoneyIn">£0.00</span>
@@ -2392,7 +2403,7 @@
                         <span class="breakdown-value" style="color: var(--accent-primary); font-size: 1.1rem;" id="balanceTotal">£0.00</span>
                     </div>
                 </div>
-            </div>
+            </details>
 
             <div style="background: white; padding: 25px; border-radius: 12px; margin-top: 30px; border: 2px solid #e0e0e0;">
                 <h3 style="margin-bottom: 20px;">Monthly Sales Chart</h3>
@@ -2434,23 +2445,28 @@
                 </div>
             </div>
 
-            <h3 style="margin-bottom: 15px;">Transaction Details</h3>
-            <table class="details-table">
-                <thead>
-                    <tr>
-                        <th>Item Number</th>
-                        <th>Item</th>
-                        <th>Purchase Date</th>
-                        <th>Days in Stock</th>
-                        <th>Purchase Price</th>
-                        <th>Sold Date</th>
-                        <th>Sold Price</th>
-                        <th>Profit</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="detailsTableBody"></tbody>
-            </table>
+            <details style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-top: 24px; cursor: pointer;">
+                <summary style="list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+                    <h3 style="margin: 0;">📋 Transaction Details</h3>
+                    <span class="dropdown-arrow" style="font-size: 1.2em; transition: transform 0.3s; color: var(--text-secondary);">▶</span>
+                </summary>
+                <table class="details-table" style="margin-top: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Item Number</th>
+                            <th>Item</th>
+                            <th>Purchase Date</th>
+                            <th>Days in Stock</th>
+                            <th>Purchase Price</th>
+                            <th>Sold Date</th>
+                            <th>Sold Price</th>
+                            <th>Profit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailsTableBody"></tbody>
+                </table>
+            </details>
         </div>
 
         <!-- Inventory Tab -->
