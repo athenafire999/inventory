@@ -1221,11 +1221,26 @@
             }
         }
 
+        /* Short tab labels hidden by default */
+        .tab-short {
+            display: none;
+        }
+
         @media (max-width: 480px) {
             .tab {
-                padding: 12px 8px;
-                font-size: 0.75rem;
-                min-width: 85px;
+                padding: 12px 6px;
+                font-size: 0.7rem;
+                min-width: unset;
+                flex: 1 1 0;
+                white-space: nowrap;
+            }
+
+            .tab-full {
+                display: none;
+            }
+
+            .tab-short {
+                display: inline;
             }
         }
 
@@ -2809,12 +2824,12 @@
         </div>
 
         <div class="tabs">
-            <button class="tab" onclick="switchTab('additem')">New Items</button>
-            <button class="tab" onclick="switchTab('inventory')">Inventory (<span id="inventoryCount">0</span>)</button>
-            <button class="tab" onclick="switchTab('needswork')">Not Ready (<span id="needsworkCount">0</span>)</button>
+            <button class="tab" onclick="switchTab('additem')"><span class="tab-full">New Items</span><span class="tab-short">New</span></button>
+            <button class="tab" onclick="switchTab('inventory')"><span class="tab-full">Inventory</span><span class="tab-short">Inv</span> (<span id="inventoryCount">0</span>)</button>
+            <button class="tab" onclick="switchTab('needswork')"><span class="tab-full">Not Ready</span><span class="tab-short">Work</span> (<span id="needsworkCount">0</span>)</button>
             <button class="tab" onclick="switchTab('sold')">Sold (<span id="soldCount">0</span>)</button>
-            <button class="tab" onclick="switchTab('withdrawals')">Withdrawals</button>
-            <button class="tab" onclick="switchTab('deliveryform')">Delivery Form</button>
+            <button class="tab" onclick="switchTab('withdrawals')"><span class="tab-full">Withdrawals</span><span class="tab-short">Withdraw</span></button>
+            <button class="tab" onclick="switchTab('deliveryform')"><span class="tab-full">Delivery Form</span><span class="tab-short">Delivery</span></button>
         </div>
 
         <!-- Statistics Tab -->
