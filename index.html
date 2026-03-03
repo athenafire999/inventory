@@ -5753,6 +5753,18 @@
                         ${priorityIndicator}
                         ${reorderButtons}
                     </div>
+                    ` : item.status === 'sold' ? `
+                    <!-- Sold item: show revenue & profit -->
+                    <div style="margin-top: auto; padding-top: 6px; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: var(--text-muted); margin-bottom: 2px;">
+                            <span>Sold</span>
+                            <span>£${(item.soldPrice || 0).toFixed(2)}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; padding: 4px 6px; border-radius: 4px; background: ${(item.soldPrice - item.purchasePrice) >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color: ${(item.soldPrice - item.purchasePrice) >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+                            <span>Profit</span>
+                            <span>${(item.soldPrice - item.purchasePrice) >= 0 ? '+' : ''}£${(item.soldPrice - item.purchasePrice).toFixed(2)}</span>
+                        </div>
+                    </div>
                     ` : `
                     <!-- Item Number -->
                     <div class="item-number">
