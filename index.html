@@ -2432,7 +2432,7 @@
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 8px;">
                         <div style="font-size: 2em; font-weight: 700; color: #17a2b8;" id="soldItems">0</div>
-                        <div style="color: #666;">Sold</div>
+                        <div style="color: #666;">Sold This Month</div>
                     </div>
                     <div style="background: white; padding: 20px; border-radius: 8px;">
                         <div style="font-size: 2em; font-weight: 700; color: #764ba2;" id="avgDaysInStock">0</div>
@@ -5719,21 +5719,23 @@
             document.getElementById('balanceAdditionalExpenses').textContent = '-£' + additionalExpenses.toFixed(2);
             document.getElementById('balanceTotal').textContent = '£' + totalBalance.toFixed(2);
             
-            document.getElementById('totalItems').textContent = totalItems;
+            // Total Items = Ready + Needs Work (excludes sold)
+            document.getElementById('totalItems').textContent = readyItems + needsWorkItems;
             document.getElementById('readyItems').textContent = readyItems;
             document.getElementById('needsWorkItems').textContent = needsWorkItems;
-            document.getElementById('soldItems').textContent = soldItems;
-
-            // Update tab counts
-            document.getElementById('inventoryCount').textContent = readyItems;
-            document.getElementById('needsworkCount').textContent = needsWorkItems;
-            // Sold tab count shows only current month's sales
+            
+            // Sold shows only current month's sales
             const now = new Date();
             const currentMonthSold = inventory.filter(item => {
                 if (item.status !== 'sold' || !item.soldDate) return false;
                 const d = new Date(item.soldDate);
                 return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
             }).length;
+            document.getElementById('soldItems').textContent = currentMonthSold;
+
+            // Update tab counts
+            document.getElementById('inventoryCount').textContent = readyItems;
+            document.getElementById('needsworkCount').textContent = needsWorkItems;
             document.getElementById('soldCount').textContent = currentMonthSold;
 
             // Calculate average days in stock and days to sell
