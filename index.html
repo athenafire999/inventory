@@ -2356,13 +2356,27 @@
                     <div class="stat-value" id="moneyOut">£0.00</div>
                     <div class="stat-label">Money Out (Purchases)</div>
                 </div>
-                <div class="stat-card orange">
-                    <div class="stat-value" id="totalProfit">£0.00</div>
-                    <div class="stat-label">Total Profit</div>
-                </div>
             </div>
 
             <div class="balance-breakdown">
+                <h3>📅 This Month's Sales</h3>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 16px; margin-bottom: 0;">
+                    <div class="stat-card green" style="padding: 20px;">
+                        <div class="stat-value" id="monthSoldItems">0</div>
+                        <div class="stat-label">Items Sold</div>
+                    </div>
+                    <div class="stat-card blue" style="padding: 20px;">
+                        <div class="stat-value" id="monthRevenue">£0.00</div>
+                        <div class="stat-label">Revenue</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px;">
+                        <div style="font-size: 2em; font-weight: 700; color: #ffc107;" id="monthProfit">£0.00</div>
+                        <div style="color: #666;">Profit</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="balance-breakdown" style="margin-top: 24px;">
                 <h3>💰 Balance Breakdown</h3>
                 <div style="display: grid; gap: 0;">
                     <div class="breakdown-row">
@@ -2384,24 +2398,6 @@
                     <div class="breakdown-row" style="border-top: 2px solid var(--accent-primary); padding-top: 16px; margin-top: 8px;">
                         <span class="breakdown-label" style="color: var(--text-primary); font-weight: 600;">Total Balance:</span>
                         <span class="breakdown-value" style="color: var(--accent-primary); font-size: 1.1rem;" id="balanceTotal">£0.00</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="balance-breakdown" style="margin-top: 24px;">
-                <h3>📅 This Month's Sales</h3>
-                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top: 16px; margin-bottom: 0;">
-                    <div class="stat-card green" style="padding: 20px;">
-                        <div class="stat-value" id="monthSoldItems">0</div>
-                        <div class="stat-label">Items Sold</div>
-                    </div>
-                    <div class="stat-card blue" style="padding: 20px;">
-                        <div class="stat-value" id="monthRevenue">£0.00</div>
-                        <div class="stat-label">Revenue</div>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: 8px;">
-                        <div style="font-size: 2em; font-weight: 700; color: #ffc107;" id="monthProfit">£0.00</div>
-                        <div style="color: #666;">Profit</div>
                     </div>
                 </div>
             </div>
@@ -5709,7 +5705,6 @@
             document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
             document.getElementById('moneyIn').textContent = '£' + moneyIn.toFixed(2);
             document.getElementById('moneyOut').textContent = '£' + moneyOut.toFixed(2);
-            document.getElementById('totalProfit').textContent = '£' + totalProfit.toFixed(2);
             
             // Update balance breakdown
             document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
