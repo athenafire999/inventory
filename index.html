@@ -2655,6 +2655,51 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Kitchen & Car - Collapsible -->
+                <details style="margin-bottom: 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden;">
+                    <summary style="list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; cursor: pointer; user-select: none;">
+                        <h3 style="margin: 0; font-size: 1.1em;">🏗️ Big Purchases (Kitchen & Car)</h3>
+                        <span class="dropdown-arrow" style="font-size: 1.2em; transition: transform 0.3s; color: var(--text-secondary);">▶</span>
+                    </summary>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 20px 20px;">
+                        <!-- Kitchen Card -->
+                        <div class="withdrawal-card" id="cardKitchen" onclick="filterWithdrawalCategory('kitchen')" style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 1.3em;">🍳 Kitchen</h3>
+                                <span style="font-size: 0.9em; color: var(--text-muted);">Max: £8,000</span>
+                            </div>
+                            <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
+                                £<span id="kitchenTotal">0.00</span>
+                            </div>
+                            <div style="background: var(--bg-card); border-radius: 10px; height: 24px; overflow: hidden; position: relative;">
+                                <div id="kitchenProgressBar" style="height: 100%; width: 0%; background: #22c55e; transition: all 0.5s ease; border-radius: 10px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85em; color: var(--text-muted);">
+                                <span id="kitchenPercentage">0%</span>
+                                <span>£<span id="kitchenRemaining">8,000.00</span> remaining</span>
+                            </div>
+                        </div>
+
+                        <!-- Car Card -->
+                        <div class="withdrawal-card" id="cardCar" onclick="filterWithdrawalCategory('car')" style="background: var(--bg-secondary); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 1.3em;">🚗 Car</h3>
+                                <span style="font-size: 0.9em; color: var(--text-muted);">Max: £8,000</span>
+                            </div>
+                            <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
+                                £<span id="carTotal">0.00</span>
+                            </div>
+                            <div style="background: var(--bg-card); border-radius: 10px; height: 24px; overflow: hidden; position: relative;">
+                                <div id="carProgressBar" style="height: 100%; width: 0%; background: #22c55e; transition: all 0.5s ease; border-radius: 10px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85em; color: var(--text-muted);">
+                                <span id="carPercentage">0%</span>
+                                <span>£<span id="carRemaining">8,000.00</span> remaining</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
                 
                 <!-- Add Withdrawal Form -->
                 <div id="addWithdrawalForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
@@ -2667,6 +2712,8 @@
                                 <option value="mike">Mike</option>
                                 <option value="rent">🏠 Rent</option>
                                 <option value="tin">🪙 Tin Collection</option>
+                                <option value="kitchen">🍳 Kitchen</option>
+                                <option value="car">🚗 Car</option>
                             </select>
                         </div>
                         <div>
@@ -3996,7 +4043,7 @@
             renderWithdrawals();
         }
 
-        let withdrawalCategoryFilter = null; // null = show all, or 'dee'/'mike'/'rent'/'tin'
+        let withdrawalCategoryFilter = null; // null = show all, or 'dee'/'mike'/'rent'/'tin'/'kitchen'/'car'
 
         function filterWithdrawalCategory(person) {
             // null clears filter, clicking same category again also clears
@@ -4020,7 +4067,9 @@
             dee: 4000,
             mike: 1000,
             rent: 1300,
-            tin: null  // No limit
+            tin: null,  // No limit
+            kitchen: 8000,
+            car: 8000
         };
         let editHistory = [];
 
@@ -4450,7 +4499,7 @@
             // Only check limit if there is one (tin has null limit = no limit)
             if (limit !== null && currentTotal + amount > limit) {
                 const remaining = limit - currentTotal;
-                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection' };
+                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
                 alert(`This would exceed ${categoryNames[person]}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
                 return;
             }
@@ -4479,7 +4528,7 @@
         
         function deleteWithdrawal(id) {
             const w = withdrawals.find(w => w.id === id);
-            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection' };
+            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
             const name = w ? catNames[w.person] || w.person : '';
             const amt = w ? '£' + w.amount.toFixed(2) : '';
             if (confirm(`Are you sure you want to delete this withdrawal?\n\n${name} - ${amt}${w && w.note ? '\nNote: ' + w.note : ''}\n\nThis cannot be undone.`)) {
@@ -4522,9 +4571,9 @@
             if (addForm) addForm.style.display = isCurrentMonth ? '' : 'none';
 
             // Highlight active category card
-            const categoryColors = { dee: '#8b5cf6', mike: '#3b82f6', rent: '#f59e0b', tin: '#10b981' };
-            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection' };
-            ['Dee', 'Mike', 'Rent', 'Tin'].forEach(name => {
+            const categoryColors = { dee: '#8b5cf6', mike: '#3b82f6', rent: '#f59e0b', tin: '#10b981', kitchen: '#e67e22', car: '#e74c3c' };
+            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
+            ['Dee', 'Mike', 'Rent', 'Tin', 'Kitchen', 'Car'].forEach(name => {
                 const card = document.getElementById('card' + name);
                 const key = name.toLowerCase();
                 if (card) {
@@ -4548,14 +4597,20 @@
             const mikeTotal = getWithdrawalTotal('mike');
             const rentTotal = getWithdrawalTotal('rent');
             const tinTotal = getWithdrawalTotal('tin');
+            const kitchenTotal = getWithdrawalTotal('kitchen');
+            const carTotal = getWithdrawalTotal('car');
             
             const deeLimit = WITHDRAWAL_LIMITS.dee;
             const mikeLimit = WITHDRAWAL_LIMITS.mike;
             const rentLimit = WITHDRAWAL_LIMITS.rent;
+            const kitchenLimit = WITHDRAWAL_LIMITS.kitchen;
+            const carLimit = WITHDRAWAL_LIMITS.car;
             
             const deePercentage = Math.min((deeTotal / deeLimit) * 100, 100);
             const mikePercentage = Math.min((mikeTotal / mikeLimit) * 100, 100);
             const rentPercentage = Math.min((rentTotal / rentLimit) * 100, 100);
+            const kitchenPercentage = Math.min((kitchenTotal / kitchenLimit) * 100, 100);
+            const carPercentage = Math.min((carTotal / carLimit) * 100, 100);
             
             // Update Dee's card
             document.getElementById('deeTotal').textContent = deeTotal.toFixed(2);
@@ -4583,11 +4638,26 @@
             
             // Update Tin Collection card (no limit)
             document.getElementById('tinTotal').textContent = tinTotal.toFixed(2);
-            // Tin has no limit, so always show a full blue bar
             document.getElementById('tinPercentage').textContent = '∞';
             const tinBar = document.getElementById('tinProgressBar');
             tinBar.style.width = '100%';
             tinBar.style.background = '#3b82f6';
+            
+            // Update Kitchen card
+            document.getElementById('kitchenTotal').textContent = kitchenTotal.toFixed(2);
+            document.getElementById('kitchenPercentage').textContent = Math.round(kitchenPercentage) + '%';
+            document.getElementById('kitchenRemaining').textContent = Math.max(0, kitchenLimit - kitchenTotal).toFixed(2);
+            const kitchenBar = document.getElementById('kitchenProgressBar');
+            kitchenBar.style.width = kitchenPercentage + '%';
+            kitchenBar.style.background = getProgressColor(kitchenPercentage);
+            
+            // Update Car card
+            document.getElementById('carTotal').textContent = carTotal.toFixed(2);
+            document.getElementById('carPercentage').textContent = Math.round(carPercentage) + '%';
+            document.getElementById('carRemaining').textContent = Math.max(0, carLimit - carTotal).toFixed(2);
+            const carBar = document.getElementById('carProgressBar');
+            carBar.style.width = carPercentage + '%';
+            carBar.style.background = getProgressColor(carPercentage);
             
             // Render withdrawal list (filtered by selected month + category)
             const listContainer = document.getElementById('withdrawalsList');
@@ -4610,7 +4680,9 @@
                 dee: { name: 'Dee', color: '#8b5cf6', icon: 'D' },
                 mike: { name: 'Mike', color: '#3b82f6', icon: 'M' },
                 rent: { name: 'Rent', color: '#f59e0b', icon: '🏠' },
-                tin: { name: 'Tin Collection', color: '#10b981', icon: '🪙' }
+                tin: { name: 'Tin Collection', color: '#10b981', icon: '🪙' },
+                kitchen: { name: 'Kitchen', color: '#e67e22', icon: '🍳' },
+                car: { name: 'Car', color: '#e74c3c', icon: '🚗' }
             };
             
             // Sort by date (newest first)
