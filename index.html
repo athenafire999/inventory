@@ -4071,6 +4071,8 @@
             kitchen: 8000,
             car: 8000
         };
+        // Categories that are cumulative (not monthly reset)
+        const CUMULATIVE_CATEGORIES = ['kitchen', 'car'];
         let editHistory = [];
 
         // Initialize authentication on page load
@@ -4522,6 +4524,12 @@
         }
         
         function getWithdrawalTotal(person) {
+            // Cumulative categories use ALL withdrawals, not just current month
+            if (CUMULATIVE_CATEGORIES.includes(person)) {
+                return withdrawals
+                    .filter(w => w.person === person)
+                    .reduce((sum, w) => sum + w.amount, 0);
+            }
             return getMonthWithdrawals(person)
                 .reduce((sum, w) => sum + w.amount, 0);
         }
@@ -4661,9 +4669,15 @@
             
             // Render withdrawal list (filtered by selected month + category)
             const listContainer = document.getElementById('withdrawalsList');
-            let monthWithdrawals = getMonthWithdrawals();
-            if (withdrawalCategoryFilter) {
-                monthWithdrawals = monthWithdrawals.filter(w => w.person === withdrawalCategoryFilter);
+            let monthWithdrawals;
+            if (withdrawalCategoryFilter && CUMULATIVE_CATEGORIES.includes(withdrawalCategoryFilter)) {
+                // Cumulative categories show ALL entries regardless of month
+                monthWithdrawals = withdrawals.filter(w => w.person === withdrawalCategoryFilter);
+            } else {
+                monthWithdrawals = getMonthWithdrawals();
+                if (withdrawalCategoryFilter) {
+                    monthWithdrawals = monthWithdrawals.filter(w => w.person === withdrawalCategoryFilter);
+                }
             }
             
             if (monthWithdrawals.length === 0) {
