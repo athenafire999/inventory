@@ -5721,7 +5721,14 @@
             // Update tab counts
             document.getElementById('inventoryCount').textContent = readyItems;
             document.getElementById('needsworkCount').textContent = needsWorkItems;
-            document.getElementById('soldCount').textContent = soldItems;
+            // Sold tab count shows only current month's sales
+            const now = new Date();
+            const currentMonthSold = inventory.filter(item => {
+                if (item.status !== 'sold' || !item.soldDate) return false;
+                const d = new Date(item.soldDate);
+                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+            }).length;
+            document.getElementById('soldCount').textContent = currentMonthSold;
 
             // Calculate average days in stock and days to sell
             let totalDaysInStock = 0;
