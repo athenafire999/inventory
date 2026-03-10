@@ -2841,8 +2841,16 @@
                 <h3>📅 This Month's Sales</h3>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; margin-bottom: 0;">
                     <div class="stat-card blue" style="padding: 20px;">
-                        <div class="stat-value" id="totalBalance">£0.00</div>
+                        <div class="stat-value" id="totalBalance" onclick="openCashSplitEditor()" style="cursor: pointer;" title="Click to edit cash/digital split">£0.00</div>
                         <div class="stat-label">Current Balance</div>
+                        <div id="cashDigitalIndicator" style="display: flex; justify-content: center; gap: 12px; margin-top: 8px; font-size: 0.78em;">
+                            <span style="display: flex; align-items: center; gap: 3px; color: var(--success); font-weight: 600;" title="Cash">
+                                💵 <span id="cashAmount">£0</span>
+                            </span>
+                            <span style="display: flex; align-items: center; gap: 3px; color: var(--info); font-weight: 600;" title="Digital">
+                                💳 <span id="digitalAmount">£0</span>
+                            </span>
+                        </div>
                         <button onclick="openBalanceModal()" style="margin-top: 10px; padding: 6px 14px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem;">
                             Edit Balance
                         </button>
@@ -3574,6 +3582,47 @@
                 <button class="btn btn-danger" onclick="deleteFromFullView()">Delete Item</button>
                 <button class="btn btn-primary" onclick="editFromFullView()">Edit Item</button>
                 <button class="btn btn-secondary" onclick="closeFullViewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cash/Digital Split Editor Modal -->
+    <div id="cashSplitModal" class="modal">
+        <div class="modal-content" style="max-width: 420px;">
+            <div class="modal-header">💵 Cash / Digital Split</div>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 8px;">Current Balance</div>
+                <div id="cashSplitTotalBalance" style="font-size: 2em; font-weight: 700; color: var(--accent-primary);">£0.00</div>
+            </div>
+            <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">💵 How much is Cash?</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2em; font-weight: 600;">£</span>
+                    <input type="number" id="cashSplitInput" step="0.01" min="0" placeholder="0.00" 
+                        oninput="updateCashSplitPreview()"
+                        style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid var(--border-subtle); font-size: 1.1em; font-weight: 600; background: var(--bg-primary); color: var(--text-primary);">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px;">
+                    <button onclick="setCashSplitQuick(0)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">None</button>
+                    <button onclick="setCashSplitQuick(0.25)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">25%</button>
+                    <button onclick="setCashSplitQuick(0.5)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">50%</button>
+                    <button onclick="setCashSplitQuick(1)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">All</button>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 20px;">
+                <div style="text-align: center; flex: 1;">
+                    <div style="font-size: 0.8em; color: var(--text-secondary); margin-bottom: 4px;">💵 Cash</div>
+                    <div id="cashSplitPreviewCash" style="font-size: 1.3em; font-weight: 700; color: var(--success);">£0.00</div>
+                </div>
+                <div style="width: 1px; background: var(--border-subtle);"></div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="font-size: 0.8em; color: var(--text-secondary); margin-bottom: 4px;">💳 Digital</div>
+                    <div id="cashSplitPreviewDigital" style="font-size: 1.3em; font-weight: 700; color: var(--info);">£0.00</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-success" onclick="saveCashSplit()" style="flex: 1;">Save</button>
+                <button class="btn" onclick="closeCashSplitModal()" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary);">Cancel</button>
             </div>
         </div>
     </div>
@@ -4578,6 +4627,7 @@
         let transactions = [];
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
+        let cashBalance = 0; // How much of current balance is cash (rest is digital)
         
         // Sold tab month filter (defaults to current month)
         let soldMonthFilter = { month: new Date().getMonth(), year: new Date().getFullYear() };
@@ -4947,13 +4997,15 @@
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
                     const transBackupStr = localStorage.getItem('furniture_transactions_backup');
                     const withdrawalsBackupStr = localStorage.getItem('furniture_withdrawals_backup');
+                    const cashBalanceBackupStr = localStorage.getItem('furniture_cashBalance_backup');
                     const backupTimestamp = localStorage.getItem('furniture_backup_timestamp');
                     
                     if (backupStr) {
                         localData = {
                             inventory: JSON.parse(backupStr),
                             transactions: transBackupStr ? JSON.parse(transBackupStr) : [],
-                            withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : []
+                            withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : [],
+                            cashBalance: cashBalanceBackupStr ? JSON.parse(cashBalanceBackupStr) : 0
                         };
                         console.log('📁 Found localStorage backup:', localData.inventory.length, 'items,', localData.withdrawals.length, 'withdrawals, saved at:', backupTimestamp);
                     }
@@ -4970,6 +5022,7 @@
                     inventory = cloudData.inventory || [];
                     transactions = cloudData.transactions || [];
                     withdrawals = cloudData.withdrawals || [];
+                    cashBalance = cloudData.cashBalance || 0;
                     console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions,', withdrawals.length, 'withdrawals');
                     
                     // Update localStorage with cloud data
@@ -4977,6 +5030,7 @@
                         localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
                         localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
                         localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
+                        localStorage.setItem('furniture_cashBalance_backup', JSON.stringify(cashBalance));
                         localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
                     } catch (e) {}
                     
@@ -4988,6 +5042,7 @@
                     inventory = localData.inventory || [];
                     transactions = localData.transactions || [];
                     withdrawals = localData.withdrawals || [];
+                    cashBalance = localData.cashBalance || 0;
                     console.log('📁 Using localStorage backup:', inventory.length, 'items');
                     
                     removeToast(loadingToast);
@@ -5081,6 +5136,7 @@
                     localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
                     localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
                     localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
+                    localStorage.setItem('furniture_cashBalance_backup', JSON.stringify(cashBalance));
                     localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
                     console.log('💾 ✅ Saved backup to localStorage');
                 } catch (localError) {
@@ -5092,6 +5148,7 @@
                     inventory: inventory,
                     transactions: transactions,
                     withdrawals: withdrawals,
+                    cashBalance: cashBalance,
                     lastUpdated: new Date().toISOString()
                 };
                 
@@ -6560,6 +6617,12 @@
 
             document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
             
+            // Update cash/digital indicators
+            const effectiveCash = Math.min(cashBalance, Math.max(totalBalance, 0));
+            const digitalBalance = totalBalance - effectiveCash;
+            document.getElementById('cashAmount').textContent = '£' + effectiveCash.toFixed(0);
+            document.getElementById('digitalAmount').textContent = '£' + digitalBalance.toFixed(0);
+
             // Update balance breakdown
             document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
             document.getElementById('balanceMoneyOut').textContent = '-£' + moneyOut.toFixed(2);
@@ -6883,6 +6946,58 @@
                 details.classList.add('active');
                 icon.classList.add('rotated');
             }
+        }
+
+        // ==================== CASH / DIGITAL SPLIT ====================
+        let _currentTotalBalanceForSplit = 0;
+
+        function openCashSplitEditor() {
+            // Calculate current total balance (same as updateStatistics)
+            let moneyOut = 0;
+            inventory.forEach(item => {
+                if (item.affectBalance !== false) {
+                    moneyOut += (item.purchasePrice || 0);
+                }
+            });
+            let additionalIncome = 0, additionalExpenses = 0;
+            transactions.forEach(t => {
+                if (t.type === 'income') additionalIncome += t.amount;
+                else additionalExpenses += t.amount;
+            });
+            _currentTotalBalanceForSplit = 0 - moneyOut + additionalIncome - additionalExpenses;
+
+            document.getElementById('cashSplitTotalBalance').textContent = '£' + _currentTotalBalanceForSplit.toFixed(2);
+            document.getElementById('cashSplitInput').value = cashBalance > 0 ? cashBalance.toFixed(2) : '';
+            updateCashSplitPreview();
+            document.getElementById('cashSplitModal').classList.add('active');
+            setTimeout(() => document.getElementById('cashSplitInput').focus(), 200);
+        }
+
+        function updateCashSplitPreview() {
+            const val = parseFloat(document.getElementById('cashSplitInput').value) || 0;
+            const capped = Math.min(Math.max(val, 0), Math.max(_currentTotalBalanceForSplit, 0));
+            const digital = _currentTotalBalanceForSplit - capped;
+            document.getElementById('cashSplitPreviewCash').textContent = '£' + capped.toFixed(2);
+            document.getElementById('cashSplitPreviewDigital').textContent = '£' + digital.toFixed(2);
+        }
+
+        function setCashSplitQuick(fraction) {
+            const total = Math.max(_currentTotalBalanceForSplit, 0);
+            document.getElementById('cashSplitInput').value = (total * fraction).toFixed(2);
+            updateCashSplitPreview();
+        }
+
+        function saveCashSplit() {
+            const val = parseFloat(document.getElementById('cashSplitInput').value) || 0;
+            cashBalance = Math.min(Math.max(val, 0), Math.max(_currentTotalBalanceForSplit, 0));
+            closeCashSplitModal();
+            updateStatistics();
+            saveInventory();
+            showToast('Cash/Digital split updated', 'success', 2000);
+        }
+
+        function closeCashSplitModal() {
+            document.getElementById('cashSplitModal').classList.remove('active');
         }
 
         // Open balance modal
