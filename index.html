@@ -3624,35 +3624,60 @@
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">Manage Balance & Transactions</div>
             
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">Add Transaction</h4>
-                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
-                    <div class="form-group">
-                        <label>Description</label>
-                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
+            <!-- Cash/Digital Summary -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                <div style="flex: 1; background: var(--success-bg, #e8f5e8); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--success, #28a745);">
+                    <div style="font-size: 0.85em; color: var(--text-muted); font-weight: 600;">💵 Cash</div>
+                    <div id="modalCashAmount" style="font-size: 1.8em; font-weight: 700; color: var(--success, #28a745);">£0</div>
+                </div>
+                <div style="flex: 1; background: var(--info-bg, #e3f2fd); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--info, #3b82f6);">
+                    <div style="font-size: 0.85em; color: var(--text-muted); font-weight: 600;">💳 Digital</div>
+                    <div id="modalDigitalAmount" style="font-size: 1.8em; font-weight: 700; color: var(--info, #3b82f6);">£0</div>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-secondary, #f8f9fa); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">Add / Subtract</h4>
+                <!-- Row 1: Description + Amount -->
+                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                        <label>What's it for?</label>
+                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Sale">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
                         <label>Amount (£)</label>
                         <input type="number" id="transactionAmount" step="0.01" placeholder="0.00">
                     </div>
-                    <div class="form-group">
-                        <label>Type</label>
-                        <select id="transactionType">
-                            <option value="expense">Expense (-)</option>
-                            <option value="income">Income (+)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="transactionDate">
-                    </div>
                 </div>
-                <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
+                <!-- Row 2: Quick action buttons -->
+                <div id="transactionPreview" style="text-align: center; padding: 8px; margin-bottom: 12px; border-radius: 8px; background: var(--bg-card, white); color: var(--text-muted); font-size: 0.9em;">
+                    Choose an action below
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                    <button onclick="quickTransaction('income','cash')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--success, #28a745); background: var(--success-bg, #e8f5e8); color: var(--success, #28a745); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
+                        ➕💵<br>Add Cash
+                    </button>
+                    <button onclick="quickTransaction('income','digital')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--info, #3b82f6); background: var(--info-bg, #e3f2fd); color: var(--info, #3b82f6); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
+                        ➕💳<br>Add Digital
+                    </button>
+                    <button onclick="quickTransaction('expense','cash')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--danger, #dc3545); background: var(--danger-bg, #fde8e8); color: var(--danger, #dc3545); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
+                        ➖💵<br>From Cash
+                    </button>
+                    <button onclick="quickTransaction('expense','digital')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid #e67e22; background: #fef3e2; color: #e67e22; cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
+                        ➖💳<br>From Digital
+                    </button>
+                </div>
             </div>
 
             <div>
-                <h4 style="margin-bottom: 15px;">Transaction History</h4>
-                <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
+                <h4 style="margin-bottom: 10px;">Transaction History</h4>
+                <!-- Tabs for filtering -->
+                <div id="transactionTabs" style="display: flex; gap: 6px; margin-bottom: 12px;">
+                    <button onclick="setTransactionFilter('all')" class="txn-tab active" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--primary, #667eea); color: white; cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">All</button>
+                    <button onclick="setTransactionFilter('income')" class="txn-tab" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--bg-card, white); color: var(--text-primary, #333); cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">Added (+)</button>
+                    <button onclick="setTransactionFilter('expense')" class="txn-tab" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--bg-card, white); color: var(--text-primary, #333); cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">Subtracted (-)</button>
+                </div>
+                <div id="transactionList" style="max-height: 350px; overflow-y: auto;">
                     <!-- Transactions will be listed here -->
                 </div>
             </div>
@@ -5006,7 +5031,7 @@
                     inventory = cloudData.inventory || [];
                     transactions = cloudData.transactions || [];
                     withdrawals = cloudData.withdrawals || [];
-                    cashBalance = cloudData.cashBalance || 0;
+                    cashBalance = parseFloat(cloudData.cashBalance) || 0;
                     console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions,', withdrawals.length, 'withdrawals');
                     
                     // Update localStorage with cloud data
@@ -5026,7 +5051,7 @@
                     inventory = localData.inventory || [];
                     transactions = localData.transactions || [];
                     withdrawals = localData.withdrawals || [];
-                    cashBalance = localData.cashBalance || 0;
+                    cashBalance = parseFloat(localData.cashBalance) || 0;
                     console.log('📁 Using localStorage backup:', inventory.length, 'items');
                     
                     removeToast(loadingToast);
@@ -6598,8 +6623,8 @@
             // Update cash/digital indicators
             const effectiveCash = Math.min(cashBalance, Math.max(totalBalance, 0));
             const digitalBalance = totalBalance - effectiveCash;
-            document.getElementById('cashAmount').textContent = '£' + effectiveCash.toFixed(0);
-            document.getElementById('digitalAmount').textContent = '£' + digitalBalance.toFixed(0);
+            document.getElementById('cashAmount').textContent = '£' + effectiveCash.toFixed(2);
+            document.getElementById('digitalAmount').textContent = '£' + digitalBalance.toFixed(2);
 
             // Update balance breakdown
             document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
@@ -6979,13 +7004,22 @@
         }
 
         // Open balance modal
+        let transactionFilter = 'all'; // 'all', 'income', 'expense'
+
         function openBalanceModal() {
-            // Set today's date as default
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('transactionDate').value = today;
-            
             renderTransactions();
+            updateModalCashDigital();
             document.getElementById('balanceModal').classList.add('active');
+        }
+
+        // Update modal cash/digital summary
+        function updateModalCashDigital() {
+            const cashEl = document.getElementById('modalCashAmount');
+            const digitalEl = document.getElementById('modalDigitalAmount');
+            const cashSrc = document.getElementById('cashAmount');
+            const digitalSrc = document.getElementById('digitalAmount');
+            if (cashEl && cashSrc) cashEl.textContent = cashSrc.textContent;
+            if (digitalEl && digitalSrc) digitalEl.textContent = digitalSrc.textContent;
         }
 
         // Close balance modal
@@ -6998,44 +7032,93 @@
         function clearTransactionForm() {
             document.getElementById('transactionDesc').value = '';
             document.getElementById('transactionAmount').value = '';
-            document.getElementById('transactionType').value = 'expense';
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('transactionDate').value = today;
+            const preview = document.getElementById('transactionPreview');
+            if (preview) preview.textContent = 'Choose an action below';
         }
 
-        // Add transaction
-        function addTransaction() {
-            const desc = document.getElementById('transactionDesc').value;
-            const amount = parseFloat(document.getElementById('transactionAmount').value);
-            const type = document.getElementById('transactionType').value;
-            const date = document.getElementById('transactionDate').value;
+        // Set transaction filter tab
+        function setTransactionFilter(filter) {
+            transactionFilter = filter;
+            // Update tab styles
+            document.querySelectorAll('#transactionTabs .txn-tab').forEach(btn => {
+                btn.style.background = 'var(--bg-card, white)';
+                btn.style.color = 'var(--text-primary, #333)';
+            });
+            const tabs = document.querySelectorAll('#transactionTabs .txn-tab');
+            const idx = filter === 'all' ? 0 : filter === 'income' ? 1 : 2;
+            if (tabs[idx]) {
+                tabs[idx].style.background = 'var(--primary, #667eea)';
+                tabs[idx].style.color = 'white';
+            }
+            renderTransactions();
+        }
 
-            if (!desc || isNaN(amount) || amount <= 0 || !date) {
-                alert('Please fill in all fields with valid values');
+        // Quick transaction — single button does type + method
+        function quickTransaction(type, method) {
+            const desc = document.getElementById('transactionDesc').value.trim();
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+
+            if (!desc) {
+                alert('Please enter a description (what is it for?)');
+                document.getElementById('transactionDesc').focus();
                 return;
             }
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid amount');
+                document.getElementById('transactionAmount').focus();
+                return;
+            }
+
+            // Auto-set date and time
+            const dateTime = new Date().toISOString();
 
             const transaction = {
                 id: Date.now(),
                 description: desc,
                 amount: amount,
                 type: type,
-                date: date
+                method: method,
+                date: dateTime
             };
 
+            // Adjust cashBalance based on method and type
+            cashBalance = parseFloat(cashBalance) || 0;
+            if (method === 'cash') {
+                if (type === 'income') {
+                    cashBalance = cashBalance + amount;
+                } else {
+                    cashBalance = Math.max(0, cashBalance - amount);
+                }
+            }
+            // Digital: cashBalance unchanged — digital portion auto-adjusts via totalBalance
+            localStorage.setItem('furniture_cashBalance_backup', cashBalance.toString());
+
             transactions.push(transaction);
-            saveTransactions(); // Keep as non-async for now
+            saveTransactions();
             
             // Add to history
+            const actionLabel = type === 'income' ? 'Added' : 'Subtracted';
+            const methodLabel = method === 'cash' ? '💵 Cash' : '💳 Digital';
             addHistoryEntry('balance_transaction', desc, '', [
-                { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
-                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
-                { field: 'Date', oldValue: '', newValue: date }
+                { field: 'Action', oldValue: '', newValue: `${actionLabel} ${methodLabel}` },
+                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` }
             ]);
             
             renderTransactions();
             updateStatistics();
+            updateModalCashDigital();
             clearTransactionForm();
+
+            const icon = type === 'income' ? '➕' : '➖';
+            showToast(`${icon} £${amount.toFixed(2)} ${type === 'income' ? 'added to' : 'taken from'} ${methodLabel}`, 'success');
+        }
+
+        // Legacy wrapper for any existing calls
+        function addTransaction() {
+            quickTransaction(
+                document.getElementById('transactionType')?.value || 'expense',
+                document.getElementById('transactionMethod')?.value || 'cash'
+            );
         }
 
 
@@ -7043,20 +7126,33 @@
         function deleteTransaction(id) {
             if (confirm('Delete this transaction?')) {
                 const transactionToDelete = transactions.find(t => t.id === id);
+                
+                // Reverse cashBalance adjustment if it was a cash transaction
+                cashBalance = parseFloat(cashBalance) || 0;
+                if (transactionToDelete && transactionToDelete.method === 'cash') {
+                    if (transactionToDelete.type === 'income') {
+                        cashBalance = Math.max(0, cashBalance - (transactionToDelete.amount || 0));
+                    } else {
+                        cashBalance = cashBalance + (transactionToDelete.amount || 0);
+                    }
+                }
+                localStorage.setItem('furniture_cashBalance_backup', cashBalance.toString());
+                
                 transactions = transactions.filter(t => t.id !== id);
-                saveTransactions(); // Keep as non-async for now
+                saveTransactions();
                 
                 // Add to history
                 if (transactionToDelete) {
                     addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
                         { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
-                        { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' },
-                        { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
+                        { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' }
                     ]);
                 }
                 
                 renderTransactions();
                 updateStatistics();
+                updateModalCashDigital();
+                showToast('Transaction deleted', 'info');
             }
         }
 
@@ -7065,27 +7161,55 @@
             const transactionList = document.getElementById('transactionList');
             
             if (transactions.length === 0) {
-                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No additional transactions yet</div>';
+                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted, #999);">No transactions yet</div>';
                 return;
             }
 
-            // Sort by date (most recent first)
-            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Sort by date (newest first) then by id (newest first)
+            let sortedTransactions = [...transactions].sort((a, b) => {
+                const dateCompare = new Date(b.date) - new Date(a.date);
+                return dateCompare !== 0 ? dateCompare : b.id - a.id;
+            });
+
+            // Apply tab filter
+            if (transactionFilter === 'income') {
+                sortedTransactions = sortedTransactions.filter(t => t.type === 'income');
+            } else if (transactionFilter === 'expense') {
+                sortedTransactions = sortedTransactions.filter(t => t.type === 'expense');
+            }
+
+            if (sortedTransactions.length === 0) {
+                const label = transactionFilter === 'income' ? 'added' : 'subtracted';
+                transactionList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted, #999);">No ${label} transactions</div>`;
+                return;
+            }
 
             transactionList.innerHTML = sortedTransactions.map(t => {
                 const isIncome = t.type === 'income';
+                const isCash = t.method === 'cash';
+                const methodBadge = isCash 
+                    ? '<span style="background: var(--success-bg, #e8f5e8); color: var(--success, #28a745); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600;">💵 Cash</span>'
+                    : '<span style="background: var(--info-bg, #e3f2fd); color: var(--info, #3b82f6); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600;">💳 Digital</span>';
+                
+                // Format date and time
+                const d = new Date(t.date);
+                const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                
                 return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
-                        <div>
-                            <div style="font-weight: 600; color: #333;">${t.description}</div>
-                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg-card, white); border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ${isIncome ? 'var(--success, #28a745)' : 'var(--danger, #dc3545)'}; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08));">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 600; color: var(--text-primary, #333); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                ${t.description} ${methodBadge}
+                            </div>
+                            <div style="font-size: 0.82em; color: var(--text-muted, #666); margin-top: 3px;">${dateStr} at ${timeStr}</div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
-                            <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
+                        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                            <div style="font-size: 1.15em; font-weight: 700; color: ${isIncome ? 'var(--success, #28a745)' : 'var(--danger, #dc3545)'};">
                                 ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
                             </div>
-                            <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-                                Delete
+                            <button onclick="deleteTransaction(${t.id})" style="padding: 5px 10px; background: var(--danger, #dc3545); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8em;">
+                                🗑️
                             </button>
                         </div>
                     </div>
