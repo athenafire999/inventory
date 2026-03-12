@@ -3138,10 +3138,10 @@
                         </div>
                     </div>
                     
-                    <!-- Tin Collection Card -->
+                    <!-- Reinvested Card -->
                     <div class="withdrawal-card" id="cardTin" onclick="filterWithdrawalCategory('tin')" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0; font-size: 1.3em;">🪙 Tin Collection</h3>
+                            <h3 style="margin: 0; font-size: 1.3em;">📈 Reinvested</h3>
                             <span style="font-size: 0.9em; color: var(--text-muted);">No Limit</span>
                         </div>
                         <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
@@ -3212,7 +3212,7 @@
                                 <option value="dee">Dee</option>
                                 <option value="mike">Mike</option>
                                 <option value="rent">🏠 Rent</option>
-                                <option value="tin">🪙 Tin Collection</option>
+                                <option value="tin">📈 Reinvested</option>
                                 <option value="kitchen">🍳 Kitchen</option>
                                 <option value="car">🚗 Car</option>
                             </select>
@@ -3510,14 +3510,6 @@
                     <input type="number" id="editSoldPrice" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label>Add to Balance</label>
-                    <select id="editAddToBalance">
-                        <option value="yes">Yes - Add to balance</option>
-                        <option value="no">No - Don't add to balance</option>
-                    </select>
-                    <small style="color: #666; font-size: 0.85em;">Choose "No" if you want to manually add the money later</small>
-                </div>
-                <div class="form-group">
                     <label>Status</label>
                     <select id="editItemStatus">
                         <option value="ready">Ready to Sell</option>
@@ -3656,14 +3648,6 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
-            </div>
-
-            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">Sold Items - Add to Balance</h4>
-                <p style="color: #666; margin-bottom: 15px;">These sold items haven't been added to your balance yet. Click to add them as income transactions.</p>
-                <div id="soldItemsList" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Sold items will be listed here -->
-                </div>
             </div>
 
             <div>
@@ -5197,7 +5181,7 @@
             // Only check limit if there is one (tin has null limit = no limit)
             if (limit !== null && currentTotal + amount > limit) {
                 const remaining = limit - currentTotal;
-                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
+                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
                 alert(`This would exceed ${categoryNames[person]}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
                 return;
             }
@@ -5232,7 +5216,7 @@
         
         function deleteWithdrawal(id) {
             const w = withdrawals.find(w => w.id === id);
-            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
+            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
             const name = w ? catNames[w.person] || w.person : '';
             const amt = w ? '£' + w.amount.toFixed(2) : '';
             if (confirm(`Are you sure you want to delete this withdrawal?\n\n${name} - ${amt}${w && w.note ? '\nNote: ' + w.note : ''}\n\nThis cannot be undone.`)) {
@@ -5276,7 +5260,7 @@
 
             // Highlight active category card
             const categoryColors = { dee: '#8b5cf6', mike: '#3b82f6', rent: '#f59e0b', tin: '#10b981', kitchen: '#e67e22', car: '#e74c3c' };
-            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
+            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
             ['Dee', 'Mike', 'Rent', 'Tin', 'Kitchen', 'Car'].forEach(name => {
                 const card = document.getElementById('card' + name);
                 const key = name.toLowerCase();
@@ -5340,7 +5324,7 @@
             rentBar.style.width = rentPercentage + '%';
             rentBar.style.background = getProgressColor(rentPercentage);
             
-            // Update Tin Collection card (no limit)
+            // Update Reinvested card (no limit)
             document.getElementById('tinTotal').textContent = tinTotal.toFixed(2);
             document.getElementById('tinPercentage').textContent = '∞';
             const tinBar = document.getElementById('tinProgressBar');
@@ -5390,7 +5374,7 @@
                 dee: { name: 'Dee', color: '#8b5cf6', icon: 'D' },
                 mike: { name: 'Mike', color: '#3b82f6', icon: 'M' },
                 rent: { name: 'Rent', color: '#f59e0b', icon: '🏠' },
-                tin: { name: 'Tin Collection', color: '#10b981', icon: '🪙' },
+                tin: { name: 'Reinvested', color: '#10b981', icon: '📈' },
                 kitchen: { name: 'Kitchen', color: '#e67e22', icon: '🍳' },
                 car: { name: 'Car', color: '#e74c3c', icon: '🚗' }
             };
@@ -5925,7 +5909,6 @@
             document.getElementById('editAffectBalance').value = (item.affectBalance === true || item.affectBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editSoldDate').value = item.soldDate || '';
             document.getElementById('editSoldPrice').value = item.soldPrice || '';
-            document.getElementById('editAddToBalance').value = (item.addToBalance === true || item.addToBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editItemStatus').value = item.status;
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
@@ -6023,7 +6006,6 @@
             const affectBalanceEl = document.getElementById('editAffectBalance');
             const soldDateEl = document.getElementById('editSoldDate');
             const soldPriceEl = document.getElementById('editSoldPrice');
-            const addToBalanceEl = document.getElementById('editAddToBalance');
             const statusEl = document.getElementById('editItemStatus');
             const descriptionEl = document.getElementById('editItemDescription');
             const workNotesEl = document.getElementById('editItemWorkNotes');
@@ -6035,7 +6017,6 @@
                 affectBalance: !!affectBalanceEl,
                 soldDate: !!soldDateEl,
                 soldPrice: !!soldPriceEl,
-                addToBalance: !!addToBalanceEl,
                 status: !!statusEl,
                 description: !!descriptionEl,
                 workNotes: !!workNotesEl
@@ -6048,7 +6029,6 @@
                 affectBalance: affectBalanceEl?.value === 'yes',
                 soldDate: soldDateEl?.value || '',
                 soldPrice: parseFloat(soldPriceEl?.value || '0') || 0,
-                addToBalance: addToBalanceEl?.value === 'yes',
                 status: statusEl?.value || 'ready',
                 description: descriptionEl?.value || '',
                 workNotes: workNotesEl?.value || ''
@@ -6063,7 +6043,6 @@
             item.affectBalance = formData.affectBalance;
             item.soldDate = formData.soldDate;
             item.soldPrice = formData.soldPrice;
-            item.addToBalance = formData.addToBalance;
             item.status = formData.status;
             item.description = formData.description;
             item.workNotes = formData.workNotes;
@@ -6431,7 +6410,6 @@
                         
                         <div class="full-view-info-box" style="font-size: 0.9em;">
                             <div style="margin-bottom: 5px;"><strong style="color: var(--text-secondary);">Affects Balance:</strong> <span style="color: var(--text-primary);">${item.affectBalance !== false ? 'Yes' : 'No'}</span></div>
-                            <div><strong style="color: var(--text-secondary);">Add to Balance:</strong> <span style="color: var(--text-primary);">${item.addToBalance !== false ? 'Yes' : 'No'}</span></div>
                         </div>
                     </div>
                 </div>
@@ -7007,7 +6985,6 @@
             document.getElementById('transactionDate').value = today;
             
             renderTransactions();
-            renderSoldItems();
             document.getElementById('balanceModal').classList.add('active');
         }
 
@@ -7061,31 +7038,6 @@
             clearTransactionForm();
         }
 
-        // Add sold item to balance as income transaction
-        function addSoldItemToBalance(itemName, amount, soldDate) {
-            const transaction = {
-                id: Date.now(),
-                description: `Sale: ${itemName}`,
-                amount: amount,
-                type: 'income',
-                date: soldDate
-            };
-
-            transactions.push(transaction);
-            saveTransactions(); // Keep as non-async for now
-            
-            // Add to history
-            addHistoryEntry('balance_transaction', `Sale: ${itemName}`, '', [
-                { field: 'Type', oldValue: '', newValue: 'Income' },
-                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
-                { field: 'Date', oldValue: '', newValue: soldDate },
-                { field: 'Item', oldValue: '', newValue: itemName }
-            ]);
-            
-            renderTransactions();
-            renderSoldItems(); // Refresh the sold items list
-            updateStatistics();
-        }
 
         // Delete transaction
         function deleteTransaction(id) {
@@ -7141,44 +7093,6 @@
             }).join('');
         }
 
-        // Render sold items that can be added to balance
-        function renderSoldItems() {
-            const soldItemsList = document.getElementById('soldItemsList');
-            
-            // Get sold items that haven't been added to balance yet
-            const soldItems = inventory.filter(item => 
-                item.status === 'sold' && 
-                item.soldPrice > 0 && 
-                !transactions.some(t => 
-                    t.description.includes(item.name) && 
-                    t.type === 'income' && 
-                    t.amount === item.soldPrice
-                )
-            );
-            
-            if (soldItems.length === 0) {
-                soldItemsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No sold items to add to balance</div>';
-                return;
-            }
-
-            soldItemsList.innerHTML = soldItems.map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ddd;">
-                    <div>
-                        <div style="font-weight: 600; color: #333;">${item.name}</div>
-                        <div style="font-size: 0.9em; color: #666;">Sold: ${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'Unknown'}</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 1.1em; font-weight: 700; color: #28a745;">
-                            £${(item.soldPrice || 0).toFixed(2)}
-                        </div>
-                        <button onclick="addSoldItemToBalance('${item.name}', ${item.soldPrice}, '${item.soldDate || new Date().toISOString().split('T')[0]}')" 
-                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-                            Add to Balance
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
 
         // Photo modal functions
         function openPhotoModal(itemIndex, photoIndex) {
