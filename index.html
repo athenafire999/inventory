@@ -2841,16 +2841,8 @@
                 <h3>📅 This Month's Sales</h3>
                 <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; margin-bottom: 0;">
                     <div class="stat-card blue" style="padding: 20px;">
-                        <div class="stat-value" id="totalBalance" onclick="openBalanceModal()" style="cursor: pointer;" title="Click to manage balance">£0.00</div>
+                        <div class="stat-value" id="totalBalance">£0.00</div>
                         <div class="stat-label">Current Balance</div>
-                        <div id="cashDigitalIndicator" style="display: flex; justify-content: center; gap: 12px; margin-top: 8px; font-size: 0.78em;">
-                            <span style="display: flex; align-items: center; gap: 3px; color: var(--success); font-weight: 600;" title="Cash">
-                                💵 <span id="cashAmount">£0</span>
-                            </span>
-                            <span style="display: flex; align-items: center; gap: 3px; color: var(--info); font-weight: 600;" title="Digital">
-                                💳 <span id="digitalAmount">£0</span>
-                            </span>
-                        </div>
                         <button onclick="openBalanceModal()" style="margin-top: 10px; padding: 6px 14px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem;">
                             Edit Balance
                         </button>
@@ -3138,10 +3130,10 @@
                         </div>
                     </div>
                     
-                    <!-- Reinvested Card -->
+                    <!-- Tin Collection Card -->
                     <div class="withdrawal-card" id="cardTin" onclick="filterWithdrawalCategory('tin')" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                            <h3 style="margin: 0; font-size: 1.3em;">📈 Reinvested</h3>
+                            <h3 style="margin: 0; font-size: 1.3em;">🪙 Tin Collection</h3>
                             <span style="font-size: 0.9em; color: var(--text-muted);">No Limit</span>
                         </div>
                         <div style="font-size: 2em; font-weight: 700; margin-bottom: 15px;">
@@ -3212,7 +3204,7 @@
                                 <option value="dee">Dee</option>
                                 <option value="mike">Mike</option>
                                 <option value="rent">🏠 Rent</option>
-                                <option value="tin">📈 Reinvested</option>
+                                <option value="tin">🪙 Tin Collection</option>
                                 <option value="kitchen">🍳 Kitchen</option>
                                 <option value="car">🚗 Car</option>
                             </select>
@@ -3510,6 +3502,14 @@
                     <input type="number" id="editSoldPrice" step="0.01">
                 </div>
                 <div class="form-group">
+                    <label>Add to Balance</label>
+                    <select id="editAddToBalance">
+                        <option value="yes">Yes - Add to balance</option>
+                        <option value="no">No - Don't add to balance</option>
+                    </select>
+                    <small style="color: #666; font-size: 0.85em;">Choose "No" if you want to manually add the money later</small>
+                </div>
+                <div class="form-group">
                     <label>Status</label>
                     <select id="editItemStatus">
                         <option value="ready">Ready to Sell</option>
@@ -3578,106 +3578,48 @@
         </div>
     </div>
 
-    <!-- Cash/Digital Split Editor Modal -->
-    <div id="cashSplitModal" class="modal">
-        <div class="modal-content" style="max-width: 420px;">
-            <div class="modal-header">💵 Cash / Digital Split</div>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 8px;">Current Balance</div>
-                <div id="cashSplitTotalBalance" style="font-size: 2em; font-weight: 700; color: var(--accent-primary);">£0.00</div>
-            </div>
-            <div style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
-                <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">💵 How much is Cash?</label>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.2em; font-weight: 600;">£</span>
-                    <input type="number" id="cashSplitInput" step="0.01" min="0" placeholder="0.00" 
-                        oninput="updateCashSplitPreview()"
-                        style="flex:1; padding: 12px; border-radius: 8px; border: 2px solid var(--border-subtle); font-size: 1.1em; font-weight: 600; background: var(--bg-primary); color: var(--text-primary);">
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px;">
-                    <button onclick="setCashSplitQuick(0)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">None</button>
-                    <button onclick="setCashSplitQuick(0.25)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">25%</button>
-                    <button onclick="setCashSplitQuick(0.5)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">50%</button>
-                    <button onclick="setCashSplitQuick(1)" style="padding: 4px 10px; border: 1px solid var(--border-subtle); background: var(--bg-primary); color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-size: 0.8em;">All</button>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding: 16px; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 20px;">
-                <div style="text-align: center; flex: 1;">
-                    <div style="font-size: 0.8em; color: var(--text-secondary); margin-bottom: 4px;">💵 Cash</div>
-                    <div id="cashSplitPreviewCash" style="font-size: 1.3em; font-weight: 700; color: var(--success);">£0.00</div>
-                </div>
-                <div style="width: 1px; background: var(--border-subtle);"></div>
-                <div style="text-align: center; flex: 1;">
-                    <div style="font-size: 0.8em; color: var(--text-secondary); margin-bottom: 4px;">💳 Digital</div>
-                    <div id="cashSplitPreviewDigital" style="font-size: 1.3em; font-weight: 700; color: var(--info);">£0.00</div>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-success" onclick="saveCashSplit()" style="flex: 1;">Save</button>
-                <button class="btn" onclick="closeCashSplitModal()" style="flex: 1; background: var(--bg-secondary); color: var(--text-primary);">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Balance Modal -->
     <div id="balanceModal" class="modal">
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">Manage Balance & Transactions</div>
             
-            <!-- Cash/Digital Summary -->
-            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
-                <div style="flex: 1; background: var(--success-bg, #e8f5e8); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--success, #28a745);">
-                    <div style="font-size: 0.85em; color: var(--text-muted); font-weight: 600;">💵 Cash</div>
-                    <div id="modalCashAmount" style="font-size: 1.8em; font-weight: 700; color: var(--success, #28a745);">£0</div>
-                </div>
-                <div style="flex: 1; background: var(--info-bg, #e3f2fd); padding: 16px; border-radius: 10px; text-align: center; border: 2px solid var(--info, #3b82f6);">
-                    <div style="font-size: 0.85em; color: var(--text-muted); font-weight: 600;">💳 Digital</div>
-                    <div id="modalDigitalAmount" style="font-size: 1.8em; font-weight: 700; color: var(--info, #3b82f6);">£0</div>
-                </div>
-            </div>
-
-            <div style="background: var(--bg-secondary, #f8f9fa); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">Add / Subtract</h4>
-                <!-- Row 1: Description + Amount -->
-                <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-                    <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                        <label>What's it for?</label>
-                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Sale">
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">Add Transaction</h4>
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
                     </div>
-                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <div class="form-group">
                         <label>Amount (£)</label>
                         <input type="number" id="transactionAmount" step="0.01" placeholder="0.00">
                     </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="transactionType">
+                            <option value="expense">Expense (-)</option>
+                            <option value="income">Income (+)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="transactionDate">
+                    </div>
                 </div>
-                <!-- Row 2: Quick action buttons -->
-                <div id="transactionPreview" style="text-align: center; padding: 8px; margin-bottom: 12px; border-radius: 8px; background: var(--bg-card, white); color: var(--text-muted); font-size: 0.9em;">
-                    Choose an action below
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
-                    <button onclick="quickTransaction('income','cash')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--success, #28a745); background: var(--success-bg, #e8f5e8); color: var(--success, #28a745); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
-                        ➕💵<br>Add Cash
-                    </button>
-                    <button onclick="quickTransaction('income','digital')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--info, #3b82f6); background: var(--info-bg, #e3f2fd); color: var(--info, #3b82f6); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
-                        ➕💳<br>Add Digital
-                    </button>
-                    <button onclick="quickTransaction('expense','cash')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid var(--danger, #dc3545); background: var(--danger-bg, #fde8e8); color: var(--danger, #dc3545); cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
-                        ➖💵<br>From Cash
-                    </button>
-                    <button onclick="quickTransaction('expense','digital')" style="padding: 12px 8px; border-radius: 10px; border: 2px solid #e67e22; background: #fef3e2; color: #e67e22; cursor: pointer; font-weight: 700; font-size: 0.85em; transition: all 0.2s;">
-                        ➖💳<br>From Digital
-                    </button>
+                <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
+            </div>
+
+            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h4 style="margin-bottom: 15px;">Sold Items - Add to Balance</h4>
+                <p style="color: #666; margin-bottom: 15px;">These sold items haven't been added to your balance yet. Click to add them as income transactions.</p>
+                <div id="soldItemsList" style="max-height: 200px; overflow-y: auto;">
+                    <!-- Sold items will be listed here -->
                 </div>
             </div>
 
             <div>
-                <h4 style="margin-bottom: 10px;">Transaction History</h4>
-                <!-- Tabs for filtering -->
-                <div id="transactionTabs" style="display: flex; gap: 6px; margin-bottom: 12px;">
-                    <button onclick="setTransactionFilter('all')" class="txn-tab active" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--primary, #667eea); color: white; cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">All</button>
-                    <button onclick="setTransactionFilter('income')" class="txn-tab" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--bg-card, white); color: var(--text-primary, #333); cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">Added (+)</button>
-                    <button onclick="setTransactionFilter('expense')" class="txn-tab" style="padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border-color, #ddd); background: var(--bg-card, white); color: var(--text-primary, #333); cursor: pointer; font-weight: 600; font-size: 0.85em; transition: all 0.2s;">Subtracted (-)</button>
-                </div>
-                <div id="transactionList" style="max-height: 350px; overflow-y: auto;">
+                <h4 style="margin-bottom: 15px;">Transaction History</h4>
+                <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
                     <!-- Transactions will be listed here -->
                 </div>
             </div>
@@ -4636,7 +4578,6 @@
         let transactions = [];
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
-        let cashBalance = 0; // How much of current balance is cash (rest is digital)
         
         // Sold tab month filter (defaults to current month)
         let soldMonthFilter = { month: new Date().getMonth(), year: new Date().getFullYear() };
@@ -5006,15 +4947,13 @@
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
                     const transBackupStr = localStorage.getItem('furniture_transactions_backup');
                     const withdrawalsBackupStr = localStorage.getItem('furniture_withdrawals_backup');
-                    const cashBalanceBackupStr = localStorage.getItem('furniture_cashBalance_backup');
                     const backupTimestamp = localStorage.getItem('furniture_backup_timestamp');
                     
                     if (backupStr) {
                         localData = {
                             inventory: JSON.parse(backupStr),
                             transactions: transBackupStr ? JSON.parse(transBackupStr) : [],
-                            withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : [],
-                            cashBalance: cashBalanceBackupStr ? JSON.parse(cashBalanceBackupStr) : 0
+                            withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : []
                         };
                         console.log('📁 Found localStorage backup:', localData.inventory.length, 'items,', localData.withdrawals.length, 'withdrawals, saved at:', backupTimestamp);
                     }
@@ -5031,7 +4970,6 @@
                     inventory = cloudData.inventory || [];
                     transactions = cloudData.transactions || [];
                     withdrawals = cloudData.withdrawals || [];
-                    cashBalance = parseFloat(cloudData.cashBalance) || 0;
                     console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions,', withdrawals.length, 'withdrawals');
                     
                     // Update localStorage with cloud data
@@ -5039,7 +4977,6 @@
                         localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
                         localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
                         localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
-                        localStorage.setItem('furniture_cashBalance_backup', JSON.stringify(cashBalance));
                         localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
                     } catch (e) {}
                     
@@ -5051,7 +4988,6 @@
                     inventory = localData.inventory || [];
                     transactions = localData.transactions || [];
                     withdrawals = localData.withdrawals || [];
-                    cashBalance = parseFloat(localData.cashBalance) || 0;
                     console.log('📁 Using localStorage backup:', inventory.length, 'items');
                     
                     removeToast(loadingToast);
@@ -5145,7 +5081,6 @@
                     localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
                     localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
                     localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
-                    localStorage.setItem('furniture_cashBalance_backup', JSON.stringify(cashBalance));
                     localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
                     console.log('💾 ✅ Saved backup to localStorage');
                 } catch (localError) {
@@ -5157,7 +5092,6 @@
                     inventory: inventory,
                     transactions: transactions,
                     withdrawals: withdrawals,
-                    cashBalance: cashBalance,
                     lastUpdated: new Date().toISOString()
                 };
                 
@@ -5206,7 +5140,7 @@
             // Only check limit if there is one (tin has null limit = no limit)
             if (limit !== null && currentTotal + amount > limit) {
                 const remaining = limit - currentTotal;
-                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
+                const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
                 alert(`This would exceed ${categoryNames[person]}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
                 return;
             }
@@ -5241,7 +5175,7 @@
         
         function deleteWithdrawal(id) {
             const w = withdrawals.find(w => w.id === id);
-            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
+            const catNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
             const name = w ? catNames[w.person] || w.person : '';
             const amt = w ? '£' + w.amount.toFixed(2) : '';
             if (confirm(`Are you sure you want to delete this withdrawal?\n\n${name} - ${amt}${w && w.note ? '\nNote: ' + w.note : ''}\n\nThis cannot be undone.`)) {
@@ -5285,7 +5219,7 @@
 
             // Highlight active category card
             const categoryColors = { dee: '#8b5cf6', mike: '#3b82f6', rent: '#f59e0b', tin: '#10b981', kitchen: '#e67e22', car: '#e74c3c' };
-            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Reinvested', kitchen: 'Kitchen', car: 'Car' };
+            const categoryNames = { dee: 'Dee', mike: 'Mike', rent: 'Rent', tin: 'Tin Collection', kitchen: 'Kitchen', car: 'Car' };
             ['Dee', 'Mike', 'Rent', 'Tin', 'Kitchen', 'Car'].forEach(name => {
                 const card = document.getElementById('card' + name);
                 const key = name.toLowerCase();
@@ -5349,7 +5283,7 @@
             rentBar.style.width = rentPercentage + '%';
             rentBar.style.background = getProgressColor(rentPercentage);
             
-            // Update Reinvested card (no limit)
+            // Update Tin Collection card (no limit)
             document.getElementById('tinTotal').textContent = tinTotal.toFixed(2);
             document.getElementById('tinPercentage').textContent = '∞';
             const tinBar = document.getElementById('tinProgressBar');
@@ -5399,7 +5333,7 @@
                 dee: { name: 'Dee', color: '#8b5cf6', icon: 'D' },
                 mike: { name: 'Mike', color: '#3b82f6', icon: 'M' },
                 rent: { name: 'Rent', color: '#f59e0b', icon: '🏠' },
-                tin: { name: 'Reinvested', color: '#10b981', icon: '📈' },
+                tin: { name: 'Tin Collection', color: '#10b981', icon: '🪙' },
                 kitchen: { name: 'Kitchen', color: '#e67e22', icon: '🍳' },
                 car: { name: 'Car', color: '#e74c3c', icon: '🚗' }
             };
@@ -5819,18 +5753,6 @@
                         ${priorityIndicator}
                         ${reorderButtons}
                     </div>
-                    ` : item.status === 'sold' ? `
-                    <!-- Sold item: show revenue & profit -->
-                    <div style="margin-top: auto; padding-top: 6px; width: 100%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; color: var(--text-muted); margin-bottom: 2px;">
-                            <span>Sold</span>
-                            <span>£${(item.soldPrice || 0).toFixed(2)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75em; padding: 4px 6px; border-radius: 4px; background: ${(item.soldPrice - item.purchasePrice) >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color: ${(item.soldPrice - item.purchasePrice) >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
-                            <span>Profit</span>
-                            <span>${(item.soldPrice - item.purchasePrice) >= 0 ? '+' : ''}£${(item.soldPrice - item.purchasePrice).toFixed(2)}</span>
-                        </div>
-                    </div>
                     ` : `
                     <!-- Item Number -->
                     <div class="item-number">
@@ -5934,6 +5856,7 @@
             document.getElementById('editAffectBalance').value = (item.affectBalance === true || item.affectBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editSoldDate').value = item.soldDate || '';
             document.getElementById('editSoldPrice').value = item.soldPrice || '';
+            document.getElementById('editAddToBalance').value = (item.addToBalance === true || item.addToBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editItemStatus').value = item.status;
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
@@ -6031,6 +5954,7 @@
             const affectBalanceEl = document.getElementById('editAffectBalance');
             const soldDateEl = document.getElementById('editSoldDate');
             const soldPriceEl = document.getElementById('editSoldPrice');
+            const addToBalanceEl = document.getElementById('editAddToBalance');
             const statusEl = document.getElementById('editItemStatus');
             const descriptionEl = document.getElementById('editItemDescription');
             const workNotesEl = document.getElementById('editItemWorkNotes');
@@ -6042,6 +5966,7 @@
                 affectBalance: !!affectBalanceEl,
                 soldDate: !!soldDateEl,
                 soldPrice: !!soldPriceEl,
+                addToBalance: !!addToBalanceEl,
                 status: !!statusEl,
                 description: !!descriptionEl,
                 workNotes: !!workNotesEl
@@ -6054,6 +5979,7 @@
                 affectBalance: affectBalanceEl?.value === 'yes',
                 soldDate: soldDateEl?.value || '',
                 soldPrice: parseFloat(soldPriceEl?.value || '0') || 0,
+                addToBalance: addToBalanceEl?.value === 'yes',
                 status: statusEl?.value || 'ready',
                 description: descriptionEl?.value || '',
                 workNotes: workNotesEl?.value || ''
@@ -6068,6 +5994,7 @@
             item.affectBalance = formData.affectBalance;
             item.soldDate = formData.soldDate;
             item.soldPrice = formData.soldPrice;
+            item.addToBalance = formData.addToBalance;
             item.status = formData.status;
             item.description = formData.description;
             item.workNotes = formData.workNotes;
@@ -6435,6 +6362,7 @@
                         
                         <div class="full-view-info-box" style="font-size: 0.9em;">
                             <div style="margin-bottom: 5px;"><strong style="color: var(--text-secondary);">Affects Balance:</strong> <span style="color: var(--text-primary);">${item.affectBalance !== false ? 'Yes' : 'No'}</span></div>
+                            <div><strong style="color: var(--text-secondary);">Add to Balance:</strong> <span style="color: var(--text-primary);">${item.addToBalance !== false ? 'Yes' : 'No'}</span></div>
                         </div>
                     </div>
                 </div>
@@ -6620,12 +6548,6 @@
 
             document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
             
-            // Update cash/digital indicators
-            const effectiveCash = Math.min(cashBalance, Math.max(totalBalance, 0));
-            const digitalBalance = totalBalance - effectiveCash;
-            document.getElementById('cashAmount').textContent = '£' + effectiveCash.toFixed(2);
-            document.getElementById('digitalAmount').textContent = '£' + digitalBalance.toFixed(2);
-
             // Update balance breakdown
             document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
             document.getElementById('balanceMoneyOut').textContent = '-£' + moneyOut.toFixed(2);
@@ -6806,64 +6728,53 @@
             const padding = 60;
             const chartWidth = canvas.width - padding * 2;
             const chartHeight = canvas.height - padding * 2;
+            const plotBottom = canvas.height - padding;
             
-            // Find max value for scaling
-            const maxRevenue = Math.max(...months.map(m => monthlyData[m].revenue));
-            const maxValue = Math.max(maxRevenue, 100); // Minimum scale of 100
+            const revenues = months.map(m => monthlyData[m].revenue);
+            const profits = months.map(m => monthlyData[m].profit);
+            let minVal = Math.min(0, ...profits);
+            let maxVal = Math.max(100, ...revenues, ...profits);
+            if (maxVal <= minVal) maxVal = minVal + 100;
+            const valRange = maxVal - minVal;
+            
+            const yCoord = (v) => plotBottom - ((v - minVal) / valRange) * chartHeight;
             
             // Draw axes
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, canvas.height - padding);
-            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.lineTo(padding, plotBottom);
+            ctx.lineTo(canvas.width - padding, plotBottom);
             ctx.stroke();
             
-            // Calculate bar width
-            const barWidth = chartWidth / months.length * 0.6;
+            // Zero baseline (when losses appear in range)
+            if (minVal < 0 && maxVal > 0) {
+                const yz = yCoord(0);
+                ctx.strokeStyle = '#bbb';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(padding, yz);
+                ctx.lineTo(canvas.width - padding, yz);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
             const spacing = chartWidth / months.length;
+            const groupW = spacing * 0.78;
+            const barGap = 4;
+            const barW = (groupW - barGap) / 2;
             
-            // Draw bars
-            months.forEach((month, index) => {
-                const data = monthlyData[month];
-                const barHeight = (data.revenue / maxValue) * chartHeight;
-                const x = padding + index * spacing + (spacing - barWidth) / 2;
-                const y = canvas.height - padding - barHeight;
-                
-                // Revenue bar (blue)
-                const gradient = ctx.createLinearGradient(x, y, x, canvas.height - padding);
-                gradient.addColorStop(0, '#667eea');
-                gradient.addColorStop(1, '#764ba2');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(x, y, barWidth, barHeight);
-                
-                // Month label
-                const [year, monthNum] = month.split('-');
-                const date = new Date(year, parseInt(monthNum) - 1);
-                const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                
-                ctx.fillStyle = '#333';
-                ctx.font = 'bold 12px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText(monthName, x + barWidth / 2, canvas.height - padding + 20);
-                
-                // Revenue value
-                ctx.fillStyle = '#667eea';
-                ctx.font = 'bold 14px Segoe UI';
-                ctx.fillText('£' + data.revenue.toFixed(0), x + barWidth / 2, y - 10);
-            });
-            
-            // Y-axis labels
+            // Y-axis labels + grid
             ctx.fillStyle = '#666';
             ctx.font = '12px Segoe UI';
             ctx.textAlign = 'right';
             for (let i = 0; i <= 5; i++) {
-                const value = (maxValue / 5) * i;
-                const y = canvas.height - padding - (chartHeight / 5) * i;
-                ctx.fillText('£' + value.toFixed(0), padding - 10, y + 5);
+                const value = minVal + (valRange / 5) * i;
+                const y = yCoord(value);
+                ctx.fillText('£' + value.toFixed(0), padding - 10, y + 4);
                 
-                // Grid line
                 ctx.strokeStyle = '#e0e0e0';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
@@ -6872,11 +6783,69 @@
                 ctx.stroke();
             }
             
-            // Chart title
+            months.forEach((month, index) => {
+                const data = monthlyData[month];
+                const xGroup = padding + index * spacing + (spacing - groupW) / 2;
+                const xRev = xGroup;
+                const xPr = xGroup + barW + barGap;
+                const y0 = yCoord(0);
+                
+                // Revenue bar (gradient)
+                const yRevTop = yCoord(data.revenue);
+                const revH = Math.max(1, y0 - yRevTop);
+                const gradient = ctx.createLinearGradient(xRev, yRevTop, xRev, y0);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(xRev, yRevTop, barW, revH);
+                
+                // Profit bar (green / red), from £0 baseline
+                const p = data.profit || 0;
+                const yProfTop = yCoord(p);
+                if (p >= 0) {
+                    const ph = Math.max(1, y0 - yProfTop);
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(xPr, yProfTop, barW, ph);
+                } else {
+                    const ph = Math.max(1, yProfTop - y0);
+                    ctx.fillStyle = '#ef4444';
+                    ctx.fillRect(xPr, y0, barW, ph);
+                }
+                
+                const [year, monthNum] = month.split('-');
+                const date = new Date(year, parseInt(monthNum) - 1);
+                const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 12px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText(monthName, xGroup + groupW / 2, plotBottom + 20);
+                
+                ctx.font = 'bold 11px Segoe UI';
+                ctx.fillStyle = '#667eea';
+                ctx.fillText('£' + data.revenue.toFixed(0), xRev + barW / 2, Math.min(yRevTop, y0) - 6);
+                ctx.fillStyle = p >= 0 ? '#16a34a' : '#dc2626';
+                ctx.fillText('£' + p.toFixed(0), xPr + barW / 2, p >= 0 ? yProfTop - 6 : yProfTop + 14);
+            });
+            
+            // Title + legend
             ctx.fillStyle = '#333';
             ctx.font = 'bold 16px Segoe UI';
             ctx.textAlign = 'center';
-            ctx.fillText('Monthly Revenue', canvas.width / 2, 30);
+            ctx.fillText('Monthly Revenue & Profit', canvas.width / 2, 28);
+            
+            ctx.font = '12px Segoe UI';
+            const legY = 48;
+            const cx = canvas.width / 2 - 90;
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(cx, legY - 8, 12, 12);
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'left';
+            ctx.fillText('Revenue', cx + 16, legY);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(cx + 88, legY - 8, 12, 12);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Profit', cx + 104, legY);
         }
 
         // Generate monthly breakdown
@@ -6951,75 +6920,15 @@
             }
         }
 
-        // ==================== CASH / DIGITAL SPLIT ====================
-        let _currentTotalBalanceForSplit = 0;
-
-        function openCashSplitEditor() {
-            // Calculate current total balance (same as updateStatistics)
-            let moneyOut = 0;
-            inventory.forEach(item => {
-                if (item.affectBalance !== false) {
-                    moneyOut += (item.purchasePrice || 0);
-                }
-            });
-            let additionalIncome = 0, additionalExpenses = 0;
-            transactions.forEach(t => {
-                if (t.type === 'income') additionalIncome += t.amount;
-                else additionalExpenses += t.amount;
-            });
-            _currentTotalBalanceForSplit = 0 - moneyOut + additionalIncome - additionalExpenses;
-
-            document.getElementById('cashSplitTotalBalance').textContent = '£' + _currentTotalBalanceForSplit.toFixed(2);
-            document.getElementById('cashSplitInput').value = cashBalance > 0 ? cashBalance.toFixed(2) : '';
-            updateCashSplitPreview();
-            document.getElementById('cashSplitModal').classList.add('active');
-            setTimeout(() => document.getElementById('cashSplitInput').focus(), 200);
-        }
-
-        function updateCashSplitPreview() {
-            const val = parseFloat(document.getElementById('cashSplitInput').value) || 0;
-            const capped = Math.min(Math.max(val, 0), Math.max(_currentTotalBalanceForSplit, 0));
-            const digital = _currentTotalBalanceForSplit - capped;
-            document.getElementById('cashSplitPreviewCash').textContent = '£' + capped.toFixed(2);
-            document.getElementById('cashSplitPreviewDigital').textContent = '£' + digital.toFixed(2);
-        }
-
-        function setCashSplitQuick(fraction) {
-            const total = Math.max(_currentTotalBalanceForSplit, 0);
-            document.getElementById('cashSplitInput').value = (total * fraction).toFixed(2);
-            updateCashSplitPreview();
-        }
-
-        function saveCashSplit() {
-            const val = parseFloat(document.getElementById('cashSplitInput').value) || 0;
-            cashBalance = Math.min(Math.max(val, 0), Math.max(_currentTotalBalanceForSplit, 0));
-            closeCashSplitModal();
-            updateStatistics();
-            saveInventory();
-            showToast('Cash/Digital split updated', 'success', 2000);
-        }
-
-        function closeCashSplitModal() {
-            document.getElementById('cashSplitModal').classList.remove('active');
-        }
-
         // Open balance modal
-        let transactionFilter = 'all'; // 'all', 'income', 'expense'
-
         function openBalanceModal() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+            
             renderTransactions();
-            updateModalCashDigital();
+            renderSoldItems();
             document.getElementById('balanceModal').classList.add('active');
-        }
-
-        // Update modal cash/digital summary
-        function updateModalCashDigital() {
-            const cashEl = document.getElementById('modalCashAmount');
-            const digitalEl = document.getElementById('modalDigitalAmount');
-            const cashSrc = document.getElementById('cashAmount');
-            const digitalSrc = document.getElementById('digitalAmount');
-            if (cashEl && cashSrc) cashEl.textContent = cashSrc.textContent;
-            if (digitalEl && digitalSrc) digitalEl.textContent = digitalSrc.textContent;
         }
 
         // Close balance modal
@@ -7032,127 +6941,90 @@
         function clearTransactionForm() {
             document.getElementById('transactionDesc').value = '';
             document.getElementById('transactionAmount').value = '';
-            const preview = document.getElementById('transactionPreview');
-            if (preview) preview.textContent = 'Choose an action below';
+            document.getElementById('transactionType').value = 'expense';
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
         }
 
-        // Set transaction filter tab
-        function setTransactionFilter(filter) {
-            transactionFilter = filter;
-            // Update tab styles
-            document.querySelectorAll('#transactionTabs .txn-tab').forEach(btn => {
-                btn.style.background = 'var(--bg-card, white)';
-                btn.style.color = 'var(--text-primary, #333)';
-            });
-            const tabs = document.querySelectorAll('#transactionTabs .txn-tab');
-            const idx = filter === 'all' ? 0 : filter === 'income' ? 1 : 2;
-            if (tabs[idx]) {
-                tabs[idx].style.background = 'var(--primary, #667eea)';
-                tabs[idx].style.color = 'white';
-            }
-            renderTransactions();
-        }
-
-        // Quick transaction — single button does type + method
-        function quickTransaction(type, method) {
-            const desc = document.getElementById('transactionDesc').value.trim();
+        // Add transaction
+        function addTransaction() {
+            const desc = document.getElementById('transactionDesc').value;
             const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const type = document.getElementById('transactionType').value;
+            const date = document.getElementById('transactionDate').value;
 
-            if (!desc) {
-                alert('Please enter a description (what is it for?)');
-                document.getElementById('transactionDesc').focus();
+            if (!desc || isNaN(amount) || amount <= 0 || !date) {
+                alert('Please fill in all fields with valid values');
                 return;
             }
-            if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount');
-                document.getElementById('transactionAmount').focus();
-                return;
-            }
-
-            // Auto-set date and time
-            const dateTime = new Date().toISOString();
 
             const transaction = {
                 id: Date.now(),
                 description: desc,
                 amount: amount,
                 type: type,
-                method: method,
-                date: dateTime
+                date: date
             };
 
-            // Adjust cashBalance based on method and type
-            cashBalance = parseFloat(cashBalance) || 0;
-            if (method === 'cash') {
-                if (type === 'income') {
-                    cashBalance = cashBalance + amount;
-                } else {
-                    cashBalance = Math.max(0, cashBalance - amount);
-                }
-            }
-            // Digital: cashBalance unchanged — digital portion auto-adjusts via totalBalance
-            localStorage.setItem('furniture_cashBalance_backup', cashBalance.toString());
-
             transactions.push(transaction);
-            saveTransactions();
+            saveTransactions(); // Keep as non-async for now
             
             // Add to history
-            const actionLabel = type === 'income' ? 'Added' : 'Subtracted';
-            const methodLabel = method === 'cash' ? '💵 Cash' : '💳 Digital';
             addHistoryEntry('balance_transaction', desc, '', [
-                { field: 'Action', oldValue: '', newValue: `${actionLabel} ${methodLabel}` },
-                { field: 'Amount', oldValue: '', newValue: `£${amount.toFixed(2)}` }
+                { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
+                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
+                { field: 'Date', oldValue: '', newValue: date }
             ]);
             
             renderTransactions();
             updateStatistics();
-            updateModalCashDigital();
             clearTransactionForm();
-
-            const icon = type === 'income' ? '➕' : '➖';
-            showToast(`${icon} £${amount.toFixed(2)} ${type === 'income' ? 'added to' : 'taken from'} ${methodLabel}`, 'success');
         }
 
-        // Legacy wrapper for any existing calls
-        function addTransaction() {
-            quickTransaction(
-                document.getElementById('transactionType')?.value || 'expense',
-                document.getElementById('transactionMethod')?.value || 'cash'
-            );
-        }
+        // Add sold item to balance as income transaction
+        function addSoldItemToBalance(itemName, amount, soldDate) {
+            const transaction = {
+                id: Date.now(),
+                description: `Sale: ${itemName}`,
+                amount: amount,
+                type: 'income',
+                date: soldDate
+            };
 
+            transactions.push(transaction);
+            saveTransactions(); // Keep as non-async for now
+            
+            // Add to history
+            addHistoryEntry('balance_transaction', `Sale: ${itemName}`, '', [
+                { field: 'Type', oldValue: '', newValue: 'Income' },
+                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
+                { field: 'Date', oldValue: '', newValue: soldDate },
+                { field: 'Item', oldValue: '', newValue: itemName }
+            ]);
+            
+            renderTransactions();
+            renderSoldItems(); // Refresh the sold items list
+            updateStatistics();
+        }
 
         // Delete transaction
         function deleteTransaction(id) {
             if (confirm('Delete this transaction?')) {
                 const transactionToDelete = transactions.find(t => t.id === id);
-                
-                // Reverse cashBalance adjustment if it was a cash transaction
-                cashBalance = parseFloat(cashBalance) || 0;
-                if (transactionToDelete && transactionToDelete.method === 'cash') {
-                    if (transactionToDelete.type === 'income') {
-                        cashBalance = Math.max(0, cashBalance - (transactionToDelete.amount || 0));
-                    } else {
-                        cashBalance = cashBalance + (transactionToDelete.amount || 0);
-                    }
-                }
-                localStorage.setItem('furniture_cashBalance_backup', cashBalance.toString());
-                
                 transactions = transactions.filter(t => t.id !== id);
-                saveTransactions();
+                saveTransactions(); // Keep as non-async for now
                 
                 // Add to history
                 if (transactionToDelete) {
                     addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
                         { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
-                        { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' }
+                        { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' },
+                        { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
                     ]);
                 }
                 
                 renderTransactions();
                 updateStatistics();
-                updateModalCashDigital();
-                showToast('Transaction deleted', 'info');
             }
         }
 
@@ -7161,55 +7033,27 @@
             const transactionList = document.getElementById('transactionList');
             
             if (transactions.length === 0) {
-                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted, #999);">No transactions yet</div>';
+                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No additional transactions yet</div>';
                 return;
             }
 
-            // Sort by date (newest first) then by id (newest first)
-            let sortedTransactions = [...transactions].sort((a, b) => {
-                const dateCompare = new Date(b.date) - new Date(a.date);
-                return dateCompare !== 0 ? dateCompare : b.id - a.id;
-            });
-
-            // Apply tab filter
-            if (transactionFilter === 'income') {
-                sortedTransactions = sortedTransactions.filter(t => t.type === 'income');
-            } else if (transactionFilter === 'expense') {
-                sortedTransactions = sortedTransactions.filter(t => t.type === 'expense');
-            }
-
-            if (sortedTransactions.length === 0) {
-                const label = transactionFilter === 'income' ? 'added' : 'subtracted';
-                transactionList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted, #999);">No ${label} transactions</div>`;
-                return;
-            }
+            // Sort by date (most recent first)
+            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
 
             transactionList.innerHTML = sortedTransactions.map(t => {
                 const isIncome = t.type === 'income';
-                const isCash = t.method === 'cash';
-                const methodBadge = isCash 
-                    ? '<span style="background: var(--success-bg, #e8f5e8); color: var(--success, #28a745); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600;">💵 Cash</span>'
-                    : '<span style="background: var(--info-bg, #e3f2fd); color: var(--info, #3b82f6); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600;">💳 Digital</span>';
-                
-                // Format date and time
-                const d = new Date(t.date);
-                const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                
                 return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px; background: var(--bg-card, white); border-radius: 8px; margin-bottom: 8px; border-left: 4px solid ${isIncome ? 'var(--success, #28a745)' : 'var(--danger, #dc3545)'}; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.08));">
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="font-weight: 600; color: var(--text-primary, #333); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                ${t.description} ${methodBadge}
-                            </div>
-                            <div style="font-size: 0.82em; color: var(--text-muted, #666); margin-top: 3px;">${dateStr} at ${timeStr}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
+                        <div>
+                            <div style="font-weight: 600; color: #333;">${t.description}</div>
+                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()}</div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                            <div style="font-size: 1.15em; font-weight: 700; color: ${isIncome ? 'var(--success, #28a745)' : 'var(--danger, #dc3545)'};">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
                                 ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
                             </div>
-                            <button onclick="deleteTransaction(${t.id})" style="padding: 5px 10px; background: var(--danger, #dc3545); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8em;">
-                                🗑️
+                            <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                                Delete
                             </button>
                         </div>
                     </div>
@@ -7217,6 +7061,44 @@
             }).join('');
         }
 
+        // Render sold items that can be added to balance
+        function renderSoldItems() {
+            const soldItemsList = document.getElementById('soldItemsList');
+            
+            // Get sold items that haven't been added to balance yet
+            const soldItems = inventory.filter(item => 
+                item.status === 'sold' && 
+                item.soldPrice > 0 && 
+                !transactions.some(t => 
+                    t.description.includes(item.name) && 
+                    t.type === 'income' && 
+                    t.amount === item.soldPrice
+                )
+            );
+            
+            if (soldItems.length === 0) {
+                soldItemsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No sold items to add to balance</div>';
+                return;
+            }
+
+            soldItemsList.innerHTML = soldItems.map(item => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ddd;">
+                    <div>
+                        <div style="font-weight: 600; color: #333;">${item.name}</div>
+                        <div style="font-size: 0.9em; color: #666;">Sold: ${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'Unknown'}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="font-size: 1.1em; font-weight: 700; color: #28a745;">
+                            £${(item.soldPrice || 0).toFixed(2)}
+                        </div>
+                        <button onclick="addSoldItemToBalance('${item.name}', ${item.soldPrice}, '${item.soldDate || new Date().toISOString().split('T')[0]}')" 
+                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+                            Add to Balance
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
         // Photo modal functions
         function openPhotoModal(itemIndex, photoIndex) {
