@@ -2992,37 +2992,29 @@
                         <input type="number" id="purchasePrice" step="0.01" placeholder="0.00">
                     </div>
                     <div class="form-group">
-                        <label>Affect Balance</label>
-                        <select id="affectBalance">
-                            <option value="yes">Yes - Deduct from balance</option>
-                            <option value="no">No - Don't affect balance</option>
-                        </select>
-                        <small style="color: #666; font-size: 0.85em;">Choose "No" for donated/found/free items</small>
-                    </div>
-                    <div class="form-group">
                         <label>Status</label>
-                        <select id="itemStatus">
+                        <select id="itemStatus" onchange="updateAddItemSoldFields()">
                             <option value="ready">Ready to Sell</option>
                             <option value="needs-work">Needs Work</option>
+                            <option value="sold">Sold</option>
                         </select>
+                    </div>
+                    <div id="addItemSoldFields" style="display: none; grid-column: 1 / -1;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Sold Date</label>
+                                <input type="date" id="addSoldDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Sold Price (£)</label>
+                                <input type="number" id="addSoldPrice" step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Item Photos</label>
                         <input type="file" id="itemPhoto" accept="image/*" multiple>
                         <small style="color: #666; font-size: 0.85em;">You can select multiple photos</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Work Required Photos</label>
-                        <input type="file" id="workPhotos" accept="image/*" multiple>
-                        <small style="color: #666; font-size: 0.85em;">Photos of damage/work needed</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Description</label>
-                        <textarea id="itemDescription" rows="1" placeholder="Optional details"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Work Notes (Optional)</label>
-                        <textarea id="itemWorkNotes" rows="1" placeholder="Optional text notes"></textarea>
                     </div>
                 </div>
                 <div style="margin-top: 20px;">
@@ -3502,14 +3494,6 @@
                     <input type="number" id="editSoldPrice" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label>Add to Balance</label>
-                    <select id="editAddToBalance">
-                        <option value="yes">Yes - Add to balance</option>
-                        <option value="no">No - Don't add to balance</option>
-                    </select>
-                    <small style="color: #666; font-size: 0.85em;">Choose "No" if you want to manually add the money later</small>
-                </div>
-                <div class="form-group">
                     <label>Status</label>
                     <select id="editItemStatus">
                         <option value="ready">Ready to Sell</option>
@@ -3607,14 +3591,6 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
-            </div>
-
-            <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">Sold Items - Add to Balance</h4>
-                <p style="color: #666; margin-bottom: 15px;">These sold items haven't been added to your balance yet. Click to add them as income transactions.</p>
-                <div id="soldItemsList" style="max-height: 200px; overflow-y: auto;">
-                    <!-- Sold items will be listed here -->
-                </div>
             </div>
 
             <div>
@@ -3864,7 +3840,7 @@
                     description: 'Test item for debugging',
                     work_notes: '',
                     affect_balance: true,
-                    add_to_balance: true,
+                    add_to_balance: false,
                     photos: [],
                     work_photos: []
                 };
@@ -5396,21 +5372,34 @@
             }
         }
 
+        function updateAddItemSoldFields() {
+            const sold = document.getElementById('itemStatus').value === 'sold';
+            const block = document.getElementById('addItemSoldFields');
+            if (block) block.style.display = sold ? 'block' : 'none';
+        }
+
         // Add new item
         function addItem() {
             const name = document.getElementById('itemName').value;
             const purchaseDate = document.getElementById('purchaseDate').value;
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
-            const affectBalance = document.getElementById('affectBalance').value;
             const status = document.getElementById('itemStatus').value;
-            const description = document.getElementById('itemDescription').value;
-            const workNotes = document.getElementById('itemWorkNotes').value;
             const photoInput = document.getElementById('itemPhoto');
-            const workPhotoInput = document.getElementById('workPhotos');
 
             if (!name || !purchaseDate || isNaN(purchasePrice)) {
                 alert('Please fill in all required fields (Name, Purchase Date, Purchase Price)');
                 return;
+            }
+
+            let soldDate = '';
+            let soldPrice = 0;
+            if (status === 'sold') {
+                soldDate = document.getElementById('addSoldDate').value;
+                soldPrice = parseFloat(document.getElementById('addSoldPrice').value);
+                if (!soldDate || isNaN(soldPrice) || soldPrice <= 0) {
+                    alert('For sold items, please enter Sold Date and a Sold Price greater than zero.');
+                    return;
+                }
             }
 
             const item = {
@@ -5419,64 +5408,52 @@
                 name,
                 purchaseDate,
                 purchasePrice,
-                affectBalance: affectBalance === 'yes',
+                affectBalance: false,
                 status,
-                description,
-                workNotes: workNotes || '',
-                soldDate: '',
-                soldPrice: 0,
+                description: '',
+                workNotes: '',
+                soldDate,
+                soldPrice,
+                addToBalance: false,
                 photos: [],
                 workPhotos: []
             };
 
             let photosLoaded = false;
-            let workPhotosLoaded = false;
 
-            // Function to check if all photos are loaded, compress, then upload to ImgBB
             const checkAllLoaded = async () => {
-                if (photosLoaded && workPhotosLoaded) {
-                    const uploadToast = showToast('Compressing & uploading photos...', 'progress');
-                    
-                    // Compress photos before uploading
-                    if (item.photos.length > 0) {
-                        console.log('📐 Compressing', item.photos.length, 'main photos...');
-                        item.photos = await compressMultipleImages(item.photos);
-                        console.log('📤 Uploading', item.photos.length, 'main photos to ImgBB...');
-                        item.photos = await uploadMultipleToImgBB(item.photos);
-                    }
-                    if (item.workPhotos.length > 0) {
-                        console.log('📐 Compressing', item.workPhotos.length, 'work photos...');
-                        item.workPhotos = await compressMultipleImages(item.workPhotos);
-                        console.log('📤 Uploading', item.workPhotos.length, 'work photos to ImgBB...');
-                        item.workPhotos = await uploadMultipleToImgBB(item.workPhotos);
-                    }
-                    
-                    removeToast(uploadToast);
-                    
-                    inventory.push(item);
-                    await saveInventory();
-                    
-                    // Add to history
-                    addHistoryEntry('add', item.name, item.itemNumber);
-                    
-                    renderInventory();
-                    clearForm();
-                    showToast('Item added successfully!', 'success', 2500);
-                    console.log('✅ Item added with cloud-hosted images!');
+                if (!photosLoaded) return;
+                let uploadToast = null;
+                if (item.photos.length > 0) {
+                    uploadToast = showToast('Compressing & uploading photos...', 'progress');
+                    console.log('📐 Compressing', item.photos.length, 'main photos...');
+                    item.photos = await compressMultipleImages(item.photos);
+                    console.log('📤 Uploading', item.photos.length, 'main photos to ImgBB...');
+                    item.photos = await uploadMultipleToImgBB(item.photos);
+                    if (uploadToast) removeToast(uploadToast);
                 }
+
+                inventory.push(item);
+                await saveInventory();
+
+                addHistoryEntry('add', item.name, item.itemNumber);
+
+                renderInventory();
+                clearForm();
+                showToast('Item added successfully!', 'success', 2500);
+                console.log('✅ Item added with cloud-hosted images!');
             };
 
-            // Handle main image uploads
             if (photoInput.files && photoInput.files.length > 0) {
                 let loadedCount = 0;
                 const totalFiles = photoInput.files.length;
-                
+
                 for (let i = 0; i < totalFiles; i++) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         item.photos.push(e.target.result);
                         loadedCount++;
-                        
+
                         if (loadedCount === totalFiles) {
                             photosLoaded = true;
                             checkAllLoaded();
@@ -5486,32 +5463,8 @@
                 }
             } else {
                 photosLoaded = true;
+                checkAllLoaded();
             }
-
-            // Handle work photo uploads
-            if (workPhotoInput.files && workPhotoInput.files.length > 0) {
-                let loadedCount = 0;
-                const totalFiles = workPhotoInput.files.length;
-                
-                for (let i = 0; i < totalFiles; i++) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        item.workPhotos.push(e.target.result);
-                        loadedCount++;
-                        
-                        if (loadedCount === totalFiles) {
-                            workPhotosLoaded = true;
-                            checkAllLoaded();
-                        }
-                    };
-                    reader.readAsDataURL(workPhotoInput.files[i]);
-                }
-            } else {
-                workPhotosLoaded = true;
-            }
-
-            // Check if we can proceed immediately
-            checkAllLoaded();
         }
 
         // Clear form
@@ -5519,13 +5472,12 @@
             document.getElementById('itemName').value = '';
             document.getElementById('purchaseDate').value = '';
             document.getElementById('purchasePrice').value = '';
-            document.getElementById('affectBalance').value = 'yes';
             document.getElementById('itemStatus').value = 'ready';
-            document.getElementById('itemDescription').value = '';
-            document.getElementById('itemWorkNotes').value = '';
+            document.getElementById('addSoldDate').value = '';
+            document.getElementById('addSoldPrice').value = '';
             document.getElementById('itemPhoto').value = '';
-            document.getElementById('workPhotos').value = '';
-            
+            updateAddItemSoldFields();
+
             // Switch to inventory tab to show the new item
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -5856,7 +5808,6 @@
             document.getElementById('editAffectBalance').value = (item.affectBalance === true || item.affectBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editSoldDate').value = item.soldDate || '';
             document.getElementById('editSoldPrice').value = item.soldPrice || '';
-            document.getElementById('editAddToBalance').value = (item.addToBalance === true || item.addToBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editItemStatus').value = item.status;
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
@@ -5954,7 +5905,6 @@
             const affectBalanceEl = document.getElementById('editAffectBalance');
             const soldDateEl = document.getElementById('editSoldDate');
             const soldPriceEl = document.getElementById('editSoldPrice');
-            const addToBalanceEl = document.getElementById('editAddToBalance');
             const statusEl = document.getElementById('editItemStatus');
             const descriptionEl = document.getElementById('editItemDescription');
             const workNotesEl = document.getElementById('editItemWorkNotes');
@@ -5966,7 +5916,6 @@
                 affectBalance: !!affectBalanceEl,
                 soldDate: !!soldDateEl,
                 soldPrice: !!soldPriceEl,
-                addToBalance: !!addToBalanceEl,
                 status: !!statusEl,
                 description: !!descriptionEl,
                 workNotes: !!workNotesEl
@@ -5979,7 +5928,6 @@
                 affectBalance: affectBalanceEl?.value === 'yes',
                 soldDate: soldDateEl?.value || '',
                 soldPrice: parseFloat(soldPriceEl?.value || '0') || 0,
-                addToBalance: addToBalanceEl?.value === 'yes',
                 status: statusEl?.value || 'ready',
                 description: descriptionEl?.value || '',
                 workNotes: workNotesEl?.value || ''
@@ -5994,7 +5942,7 @@
             item.affectBalance = formData.affectBalance;
             item.soldDate = formData.soldDate;
             item.soldPrice = formData.soldPrice;
-            item.addToBalance = formData.addToBalance;
+            item.addToBalance = false;
             item.status = formData.status;
             item.description = formData.description;
             item.workNotes = formData.workNotes;
@@ -6362,7 +6310,6 @@
                         
                         <div class="full-view-info-box" style="font-size: 0.9em;">
                             <div style="margin-bottom: 5px;"><strong style="color: var(--text-secondary);">Affects Balance:</strong> <span style="color: var(--text-primary);">${item.affectBalance !== false ? 'Yes' : 'No'}</span></div>
-                            <div><strong style="color: var(--text-secondary);">Add to Balance:</strong> <span style="color: var(--text-primary);">${item.addToBalance !== false ? 'Yes' : 'No'}</span></div>
                         </div>
                     </div>
                 </div>
@@ -6927,7 +6874,6 @@
             document.getElementById('transactionDate').value = today;
             
             renderTransactions();
-            renderSoldItems();
             document.getElementById('balanceModal').classList.add('active');
         }
 
@@ -6979,32 +6925,6 @@
             renderTransactions();
             updateStatistics();
             clearTransactionForm();
-        }
-
-        // Add sold item to balance as income transaction
-        function addSoldItemToBalance(itemName, amount, soldDate) {
-            const transaction = {
-                id: Date.now(),
-                description: `Sale: ${itemName}`,
-                amount: amount,
-                type: 'income',
-                date: soldDate
-            };
-
-            transactions.push(transaction);
-            saveTransactions(); // Keep as non-async for now
-            
-            // Add to history
-            addHistoryEntry('balance_transaction', `Sale: ${itemName}`, '', [
-                { field: 'Type', oldValue: '', newValue: 'Income' },
-                { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
-                { field: 'Date', oldValue: '', newValue: soldDate },
-                { field: 'Item', oldValue: '', newValue: itemName }
-            ]);
-            
-            renderTransactions();
-            renderSoldItems(); // Refresh the sold items list
-            updateStatistics();
         }
 
         // Delete transaction
@@ -7059,45 +6979,6 @@
                     </div>
                 `;
             }).join('');
-        }
-
-        // Render sold items that can be added to balance
-        function renderSoldItems() {
-            const soldItemsList = document.getElementById('soldItemsList');
-            
-            // Get sold items that haven't been added to balance yet
-            const soldItems = inventory.filter(item => 
-                item.status === 'sold' && 
-                item.soldPrice > 0 && 
-                !transactions.some(t => 
-                    t.description.includes(item.name) && 
-                    t.type === 'income' && 
-                    t.amount === item.soldPrice
-                )
-            );
-            
-            if (soldItems.length === 0) {
-                soldItemsList.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">No sold items to add to balance</div>';
-                return;
-            }
-
-            soldItemsList.innerHTML = soldItems.map(item => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border-radius: 6px; margin-bottom: 8px; border: 1px solid #ddd;">
-                    <div>
-                        <div style="font-weight: 600; color: #333;">${item.name}</div>
-                        <div style="font-size: 0.9em; color: #666;">Sold: ${item.soldDate ? new Date(item.soldDate).toLocaleDateString() : 'Unknown'}</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 1.1em; font-weight: 700; color: #28a745;">
-                            £${(item.soldPrice || 0).toFixed(2)}
-                        </div>
-                        <button onclick="addSoldItemToBalance('${item.name}', ${item.soldPrice}, '${item.soldDate || new Date().toISOString().split('T')[0]}')" 
-                                style="padding: 6px 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-                            Add to Balance
-                        </button>
-                    </div>
-                </div>
-            `).join('');
         }
 
         // Photo modal functions
