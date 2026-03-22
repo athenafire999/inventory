@@ -1619,6 +1619,15 @@
             font-weight: 700;
             margin-bottom: 8px;
             letter-spacing: -0.02em;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Prevent grid items from overflowing into neighbouring columns (e.g. long £ amounts vs "Revenue") */
+        .stats-grid > * {
+            min-width: 0;
         }
 
         .stat-card.blue .stat-value { color: var(--info); }
@@ -1630,6 +1639,57 @@
             font-size: 0.9rem;
             color: var(--text-secondary);
             font-weight: 500;
+            line-height: 1.35;
+            margin-top: 2px;
+        }
+
+        .month-sales-header {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        /* Sold tab: month summary chips — prevent long £ amounts overlapping “Revenue” */
+        #soldMonthSummary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto 10px;
+            padding: 0 8px;
+            box-sizing: border-box;
+        }
+
+        #soldMonthSummary .sold-month-stat {
+            min-width: 0;
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 14px;
+            text-align: center;
+            border: 1px solid #c8e6c9;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        #soldMonthSummary .sold-month-stat .sold-stat-label {
+            font-size: 0.78em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        #soldMonthSummary .sold-month-stat .sold-stat-value {
+            font-size: 1.25em;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.25;
+        }
+
+        @media (max-width: 420px) {
+            #soldMonthSummary {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
@@ -2839,7 +2899,7 @@
             </div>
             <div class="balance-breakdown">
                 <h3>📅 This Month's Sales</h3>
-                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-top: 16px; margin-bottom: 0;">
+                <div class="stats-grid month-sales-header" style="margin-top: 16px; margin-bottom: 0;">
                     <div class="stat-card blue" style="padding: 20px;">
                         <div class="stat-value" id="totalBalance">£0.00</div>
                         <div class="stat-label">Current Balance</div>
@@ -2855,9 +2915,9 @@
                         <div class="stat-value" id="monthRevenue">£0.00</div>
                         <div class="stat-label">Revenue</div>
                     </div>
-                    <div style="background: white; padding: 20px; border-radius: 8px;">
-                        <div style="font-size: 2em; font-weight: 700; color: #ffc107;" id="monthProfit">£0.00</div>
-                        <div style="color: #666;">Profit</div>
+                    <div class="stat-card" style="padding: 20px; background: white; border: 1px solid var(--border-subtle);">
+                        <div class="stat-value" style="color: #ffc107;" id="monthProfit">£0.00</div>
+                        <div class="stat-label">Profit</div>
                     </div>
                 </div>
             </div>
@@ -3043,7 +3103,7 @@
                 <div id="soldMonthLabel" style="font-size: 1.15em; font-weight: 700; color: #2e7d32; min-width: 180px; text-align: center;"></div>
                 <button onclick="changeSoldMonth(1)" id="soldMonthNextBtn" style="background: #fff; border: 1px solid #a5d6a7; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; color: #388e3c; transition: all 0.2s;" onmouseover="this.style.background='#388e3c';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#388e3c'">▶</button>
             </div>
-            <div id="soldMonthSummary" style="display: flex; gap: 12px; justify-content: center; margin-bottom: 10px;"></div>
+            <div id="soldMonthSummary"></div>
             <div class="search-container">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
@@ -4604,17 +4664,17 @@
                 const totalCost = monthItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
                 const totalProfit = totalRevenue - totalCost;
                 summary.innerHTML = `
-                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid #c8e6c9; min-width: 100px;">
-                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Items Sold</div>
-                        <div style="font-size: 1.3em; font-weight: 700; color: #333;">${monthItems.length}</div>
+                    <div class="sold-month-stat">
+                        <div class="sold-stat-label">Items Sold</div>
+                        <div class="sold-stat-value">${monthItems.length}</div>
                     </div>
-                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid #c8e6c9; min-width: 100px;">
-                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Revenue</div>
-                        <div style="font-size: 1.3em; font-weight: 700; color: #333;">£${totalRevenue.toFixed(2)}</div>
+                    <div class="sold-month-stat">
+                        <div class="sold-stat-label">Revenue</div>
+                        <div class="sold-stat-value">£${totalRevenue.toFixed(2)}</div>
                     </div>
-                    <div style="background: #fff; border-radius: 8px; padding: 10px 18px; text-align: center; border: 1px solid ${totalProfit >= 0 ? '#c8e6c9' : '#ffcdd2'}; min-width: 100px;">
-                        <div style="font-size: 0.78em; color: #888; text-transform: uppercase; letter-spacing: 0.5px;">Profit</div>
-                        <div style="font-size: 1.3em; font-weight: 700; color: ${totalProfit >= 0 ? '#28a745' : '#dc3545'};">£${totalProfit.toFixed(2)}</div>
+                    <div class="sold-month-stat" style="border-color: ${totalProfit >= 0 ? '#c8e6c9' : '#ffcdd2'};">
+                        <div class="sold-stat-label">Profit</div>
+                        <div class="sold-stat-value" style="color: ${totalProfit >= 0 ? '#28a745' : '#dc3545'};">£${totalProfit.toFixed(2)}</div>
                     </div>
                 `;
             }
@@ -6671,11 +6731,14 @@
                 return;
             }
             
-            // Chart dimensions
-            const padding = 60;
-            const chartWidth = canvas.width - padding * 2;
-            const chartHeight = canvas.height - padding * 2;
-            const plotBottom = canvas.height - padding;
+            // Chart dimensions — extra top margin so bar £ labels never overlap title/legend
+            const padL = 56;
+            const padR = 56;
+            const padT = 82;
+            const padB = 52;
+            const chartWidth = canvas.width - padL - padR;
+            const chartHeight = canvas.height - padT - padB;
+            const plotBottom = canvas.height - padB;
             
             const revenues = months.map(m => monthlyData[m].revenue);
             const profits = months.map(m => monthlyData[m].profit);
@@ -6686,13 +6749,31 @@
             
             const yCoord = (v) => plotBottom - ((v - minVal) / valRange) * chartHeight;
             
+            // Title + legend (reserved band above plot — keeps "Revenue" clear of bar values)
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText('Monthly Revenue & Profit', canvas.width / 2, 26);
+            ctx.font = '12px Segoe UI';
+            const legY = 50;
+            const cx = canvas.width / 2 - 90;
+            ctx.fillStyle = '#667eea';
+            ctx.fillRect(cx, legY - 8, 12, 12);
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'left';
+            ctx.fillText('Revenue', cx + 16, legY);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(cx + 88, legY - 8, 12, 12);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Profit', cx + 104, legY);
+            
             // Draw axes
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, plotBottom);
-            ctx.lineTo(canvas.width - padding, plotBottom);
+            ctx.moveTo(padL, padT);
+            ctx.lineTo(padL, plotBottom);
+            ctx.lineTo(canvas.width - padR, plotBottom);
             ctx.stroke();
             
             // Zero baseline (when losses appear in range)
@@ -6702,8 +6783,8 @@
                 ctx.lineWidth = 1;
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
-                ctx.moveTo(padding, yz);
-                ctx.lineTo(canvas.width - padding, yz);
+                ctx.moveTo(padL, yz);
+                ctx.lineTo(canvas.width - padR, yz);
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
@@ -6720,19 +6801,19 @@
             for (let i = 0; i <= 5; i++) {
                 const value = minVal + (valRange / 5) * i;
                 const y = yCoord(value);
-                ctx.fillText('£' + value.toFixed(0), padding - 10, y + 4);
+                ctx.fillText('£' + value.toFixed(0), padL - 10, y + 4);
                 
                 ctx.strokeStyle = '#e0e0e0';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(canvas.width - padding, y);
+                ctx.moveTo(padL, y);
+                ctx.lineTo(canvas.width - padR, y);
                 ctx.stroke();
             }
             
             months.forEach((month, index) => {
                 const data = monthlyData[month];
-                const xGroup = padding + index * spacing + (spacing - groupW) / 2;
+                const xGroup = padL + index * spacing + (spacing - groupW) / 2;
                 const xRev = xGroup;
                 const xPr = xGroup + barW + barGap;
                 const y0 = yCoord(0);
@@ -6774,25 +6855,6 @@
                 ctx.fillStyle = p >= 0 ? '#16a34a' : '#dc2626';
                 ctx.fillText('£' + p.toFixed(0), xPr + barW / 2, p >= 0 ? yProfTop - 6 : yProfTop + 14);
             });
-            
-            // Title + legend
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 16px Segoe UI';
-            ctx.textAlign = 'center';
-            ctx.fillText('Monthly Revenue & Profit', canvas.width / 2, 28);
-            
-            ctx.font = '12px Segoe UI';
-            const legY = 48;
-            const cx = canvas.width / 2 - 90;
-            ctx.fillStyle = '#667eea';
-            ctx.fillRect(cx, legY - 8, 12, 12);
-            ctx.fillStyle = '#333';
-            ctx.textAlign = 'left';
-            ctx.fillText('Revenue', cx + 16, legY);
-            ctx.fillStyle = '#22c55e';
-            ctx.fillRect(cx + 88, legY - 8, 12, 12);
-            ctx.fillStyle = '#333';
-            ctx.fillText('Profit', cx + 104, legY);
         }
 
         // Generate monthly breakdown
