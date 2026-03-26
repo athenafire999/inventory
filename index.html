@@ -3251,18 +3251,23 @@
                     </div>
                 </details>
                 
-                <!-- Withdrawal Pie Chart -->
-                <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
-                    <h3 style="margin: 0 0 20px 0;">📊 Withdrawal Breakdown</h3>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 30px; flex-wrap: wrap;">
-                        <canvas id="withdrawalPieChart" width="220" height="220" style="max-width: 220px;"></canvas>
-                        <div id="withdrawalPieLegend" style="display: grid; gap: 10px; min-width: 160px;"></div>
+                <!-- Withdrawal Pie Chart (collapsible) -->
+                <details style="margin-bottom: 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); overflow: hidden; box-shadow: var(--shadow-sm);">
+                    <summary style="list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; cursor: pointer; user-select: none;">
+                        <h3 style="margin: 0; font-size: 1.1em;">📊 Withdrawal Breakdown</h3>
+                        <span class="dropdown-arrow" style="font-size: 1.2em; transition: transform 0.3s; color: var(--text-secondary);">▶</span>
+                    </summary>
+                    <div style="padding: 0 20px 20px;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 30px; flex-wrap: wrap;">
+                            <canvas id="withdrawalPieChart" width="220" height="220" style="max-width: 220px;"></canvas>
+                            <div id="withdrawalPieLegend" style="display: grid; gap: 10px; min-width: 160px;"></div>
+                        </div>
+                        <div style="margin-top: 18px; padding-top: 14px; border-top: 2px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; font-size: 1.15em; font-weight: 700; color: var(--text-primary);">
+                            <span>Total Withdrawn</span>
+                            <span id="withdrawalPieTotalValue">£0.00</span>
+                        </div>
                     </div>
-                    <div style="margin-top: 18px; padding-top: 14px; border-top: 2px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; font-size: 1.15em; font-weight: 700; color: var(--text-primary);">
-                        <span>Total Withdrawn</span>
-                        <span id="withdrawalPieTotalValue">£0.00</span>
-                    </div>
-                </div>
+                </details>
 
                 <!-- Add Withdrawal Form -->
                 <div id="addWithdrawalForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
