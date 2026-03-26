@@ -1772,8 +1772,12 @@
             </div>
             <div class="stats-grid">
                 <div class="stat-card blue">
-                    <div class="stat-value" id="totalBalance">£0.00</div>
+                    <div class="stat-value" id="totalBalance" onclick="openBalanceModal()" style="cursor: pointer;" title="Tap to edit balance">£0.00</div>
                     <div class="stat-label">Current Balance</div>
+                    <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary); display: grid; gap: 4px;">
+                        <div>💵 Cash: <strong style="color: var(--text-primary);" id="cashBalanceDisplay">£100.00</strong></div>
+                        <div>💳 Digital: <strong style="color: var(--text-primary);" id="digitalBalanceDisplay">£0.00</strong></div>
+                    </div>
                     <button onclick="openBalanceModal()" style="margin-top: 15px; padding: 8px 16px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                         Edit Balance
                     </button>
@@ -2314,7 +2318,7 @@
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h4 style="margin-bottom: 15px;">Add Transaction</h4>
-                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label>Description</label>
                         <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
@@ -2328,6 +2332,13 @@
                         <select id="transactionType">
                             <option value="expense">Expense (-)</option>
                             <option value="income">Income (+)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Money Type</label>
+                        <select id="transactionAccount">
+                            <option value="digital">💳 Digital</option>
+                            <option value="cash">💵 Cash</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2347,7 +2358,12 @@
             </div>
 
             <div>
-                <h4 style="margin-bottom: 15px;">Transaction History</h4>
+                <h4 style="margin-bottom: 10px;">Transaction History</h4>
+                <div style="display: flex; gap: 0; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd;">
+                    <button onclick="setTransactionFilter('all')" id="txFilterAll" style="flex: 1; padding: 8px 0; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #667eea; color: white;">All</button>
+                    <button onclick="setTransactionFilter('income')" id="txFilterIncome" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Added (+)</button>
+                    <button onclick="setTransactionFilter('expense')" id="txFilterExpense" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Subtracted (-)</button>
+                </div>
                 <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
                     <!-- Transactions will be listed here -->
                 </div>
@@ -3180,6 +3196,7 @@
         let editingIndex = -1;
         let currentFullViewItemNumber = null;
         let transactions = [];
+        const BASE_CASH_BALANCE = 100;
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
         let editHistory = [];
@@ -4673,7 +4690,18 @@
             
             const totalBalance = moneyIn - moneyOut + additionalIncome - additionalExpenses;
 
+            let cashAdj = 0;
+            transactions.forEach(t => {
+                if (t.account !== 'cash') return;
+                if (t.type === 'income') cashAdj += (t.amount || 0);
+                else cashAdj -= (t.amount || 0);
+            });
+            const cashBalance = BASE_CASH_BALANCE + cashAdj;
+            const digitalBalance = totalBalance - cashBalance;
+
             document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
+            document.getElementById('cashBalanceDisplay').textContent = '£' + cashBalance.toFixed(2);
+            document.getElementById('digitalBalanceDisplay').textContent = '£' + digitalBalance.toFixed(2);
             document.getElementById('moneyIn').textContent = '£' + moneyIn.toFixed(2);
             document.getElementById('moneyOut').textContent = '£' + moneyOut.toFixed(2);
             document.getElementById('totalProfit').textContent = '£' + totalProfit.toFixed(2);
@@ -5016,6 +5044,7 @@
             document.getElementById('transactionDesc').value = '';
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionType').value = 'expense';
+            document.getElementById('transactionAccount').value = 'digital';
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('transactionDate').value = today;
         }
@@ -5025,9 +5054,10 @@
             const desc = document.getElementById('transactionDesc').value;
             const amount = parseFloat(document.getElementById('transactionAmount').value);
             const type = document.getElementById('transactionType').value;
+            const account = document.getElementById('transactionAccount').value;
             const date = document.getElementById('transactionDate').value;
 
-            if (!desc || isNaN(amount) || amount <= 0 || !date) {
+            if (!desc || isNaN(amount) || amount <= 0 || !date || !account) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
@@ -5037,6 +5067,7 @@
                 description: desc,
                 amount: amount,
                 type: type,
+                account: account,
                 date: date
             };
 
@@ -5046,6 +5077,7 @@
             // Add to history
             addHistoryEntry('balance_transaction', desc, '', [
                 { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
+                { field: 'Money Type', oldValue: '', newValue: account === 'cash' ? 'Cash' : 'Digital' },
                 { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
                 { field: 'Date', oldValue: '', newValue: date }
             ]);
@@ -5092,6 +5124,7 @@
                 if (transactionToDelete) {
                     addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
                         { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
+                        { field: 'Money Type', oldValue: transactionToDelete.account === 'cash' ? 'Cash' : 'Digital', newValue: 'Deleted' },
                         { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' },
                         { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
                     ]);
@@ -5100,6 +5133,23 @@
                 renderTransactions();
                 updateStatistics();
             }
+        }
+
+        let currentTxFilter = 'all';
+
+        function setTransactionFilter(filter) {
+            currentTxFilter = filter;
+            ['all', 'income', 'expense'].forEach(f => {
+                const btn = document.getElementById('txFilter' + f.charAt(0).toUpperCase() + f.slice(1));
+                if (f === filter) {
+                    btn.style.background = '#667eea';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = '#f8f9fa';
+                    btn.style.color = '#333';
+                }
+            });
+            renderTransactions();
         }
 
         // Render transactions
@@ -5112,15 +5162,25 @@
             }
 
             // Sort by date (most recent first)
-            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            let sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (currentTxFilter !== 'all') {
+                sortedTransactions = sortedTransactions.filter(t => t.type === currentTxFilter);
+            }
+
+            if (sortedTransactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; padding: 30px; color: #999;">No ' + (currentTxFilter === 'income' ? 'added' : 'subtracted') + ' transactions</div>';
+                return;
+            }
 
             transactionList.innerHTML = sortedTransactions.map(t => {
                 const isIncome = t.type === 'income';
+                const acctLabel = t.account === 'cash' ? '💵 Cash' : '💳 Digital';
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
                         <div>
                             <div style="font-weight: 600; color: #333;">${t.description}</div>
-                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()}</div>
+                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">

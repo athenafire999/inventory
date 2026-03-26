@@ -2560,9 +2560,10 @@
                 font-size: 1.5rem !important;
             }
 
-            /* Chart container responsive */
+            /* Chart container responsive — keep it tall enough to read */
             #salesChart {
-                max-height: 250px !important;
+                max-height: none !important;
+                min-height: 350px;
             }
 
             /* Better breakdown rows on mobile */
@@ -2901,8 +2902,12 @@
                 <h3>📅 This Month's Sales</h3>
                 <div class="stats-grid month-sales-header" style="margin-top: 16px; margin-bottom: 0;">
                     <div class="stat-card blue" style="padding: 20px;">
-                        <div class="stat-value" id="totalBalance">£0.00</div>
+                        <div class="stat-value" id="totalBalance" onclick="openBalanceModal()" style="cursor: pointer;" title="Tap to edit balance">£0.00</div>
                         <div class="stat-label">Current Balance</div>
+                        <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary); display: grid; gap: 4px;">
+                            <div>💵 Cash: <strong style="color: var(--text-primary);" id="cashBalanceDisplay">£100.00</strong></div>
+                            <div>💳 Digital: <strong style="color: var(--text-primary);" id="digitalBalanceDisplay">£0.00</strong></div>
+                        </div>
                         <button onclick="openBalanceModal()" style="margin-top: 10px; padding: 6px 14px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem;">
                             Edit Balance
                         </button>
@@ -2951,9 +2956,9 @@
                 </div>
             </details>
 
-            <div style="background: white; padding: 25px; border-radius: 12px; margin-top: 30px; border: 2px solid #e0e0e0;">
+            <div style="background: white; padding: 25px; border-radius: 12px; margin-top: 30px; border: 2px solid #e0e0e0; overflow-x: auto;">
                 <h3 style="margin-bottom: 20px;">Monthly Sales Chart</h3>
-                <canvas id="salesChart" style="max-height: 400px;"></canvas>
+                <canvas id="salesChart" style="width: 100%; min-height: 380px;"></canvas>
             </div>
 
             <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-top: 30px;">
@@ -3246,6 +3251,19 @@
                     </div>
                 </details>
                 
+                <!-- Withdrawal Pie Chart -->
+                <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+                    <h3 style="margin: 0 0 20px 0;">📊 Withdrawal Breakdown</h3>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 30px; flex-wrap: wrap;">
+                        <canvas id="withdrawalPieChart" width="220" height="220" style="max-width: 220px;"></canvas>
+                        <div id="withdrawalPieLegend" style="display: grid; gap: 10px; min-width: 160px;"></div>
+                    </div>
+                    <div style="margin-top: 18px; padding-top: 14px; border-top: 2px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; font-size: 1.15em; font-weight: 700; color: var(--text-primary);">
+                        <span>Total Withdrawn</span>
+                        <span id="withdrawalPieTotalValue">£0.00</span>
+                    </div>
+                </div>
+
                 <!-- Add Withdrawal Form -->
                 <div id="addWithdrawalForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
                     <h3 style="margin: 0 0 20px 0;">Add Withdrawal</h3>
@@ -3629,7 +3647,7 @@
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h4 style="margin-bottom: 15px;">Add Transaction</h4>
-                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label>Description</label>
                         <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
@@ -3646,6 +3664,13 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Money Type</label>
+                        <select id="transactionAccount">
+                            <option value="digital">💳 Digital</option>
+                            <option value="cash">💵 Cash</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Date</label>
                         <input type="date" id="transactionDate">
                     </div>
@@ -3654,7 +3679,12 @@
             </div>
 
             <div>
-                <h4 style="margin-bottom: 15px;">Transaction History</h4>
+                <h4 style="margin-bottom: 10px;">Transaction History</h4>
+                <div style="display: flex; gap: 0; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd;">
+                    <button onclick="setTransactionFilter('all')" id="txFilterAll" style="flex: 1; padding: 8px 0; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #667eea; color: white;">All</button>
+                    <button onclick="setTransactionFilter('income')" id="txFilterIncome" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Added (+)</button>
+                    <button onclick="setTransactionFilter('expense')" id="txFilterExpense" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Subtracted (-)</button>
+                </div>
                 <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
                     <!-- Transactions will be listed here -->
                 </div>
@@ -4612,6 +4642,7 @@
         let editingIndex = -1;
         let currentFullViewItemNumber = null;
         let transactions = [];
+        const BASE_CASH_BALANCE = 100;
         let currentPhotoIndex = 0;
         let currentItemPhotos = [];
         
@@ -5341,7 +5372,76 @@
             const carBar = document.getElementById('carProgressBar');
             carBar.style.width = carPercentage + '%';
             carBar.style.background = getProgressColor(carPercentage);
-            
+
+            // Render pie chart breakdown
+            const pieData = [
+                { label: 'Dee', amount: deeTotal, color: '#8b5cf6' },
+                { label: 'Tin', amount: tinTotal, color: '#10b981' },
+                { label: 'Rent', amount: rentTotal, color: '#f59e0b' },
+                { label: 'Mike', amount: mikeTotal, color: '#3b82f6' },
+            ];
+            const grandTotal = deeTotal + tinTotal + rentTotal + mikeTotal + kitchenTotal + carTotal;
+
+            const pieCanvas = document.getElementById('withdrawalPieChart');
+            if (pieCanvas) {
+                const ctx = pieCanvas.getContext('2d');
+                const size = pieCanvas.width;
+                const cx = size / 2, cy = size / 2, radius = size / 2 - 10;
+                ctx.clearRect(0, 0, size, size);
+
+                if (grandTotal === 0) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = '#e5e7eb';
+                    ctx.fill();
+                    ctx.fillStyle = '#999';
+                    ctx.font = '14px Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('No data', cx, cy);
+                } else {
+                    let startAngle = -Math.PI / 2;
+                    pieData.forEach(d => {
+                        const sliceAngle = (d.amount / grandTotal) * Math.PI * 2;
+                        ctx.beginPath();
+                        ctx.moveTo(cx, cy);
+                        ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                        ctx.closePath();
+                        ctx.fillStyle = d.color;
+                        ctx.fill();
+                        if (d.amount > 0 && sliceAngle > 0.25) {
+                            const midAngle = startAngle + sliceAngle / 2;
+                            const lx = cx + Math.cos(midAngle) * radius * 0.6;
+                            const ly = cy + Math.sin(midAngle) * radius * 0.6;
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 13px Segoe UI, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(((d.amount / grandTotal) * 100).toFixed(0) + '%', lx, ly);
+                        }
+                        startAngle += sliceAngle;
+                    });
+                }
+            }
+
+            const legendEl = document.getElementById('withdrawalPieLegend');
+            if (legendEl) {
+                legendEl.innerHTML = pieData.map(d => {
+                    const pct = grandTotal > 0 ? ((d.amount / grandTotal) * 100).toFixed(1) : '0.0';
+                    return `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 14px; height: 14px; border-radius: 4px; background: ${d.color}; flex-shrink: 0;"></div>
+                            <span style="font-weight: 600; font-size: 0.9em; color: var(--text-primary); min-width: 45px;">${d.label}</span>
+                            <span style="font-weight: 700; font-size: 0.9em; color: var(--text-primary);">£${d.amount.toFixed(2)}</span>
+                            <span style="font-size: 0.8em; color: var(--text-muted);">(${pct}%)</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const pieTotalEl = document.getElementById('withdrawalPieTotalValue');
+            if (pieTotalEl) pieTotalEl.textContent = '£' + grandTotal.toFixed(2);
+
             // Render withdrawal list (filtered by selected month + category)
             const listContainer = document.getElementById('withdrawalsList');
             let monthWithdrawals;
@@ -6553,7 +6653,18 @@
             
             const totalBalance = moneyIn - moneyOut + additionalIncome - additionalExpenses;
 
+            let cashAdj = 0;
+            transactions.forEach(t => {
+                if (t.account !== 'cash') return;
+                if (t.type === 'income') cashAdj += (t.amount || 0);
+                else cashAdj -= (t.amount || 0);
+            });
+            const cashBalance = BASE_CASH_BALANCE + cashAdj;
+            const digitalBalance = totalBalance - cashBalance;
+
             document.getElementById('totalBalance').textContent = '£' + totalBalance.toFixed(2);
+            document.getElementById('cashBalanceDisplay').textContent = '£' + cashBalance.toFixed(2);
+            document.getElementById('digitalBalanceDisplay').textContent = '£' + digitalBalance.toFixed(2);
             
             // Update balance breakdown
             document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
@@ -6715,68 +6826,75 @@
         function drawSalesChart() {
             const canvas = document.getElementById('salesChart');
             const ctx = canvas.getContext('2d');
-            
-            // Set canvas size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 400;
-            
+            const dpr = window.devicePixelRatio || 1;
+            const isMobile = window.innerWidth < 600;
+
+            const cssW = canvas.offsetWidth;
+            const cssH = isMobile ? 380 : 420;
+            canvas.width = cssW * dpr;
+            canvas.height = cssH * dpr;
+            canvas.style.height = cssH + 'px';
+            ctx.scale(dpr, dpr);
+
             const monthlyData = getMonthlyData();
             const months = Object.keys(monthlyData).sort();
-            
+
             if (months.length === 0) {
                 ctx.fillStyle = '#999';
-                ctx.font = '16px Segoe UI';
+                ctx.font = (isMobile ? '15' : '16') + 'px Segoe UI';
                 ctx.textAlign = 'center';
-                ctx.fillText('No sales data yet', canvas.width / 2, canvas.height / 2);
+                ctx.fillText('No sales data yet', cssW / 2, cssH / 2);
                 return;
             }
-            
-            // Chart dimensions — extra top margin so bar £ labels never overlap title/legend
-            const padL = 56;
-            const padR = 56;
-            const padT = 82;
-            const padB = 52;
-            const chartWidth = canvas.width - padL - padR;
-            const chartHeight = canvas.height - padT - padB;
-            const plotBottom = canvas.height - padB;
-            
+
+            const fTitle = isMobile ? 'bold 15px Segoe UI' : 'bold 16px Segoe UI';
+            const fLegend = isMobile ? '13px Segoe UI' : '12px Segoe UI';
+            const fAxis = isMobile ? '13px Segoe UI' : '12px Segoe UI';
+            const fMonth = isMobile ? 'bold 13px Segoe UI' : 'bold 12px Segoe UI';
+            const fBarVal = isMobile ? 'bold 12px Segoe UI' : 'bold 11px Segoe UI';
+
+            const padL = isMobile ? 48 : 56;
+            const padR = isMobile ? 16 : 56;
+            const padT = isMobile ? 78 : 82;
+            const padB = isMobile ? 58 : 52;
+            const chartWidth = cssW - padL - padR;
+            const chartHeight = cssH - padT - padB;
+            const plotBottom = cssH - padB;
+
             const revenues = months.map(m => monthlyData[m].revenue);
             const profits = months.map(m => monthlyData[m].profit);
             let minVal = Math.min(0, ...profits);
             let maxVal = Math.max(100, ...revenues, ...profits);
             if (maxVal <= minVal) maxVal = minVal + 100;
             const valRange = maxVal - minVal;
-            
+
             const yCoord = (v) => plotBottom - ((v - minVal) / valRange) * chartHeight;
-            
-            // Title + legend (reserved band above plot — keeps "Revenue" clear of bar values)
+
             ctx.fillStyle = '#333';
-            ctx.font = 'bold 16px Segoe UI';
+            ctx.font = fTitle;
             ctx.textAlign = 'center';
-            ctx.fillText('Monthly Revenue & Profit', canvas.width / 2, 26);
-            ctx.font = '12px Segoe UI';
-            const legY = 50;
-            const cx = canvas.width / 2 - 90;
+            ctx.fillText('Monthly Revenue & Profit', cssW / 2, 26);
+            ctx.font = fLegend;
+            const legY = 52;
+            const lcx = cssW / 2 - (isMobile ? 80 : 90);
             ctx.fillStyle = '#667eea';
-            ctx.fillRect(cx, legY - 8, 12, 12);
+            ctx.fillRect(lcx, legY - 8, 12, 12);
             ctx.fillStyle = '#333';
             ctx.textAlign = 'left';
-            ctx.fillText('Revenue', cx + 16, legY);
+            ctx.fillText('Revenue', lcx + 16, legY + 1);
             ctx.fillStyle = '#22c55e';
-            ctx.fillRect(cx + 88, legY - 8, 12, 12);
+            ctx.fillRect(lcx + (isMobile ? 80 : 88), legY - 8, 12, 12);
             ctx.fillStyle = '#333';
-            ctx.fillText('Profit', cx + 104, legY);
-            
-            // Draw axes
+            ctx.fillText('Profit', lcx + (isMobile ? 96 : 104), legY + 1);
+
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(padL, padT);
             ctx.lineTo(padL, plotBottom);
-            ctx.lineTo(canvas.width - padR, plotBottom);
+            ctx.lineTo(cssW - padR, plotBottom);
             ctx.stroke();
-            
-            // Zero baseline (when losses appear in range)
+
             if (minVal < 0 && maxVal > 0) {
                 const yz = yCoord(0);
                 ctx.strokeStyle = '#bbb';
@@ -6784,41 +6902,38 @@
                 ctx.setLineDash([4, 4]);
                 ctx.beginPath();
                 ctx.moveTo(padL, yz);
-                ctx.lineTo(canvas.width - padR, yz);
+                ctx.lineTo(cssW - padR, yz);
                 ctx.stroke();
                 ctx.setLineDash([]);
             }
-            
+
             const spacing = chartWidth / months.length;
-            const groupW = spacing * 0.78;
-            const barGap = 4;
+            const groupW = spacing * (isMobile ? 0.88 : 0.78);
+            const barGap = isMobile ? 3 : 4;
             const barW = (groupW - barGap) / 2;
-            
-            // Y-axis labels + grid
+
             ctx.fillStyle = '#666';
-            ctx.font = '12px Segoe UI';
+            ctx.font = fAxis;
             ctx.textAlign = 'right';
             for (let i = 0; i <= 5; i++) {
                 const value = minVal + (valRange / 5) * i;
                 const y = yCoord(value);
-                ctx.fillText('£' + value.toFixed(0), padL - 10, y + 4);
-                
+                ctx.fillText('£' + value.toFixed(0), padL - 8, y + 4);
                 ctx.strokeStyle = '#e0e0e0';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(padL, y);
-                ctx.lineTo(canvas.width - padR, y);
+                ctx.lineTo(cssW - padR, y);
                 ctx.stroke();
             }
-            
+
             months.forEach((month, index) => {
                 const data = monthlyData[month];
                 const xGroup = padL + index * spacing + (spacing - groupW) / 2;
                 const xRev = xGroup;
                 const xPr = xGroup + barW + barGap;
                 const y0 = yCoord(0);
-                
-                // Revenue bar (gradient)
+
                 const yRevTop = yCoord(data.revenue);
                 const revH = Math.max(1, y0 - yRevTop);
                 const gradient = ctx.createLinearGradient(xRev, yRevTop, xRev, y0);
@@ -6826,30 +6941,36 @@
                 gradient.addColorStop(1, '#764ba2');
                 ctx.fillStyle = gradient;
                 ctx.fillRect(xRev, yRevTop, barW, revH);
-                
-                // Profit bar (green / red), from £0 baseline
+
                 const p = data.profit || 0;
                 const yProfTop = yCoord(p);
                 if (p >= 0) {
-                    const ph = Math.max(1, y0 - yProfTop);
                     ctx.fillStyle = '#22c55e';
-                    ctx.fillRect(xPr, yProfTop, barW, ph);
+                    ctx.fillRect(xPr, yProfTop, barW, Math.max(1, y0 - yProfTop));
                 } else {
-                    const ph = Math.max(1, yProfTop - y0);
                     ctx.fillStyle = '#ef4444';
-                    ctx.fillRect(xPr, y0, barW, ph);
+                    ctx.fillRect(xPr, y0, barW, Math.max(1, yProfTop - y0));
                 }
-                
-                const [year, monthNum] = month.split('-');
-                const date = new Date(year, parseInt(monthNum) - 1);
-                const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-                
+
+                const [yr, mn] = month.split('-');
+                const dt = new Date(yr, parseInt(mn) - 1);
+                const monthName = dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+
                 ctx.fillStyle = '#333';
-                ctx.font = 'bold 12px Segoe UI';
+                ctx.font = fMonth;
                 ctx.textAlign = 'center';
-                ctx.fillText(monthName, xGroup + groupW / 2, plotBottom + 20);
-                
-                ctx.font = 'bold 11px Segoe UI';
+                if (isMobile) {
+                    ctx.save();
+                    ctx.translate(xGroup + groupW / 2, plotBottom + 16);
+                    ctx.rotate(-0.45);
+                    ctx.fillText(monthName, 0, 0);
+                    ctx.restore();
+                } else {
+                    ctx.fillText(monthName, xGroup + groupW / 2, plotBottom + 20);
+                }
+
+                ctx.font = fBarVal;
+                ctx.textAlign = 'center';
                 ctx.fillStyle = '#667eea';
                 ctx.fillText('£' + data.revenue.toFixed(0), xRev + barW / 2, Math.min(yRevTop, y0) - 6);
                 ctx.fillStyle = p >= 0 ? '#16a34a' : '#dc2626';
@@ -6950,6 +7071,7 @@
             document.getElementById('transactionDesc').value = '';
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionType').value = 'expense';
+            document.getElementById('transactionAccount').value = 'digital';
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('transactionDate').value = today;
         }
@@ -6959,9 +7081,10 @@
             const desc = document.getElementById('transactionDesc').value;
             const amount = parseFloat(document.getElementById('transactionAmount').value);
             const type = document.getElementById('transactionType').value;
+            const account = document.getElementById('transactionAccount').value;
             const date = document.getElementById('transactionDate').value;
 
-            if (!desc || isNaN(amount) || amount <= 0 || !date) {
+            if (!desc || isNaN(amount) || amount <= 0 || !date || !account) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
@@ -6971,6 +7094,7 @@
                 description: desc,
                 amount: amount,
                 type: type,
+                account: account,
                 date: date
             };
 
@@ -6980,6 +7104,7 @@
             // Add to history
             addHistoryEntry('balance_transaction', desc, '', [
                 { field: 'Type', oldValue: '', newValue: type === 'income' ? 'Income' : 'Expense' },
+                { field: 'Money Type', oldValue: '', newValue: account === 'cash' ? 'Cash' : 'Digital' },
                 { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
                 { field: 'Date', oldValue: '', newValue: date }
             ]);
@@ -7000,6 +7125,7 @@
                 if (transactionToDelete) {
                     addHistoryEntry('balance_transaction_delete', transactionToDelete.description, '', [
                         { field: 'Type', oldValue: transactionToDelete.type === 'income' ? 'Income' : 'Expense', newValue: 'Deleted' },
+                        { field: 'Money Type', oldValue: transactionToDelete.account === 'cash' ? 'Cash' : 'Digital', newValue: 'Deleted' },
                         { field: 'Amount', oldValue: `£${(transactionToDelete.amount || 0).toFixed(2)}`, newValue: 'Deleted' },
                         { field: 'Date', oldValue: transactionToDelete.date, newValue: 'Deleted' }
                     ]);
@@ -7008,6 +7134,23 @@
                 renderTransactions();
                 updateStatistics();
             }
+        }
+
+        let currentTxFilter = 'all';
+
+        function setTransactionFilter(filter) {
+            currentTxFilter = filter;
+            ['all', 'income', 'expense'].forEach(f => {
+                const btn = document.getElementById('txFilter' + f.charAt(0).toUpperCase() + f.slice(1));
+                if (f === filter) {
+                    btn.style.background = '#667eea';
+                    btn.style.color = 'white';
+                } else {
+                    btn.style.background = '#f8f9fa';
+                    btn.style.color = '#333';
+                }
+            });
+            renderTransactions();
         }
 
         // Render transactions
@@ -7020,15 +7163,25 @@
             }
 
             // Sort by date (most recent first)
-            const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            let sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (currentTxFilter !== 'all') {
+                sortedTransactions = sortedTransactions.filter(t => t.type === currentTxFilter);
+            }
+
+            if (sortedTransactions.length === 0) {
+                transactionList.innerHTML = '<div style="text-align: center; padding: 30px; color: #999;">No ' + (currentTxFilter === 'income' ? 'added' : 'subtracted') + ' transactions</div>';
+                return;
+            }
 
             transactionList.innerHTML = sortedTransactions.map(t => {
                 const isIncome = t.type === 'income';
+                const acctLabel = t.account === 'cash' ? '💵 Cash' : '💳 Digital';
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
                         <div>
                             <div style="font-weight: 600; color: #333;">${t.description}</div>
-                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()}</div>
+                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
