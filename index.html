@@ -2927,34 +2927,6 @@
                 </div>
             </div>
 
-            <details class="balance-breakdown" style="margin-top: 24px; cursor: pointer;">
-                <summary style="list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-                    <h3 style="margin: 0;">💰 Balance Breakdown</h3>
-                    <span class="dropdown-arrow" style="font-size: 1.2em; transition: transform 0.3s; color: var(--text-secondary);">▶</span>
-                </summary>
-                <div style="display: grid; gap: 0; margin-top: 20px;">
-                    <div class="breakdown-row">
-                        <span class="breakdown-label">Sales Revenue:</span>
-                        <span class="breakdown-value positive" id="balanceMoneyIn">£0.00</span>
-                        </div>
-                    <div class="breakdown-row">
-                        <span class="breakdown-label">Inventory Purchases:</span>
-                        <span class="breakdown-value negative" id="balanceMoneyOut">-£0.00</span>
-                        </div>
-                    <div class="breakdown-row">
-                        <span class="breakdown-label">Additional Income:</span>
-                        <span class="breakdown-value positive" id="balanceAdditionalIncome">£0.00</span>
-                        </div>
-                    <div class="breakdown-row">
-                        <span class="breakdown-label">Additional Expenses:</span>
-                        <span class="breakdown-value negative" id="balanceAdditionalExpenses">-£0.00</span>
-                        </div>
-                    <div class="breakdown-row" style="border-top: 2px solid var(--accent-primary); padding-top: 16px; margin-top: 8px;">
-                        <span class="breakdown-label" style="color: var(--text-primary); font-weight: 600;">Total Balance:</span>
-                        <span class="breakdown-value" style="color: var(--accent-primary); font-size: 1.1rem;" id="balanceTotal">£0.00</span>
-                    </div>
-                </div>
-            </details>
 
             <div style="background: white; padding: 25px; border-radius: 12px; margin-top: 30px; border: 2px solid #e0e0e0; overflow-x: auto;">
                 <h3 style="margin-bottom: 20px;">Monthly Sales Chart</h3>
@@ -6667,12 +6639,6 @@
             document.getElementById('cashBalanceDisplay').textContent = '£' + cashBalance.toFixed(2);
             document.getElementById('digitalBalanceDisplay').textContent = '£' + digitalBalance.toFixed(2);
             
-            // Update balance breakdown
-            document.getElementById('balanceMoneyIn').textContent = '£' + moneyIn.toFixed(2);
-            document.getElementById('balanceMoneyOut').textContent = '-£' + moneyOut.toFixed(2);
-            document.getElementById('balanceAdditionalIncome').textContent = '£' + additionalIncome.toFixed(2);
-            document.getElementById('balanceAdditionalExpenses').textContent = '-£' + additionalExpenses.toFixed(2);
-            document.getElementById('balanceTotal').textContent = '£' + totalBalance.toFixed(2);
             
             // Total Items = Ready + Needs Work (excludes sold)
             document.getElementById('totalItems').textContent = readyItems + needsWorkItems;
