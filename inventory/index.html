@@ -2318,7 +2318,7 @@
             
             <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <h4 style="margin-bottom: 15px;">Add Transaction</h4>
-                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr 1fr;">
+                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label>Description</label>
                         <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
@@ -2340,10 +2340,6 @@
                             <option value="digital">💳 Digital</option>
                             <option value="cash">💵 Cash</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="transactionDate">
                     </div>
                 </div>
                 <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
@@ -5024,10 +5020,6 @@
 
         // Open balance modal
         function openBalanceModal() {
-            // Set today's date as default
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('transactionDate').value = today;
-            
             renderTransactions();
             renderSoldItems();
             document.getElementById('balanceModal').classList.add('active');
@@ -5045,8 +5037,6 @@
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionType').value = 'expense';
             document.getElementById('transactionAccount').value = 'digital';
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('transactionDate').value = today;
         }
 
         // Add transaction
@@ -5055,9 +5045,9 @@
             const amount = parseFloat(document.getElementById('transactionAmount').value);
             const type = document.getElementById('transactionType').value;
             const account = document.getElementById('transactionAccount').value;
-            const date = document.getElementById('transactionDate').value;
+            const date = new Date().toISOString().split('T')[0];
 
-            if (!desc || isNaN(amount) || amount <= 0 || !date || !account) {
+            if (!desc || isNaN(amount) || amount <= 0 || !account) {
                 alert('Please fill in all fields with valid values');
                 return;
             }
@@ -5162,7 +5152,7 @@
             }
 
             // Sort by date (most recent first)
-            let sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+            let sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id);
 
             if (currentTxFilter !== 'all') {
                 sortedTransactions = sortedTransactions.filter(t => t.type === currentTxFilter);
