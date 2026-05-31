@@ -2921,7 +2921,7 @@
                         </button>
                     </div>
                     <div class="stat-card green" style="padding: 20px;">
-                        <div class="stat-value" id="monthSoldItems">0</div>
+                        <div class="stat-value" id="monthSoldItems" onclick="openSoldByStoreModal()" style="cursor: pointer;" title="Tap to see breakdown by store">0</div>
                         <div class="stat-label">Items Sold</div>
                     </div>
                     <div class="stat-card blue" style="padding: 20px;">
@@ -3053,6 +3053,17 @@
                             <div class="form-group">
                                 <label>Sold Price (£)</label>
                                 <input type="number" id="addSoldPrice" step="0.01" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Sold On</label>
+                                <select id="addSoldPlatform">
+                                    <option value="">Select where sold...</option>
+                                    <option value="private">Private</option>
+                                    <option value="gumtree">Gumtree</option>
+                                    <option value="etsy">Etsy</option>
+                                    <option value="fb">FB</option>
+                                    <option value="ebay">Ebay</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -3594,9 +3605,20 @@
                     <label>Sold Price (£)</label>
                     <input type="number" id="editSoldPrice" step="0.01">
                 </div>
+                <div class="form-group" id="editSoldPlatformGroup" style="display: none;">
+                    <label>Sold On</label>
+                    <select id="editSoldPlatform">
+                        <option value="">Select where sold...</option>
+                        <option value="private">Private</option>
+                        <option value="gumtree">Gumtree</option>
+                        <option value="etsy">Etsy</option>
+                        <option value="fb">FB</option>
+                        <option value="ebay">Ebay</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Status</label>
-                    <select id="editItemStatus">
+                    <select id="editItemStatus" onchange="updateEditSoldFields()">
                         <option value="ready">Ready to Sell</option>
                         <option value="needs-work">Needs Work</option>
                         <option value="sold">Sold</option>
@@ -3711,6 +3733,20 @@
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button class="btn btn-success" onclick="closeBalanceModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sold By Store Modal -->
+    <div id="soldByStoreModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="soldByStoreModalTitle">Items Sold by Store</span>
+                <button onclick="closeSoldByStoreModal()" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #666;">✕</button>
+            </div>
+            <div id="soldByStoreContent" style="padding: 10px 0;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-success" onclick="closeSoldByStoreModal()">Close</button>
             </div>
         </div>
     </div>
@@ -4538,6 +4574,7 @@
                                 item.status === 'needs-work' ? 'Needs Work' : 'Sold',
                         'Sold Date': soldDate ? soldDate.toLocaleDateString() : 'Not Sold',
                         'Sold Price': (item.soldPrice || 0) > 0 ? `£${(item.soldPrice || 0).toFixed(2)}` : 'Not Sold',
+                        'Sold On': item.soldPlatform ? getSoldPlatformLabel(item.soldPlatform) : 'Not Sold',
                         'Profit': (item.soldPrice || 0) > 0 ? `£${((item.soldPrice || 0) - (item.purchasePrice || 0)).toFixed(2)}` : 'N/A',
                         'Days in Stock': daysInStock,
                         'Description': item.description || '',
@@ -5028,7 +5065,7 @@
         function detectChanges(oldItem, newItem) {
             const changes = [];
             
-            const fields = ['name', 'purchaseDate', 'purchasePrice', 'soldDate', 'soldPrice', 'status', 'description', 'workNotes'];
+            const fields = ['name', 'purchaseDate', 'purchasePrice', 'soldDate', 'soldPrice', 'soldPlatform', 'status', 'description', 'workNotes'];
             
             fields.forEach(field => {
                 const oldValue = oldItem[field];
@@ -5053,6 +5090,9 @@
                         };
                         displayOldValue = statusMap[oldValue] || oldValue;
                         displayNewValue = statusMap[newValue] || newValue;
+                    } else if (field === 'soldPlatform') {
+                        displayOldValue = getSoldPlatformLabel(oldValue);
+                        displayNewValue = getSoldPlatformLabel(newValue);
                     }
                     
                     changes.push({
@@ -5628,6 +5668,106 @@
             const sold = document.getElementById('itemStatus').value === 'sold';
             const block = document.getElementById('addItemSoldFields');
             if (block) block.style.display = sold ? 'block' : 'none';
+            if (!sold) {
+                const platformEl = document.getElementById('addSoldPlatform');
+                if (platformEl) platformEl.value = '';
+            }
+        }
+
+        function updateEditSoldFields() {
+            const status = document.getElementById('editItemStatus').value;
+            const group = document.getElementById('editSoldPlatformGroup');
+            if (group) group.style.display = status === 'sold' ? '' : 'none';
+        }
+
+        const SOLD_PLATFORMS = {
+            private: 'Private',
+            gumtree: 'Gumtree',
+            etsy: 'Etsy',
+            fb: 'FB',
+            ebay: 'Ebay'
+        };
+
+        function getSoldPlatformLabel(platform) {
+            if (!platform) return 'Not specified';
+            return SOLD_PLATFORMS[platform] || platform;
+        }
+
+        function getCurrentMonthSoldItems() {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            return inventory.filter(item => {
+                if (!item.soldDate) return false;
+                const soldDate = new Date(item.soldDate);
+                return soldDate.getMonth() === currentMonth && soldDate.getFullYear() === currentYear;
+            });
+        }
+
+        function openSoldByStoreModal() {
+            const now = new Date();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                                'July', 'August', 'September', 'October', 'November', 'December'];
+            const soldItems = getCurrentMonthSoldItems();
+            const titleEl = document.getElementById('soldByStoreModalTitle');
+            const contentEl = document.getElementById('soldByStoreContent');
+
+            if (titleEl) {
+                titleEl.textContent = `Items Sold by Store — ${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+            }
+
+            if (!contentEl) return;
+
+            if (soldItems.length === 0) {
+                contentEl.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <p>No items sold this month yet.</p>
+                    </div>
+                `;
+            } else {
+                const platformStats = {};
+                Object.keys(SOLD_PLATFORMS).forEach(key => {
+                    platformStats[key] = { count: 0, revenue: 0, items: [] };
+                });
+                platformStats.unspecified = { count: 0, revenue: 0, items: [], label: 'Not specified' };
+
+                soldItems.forEach(item => {
+                    const key = item.soldPlatform && SOLD_PLATFORMS[item.soldPlatform] ? item.soldPlatform : 'unspecified';
+                    platformStats[key].count++;
+                    platformStats[key].revenue += item.soldPrice || 0;
+                    platformStats[key].items.push(item);
+                });
+
+                const rows = [
+                    ...Object.keys(SOLD_PLATFORMS).map(key => ({ key, label: SOLD_PLATFORMS[key], ...platformStats[key] })),
+                    { key: 'unspecified', label: 'Not specified', ...platformStats.unspecified }
+                ].filter(row => row.count > 0);
+
+                contentEl.innerHTML = `
+                    <div style="display: grid; gap: 16px;">
+                        ${rows.map(row => `
+                            <div style="background: var(--bg-secondary); border-radius: 12px; padding: 16px; border: 1px solid var(--border-subtle);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                    <strong style="font-size: 1.05em; color: var(--text-primary);">${row.label}</strong>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 700; color: var(--text-primary);">${row.count} item${row.count === 1 ? '' : 's'}</div>
+                                        <div style="font-size: 0.9em; color: var(--success);">£${row.revenue.toFixed(2)} revenue</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.88em; color: var(--text-muted); line-height: 1.5;">
+                                    ${row.items.map(item => `${item.name} — £${(item.soldPrice || 0).toFixed(2)}`).join('<br>')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            document.getElementById('soldByStoreModal').classList.add('active');
+        }
+
+        function closeSoldByStoreModal() {
+            document.getElementById('soldByStoreModal').classList.remove('active');
         }
 
         // Add new item
@@ -5645,11 +5785,17 @@
 
             let soldDate = '';
             let soldPrice = 0;
+            let soldPlatform = '';
             if (status === 'sold') {
                 soldDate = document.getElementById('addSoldDate').value;
                 soldPrice = parseFloat(document.getElementById('addSoldPrice').value);
+                soldPlatform = document.getElementById('addSoldPlatform').value;
                 if (!soldDate || isNaN(soldPrice) || soldPrice <= 0) {
                     alert('For sold items, please enter Sold Date and a Sold Price greater than zero.');
+                    return;
+                }
+                if (!soldPlatform) {
+                    alert('Please select where the item was sold.');
                     return;
                 }
             }
@@ -5666,6 +5812,7 @@
                 workNotes: '',
                 soldDate,
                 soldPrice,
+                soldPlatform,
                 addToBalance: false,
                 photos: [],
                 workPhotos: []
@@ -5727,6 +5874,7 @@
             document.getElementById('itemStatus').value = 'ready';
             document.getElementById('addSoldDate').value = '';
             document.getElementById('addSoldPrice').value = '';
+            document.getElementById('addSoldPlatform').value = '';
             document.getElementById('itemPhoto').value = '';
             updateAddItemSoldFields();
 
@@ -5977,6 +6125,12 @@
                         <span style="font-size: 0.8em; color: #666;">Profit:</span>
                         <strong style="color: #22c55e; font-size: 0.95em; margin-left: 4px;">£${((item.soldPrice - item.purchasePrice) || 0).toFixed(2)}</strong>
                     </div>
+                    ${item.soldPlatform ? `
+                    <div style="margin-top: 6px; padding: 4px 10px; background: rgba(100,116,139,0.12); border-radius: 6px; text-align: center;">
+                        <span style="font-size: 0.78em; color: #666;">Sold on:</span>
+                        <strong style="color: #475569; font-size: 0.88em; margin-left: 4px;">${getSoldPlatformLabel(item.soldPlatform)}</strong>
+                    </div>
+                    ` : ''}
                     ` : ''}
                     `}
                 </div>
@@ -6017,6 +6171,7 @@
                                 </div>
                                 ${item.soldDate ? `
                                     <div class="item-info"><strong>Sold:</strong> ${new Date(item.soldDate).toLocaleDateString()} - £${(item.soldPrice || 0).toFixed(2)}</div>
+                                    ${item.soldPlatform ? `<div class="item-info"><strong>Sold On:</strong> ${getSoldPlatformLabel(item.soldPlatform)}</div>` : ''}
                                     <div style="background: ${profit >= 0 ? '#d4edda' : '#f8d7da'}; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid ${profit >= 0 ? '#28a745' : '#dc3545'};">
                                         <div style="font-size: 0.9em; color: #666; margin-bottom: 4px;">Total Profit</div>
                                         <div style="font-size: 1.5em; font-weight: 700; color: ${profit >= 0 ? '#28a745' : '#dc3545'};">£${(profit || 0).toFixed(2)}</div>
@@ -6066,7 +6221,9 @@
             document.getElementById('editAffectBalance').value = (item.affectBalance === true || item.affectBalance === undefined) ? 'yes' : 'no';
             document.getElementById('editSoldDate').value = item.soldDate || '';
             document.getElementById('editSoldPrice').value = item.soldPrice || '';
+            document.getElementById('editSoldPlatform').value = item.soldPlatform || '';
             document.getElementById('editItemStatus').value = item.status;
+            updateEditSoldFields();
             document.getElementById('editItemDescription').value = item.description || '';
             document.getElementById('editItemWorkNotes').value = item.workNotes || '';
             
@@ -6163,6 +6320,7 @@
             const affectBalanceEl = document.getElementById('editAffectBalance');
             const soldDateEl = document.getElementById('editSoldDate');
             const soldPriceEl = document.getElementById('editSoldPrice');
+            const soldPlatformEl = document.getElementById('editSoldPlatform');
             const statusEl = document.getElementById('editItemStatus');
             const descriptionEl = document.getElementById('editItemDescription');
             const workNotesEl = document.getElementById('editItemWorkNotes');
@@ -6186,6 +6344,7 @@
                 affectBalance: affectBalanceEl?.value === 'yes',
                 soldDate: soldDateEl?.value || '',
                 soldPrice: parseFloat(soldPriceEl?.value || '0') || 0,
+                soldPlatform: soldPlatformEl?.value || '',
                 status: statusEl?.value || 'ready',
                 description: descriptionEl?.value || '',
                 workNotes: workNotesEl?.value || ''
@@ -6200,6 +6359,7 @@
             item.affectBalance = formData.affectBalance;
             item.soldDate = formData.soldDate;
             item.soldPrice = formData.soldPrice;
+            item.soldPlatform = formData.soldPlatform;
             item.addToBalance = false;
             item.status = formData.status;
             item.description = formData.description;
@@ -6209,6 +6369,11 @@
             if (item.soldDate && item.soldPrice > 0) {
                 item.status = 'sold';
                 console.log('🔄 Auto-set status to sold');
+            }
+
+            if (item.status === 'sold' && item.soldDate && item.soldPrice > 0 && !item.soldPlatform) {
+                alert('Please select where the item was sold.');
+                return;
             }
             
             console.log('📝 Updated item:', item);
@@ -6544,6 +6709,12 @@
                                         <strong>Sold Price</strong>
                                         <span style="color: var(--success);">£${(item.soldPrice || 0).toFixed(2)}</span>
                                     </div>
+                                    ${item.soldPlatform ? `
+                                    <div class="full-view-info-item">
+                                        <strong>Sold On</strong>
+                                        <span style="color: var(--info);">${getSoldPlatformLabel(item.soldPlatform)}</span>
+                                    </div>
+                                    ` : ''}
                                 </div>
                                 <div class="full-view-profit-box ${profit >= 0 ? 'positive' : 'negative'}">
                                     <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px;">Total Profit</div>
@@ -7356,6 +7527,12 @@
         document.getElementById('balanceModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeBalanceModal();
+            }
+        });
+
+        document.getElementById('soldByStoreModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSoldByStoreModal();
             }
         });
 
