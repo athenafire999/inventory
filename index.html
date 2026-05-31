@@ -3205,7 +3205,7 @@
                 </div>
 
                 <!-- Record Expense Withdrawal -->
-                <div id="recordExpenseForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px; border: 2px solid #64748b;">
+                <div id="recordExpenseForm" style="display: none; background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px; border: 2px solid #64748b;">
                     <h3 style="margin: 0 0 6px 0; color: var(--text-primary);">📋 Take Money from Expenses</h3>
                     <p style="margin: 0 0 18px 0; font-size: 0.9em; color: var(--text-muted);">Record how much you took out and what it was for.</p>
                     <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 15px; align-items: end;">
@@ -4759,12 +4759,15 @@
         }
 
         function openExpenseForm() {
-            withdrawalCategoryFilter = 'expenses';
+            const wasExpenses = withdrawalCategoryFilter === 'expenses';
+            withdrawalCategoryFilter = wasExpenses ? null : 'expenses';
             renderWithdrawals();
-            const form = document.getElementById('recordExpenseForm');
-            const amountInput = document.getElementById('expenseAmount');
-            if (form) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            if (amountInput) setTimeout(() => amountInput.focus(), 300);
+            if (!wasExpenses) {
+                const form = document.getElementById('recordExpenseForm');
+                const amountInput = document.getElementById('expenseAmount');
+                if (form) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                if (amountInput) setTimeout(() => amountInput.focus(), 300);
+            }
         }
 
         function addExpenseWithdrawal() {
@@ -5358,6 +5361,9 @@
             const isCurrentMonth = withdrawalMonthFilter.month === nowCheck.getMonth() && withdrawalMonthFilter.year === nowCheck.getFullYear();
             const addForm = document.getElementById('addWithdrawalForm');
             if (addForm) addForm.style.display = isCurrentMonth ? '' : 'none';
+
+            const expenseForm = document.getElementById('recordExpenseForm');
+            if (expenseForm) expenseForm.style.display = (isCurrentMonth && withdrawalCategoryFilter === 'expenses') ? '' : 'none';
 
             // Highlight active category card
             const categoryColors = { dee: '#8b5cf6', mike: '#3b82f6', rent: '#f59e0b', tin: '#10b981', expenses: '#64748b', kitchen: '#e67e22', car: '#e74c3c' };
