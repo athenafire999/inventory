@@ -2504,6 +2504,14 @@
             #withdrawals > div > div:nth-child(3) > div:first-child > button {
                 width: 100%;
             }
+
+            #recordExpenseForm > div:last-of-type {
+                grid-template-columns: 1fr !important;
+            }
+
+            #recordExpenseForm button {
+                width: 100%;
+            }
         }
 
         /* ==================== MOBILE UX ENHANCEMENTS ==================== */
@@ -3178,7 +3186,7 @@
                     </div>
 
                     <!-- Expenses Card -->
-                    <div class="withdrawal-card" id="cardExpenses" onclick="filterWithdrawalCategory('expenses')" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
+                    <div class="withdrawal-card" id="cardExpenses" onclick="openExpenseForm()" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.2s; border: 2px solid transparent;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3 style="margin: 0; font-size: 1.3em;">📋 Expenses</h3>
                             <span style="font-size: 0.9em; color: var(--text-muted);">No Limit</span>
@@ -3193,6 +3201,25 @@
                             <span id="expensesPercentage">∞</span>
                             <span>Unlimited</span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Record Expense Withdrawal -->
+                <div id="recordExpenseForm" style="background: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-sm); margin-bottom: 30px; border: 2px solid #64748b;">
+                    <h3 style="margin: 0 0 6px 0; color: var(--text-primary);">📋 Take Money from Expenses</h3>
+                    <p style="margin: 0 0 18px 0; font-size: 0.9em; color: var(--text-muted);">Record how much you took out and what it was for.</p>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 15px; align-items: end;">
+                        <div>
+                            <label for="expenseAmount" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Amount (£)</label>
+                            <input type="number" id="expenseAmount" placeholder="0.00" min="0" step="0.01" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label for="expenseReason" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Reason</label>
+                            <input type="text" id="expenseReason" placeholder="e.g., Petrol, tools, cleaning supplies" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                        </div>
+                        <button onclick="addExpenseWithdrawal()" class="btn btn-success" style="padding: 12px 24px; white-space: nowrap;">
+                            + Record
+                        </button>
                     </div>
                 </div>
 
@@ -3265,7 +3292,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
                         <div>
                             <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Category</label>
-                            <select id="withdrawalPerson" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary);">
+                            <select id="withdrawalPerson" onchange="updateWithdrawalNoteLabel()" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary);">
                                 <option value="dee">Dee</option>
                                 <option value="mike">Mike</option>
                                 <option value="rent">🏠 Rent</option>
@@ -3284,7 +3311,7 @@
                         </button>
                     </div>
                     <div style="margin-top: 15px;">
-                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Note (optional)</label>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Note <span id="withdrawalNoteRequired" style="display: none; color: #ef4444;">(required for Expenses)</span><span id="withdrawalNoteOptional">(optional)</span></label>
                         <input type="text" id="withdrawalNote" placeholder="What is this withdrawal for?" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
                     </div>
                 </div>
@@ -4731,6 +4758,47 @@
             renderWithdrawals();
         }
 
+        function openExpenseForm() {
+            withdrawalCategoryFilter = 'expenses';
+            renderWithdrawals();
+            const form = document.getElementById('recordExpenseForm');
+            const amountInput = document.getElementById('expenseAmount');
+            if (form) form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (amountInput) setTimeout(() => amountInput.focus(), 300);
+        }
+
+        function addExpenseWithdrawal() {
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const reason = document.getElementById('expenseReason').value.trim();
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            if (!reason) {
+                alert('Please enter a reason for this expense');
+                document.getElementById('expenseReason').focus();
+                return;
+            }
+
+            const withdrawal = {
+                id: Date.now(),
+                person: 'expenses',
+                amount: amount,
+                note: reason,
+                date: new Date().toISOString()
+            };
+
+            withdrawals.push(withdrawal);
+            saveInventory();
+            withdrawalCategoryFilter = 'expenses';
+            renderWithdrawals();
+
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseReason').value = '';
+            showToast('Expense recorded: £' + amount.toFixed(2), 'success', 2500);
+        }
+
         // Get withdrawals for the selected month
         function getMonthWithdrawals(person) {
             return withdrawals.filter(w => {
@@ -5182,6 +5250,14 @@
         }
 
         // ==================== WITHDRAWALS FUNCTIONS ====================
+
+        function updateWithdrawalNoteLabel() {
+            const isExpenses = document.getElementById('withdrawalPerson').value === 'expenses';
+            const requiredEl = document.getElementById('withdrawalNoteRequired');
+            const optionalEl = document.getElementById('withdrawalNoteOptional');
+            if (requiredEl) requiredEl.style.display = isExpenses ? 'inline' : 'none';
+            if (optionalEl) optionalEl.style.display = isExpenses ? 'none' : 'inline';
+        }
         
         function addWithdrawal() {
             const person = document.getElementById('withdrawalPerson').value;
@@ -5190,6 +5266,12 @@
             
             if (!amount || amount <= 0) {
                 alert('Please enter a valid amount');
+                return;
+            }
+
+            if (person === 'expenses' && !note) {
+                alert('Please enter a reason for this expense');
+                document.getElementById('withdrawalNote').focus();
                 return;
             }
             
@@ -5531,6 +5613,7 @@
             } else if (tabName === 'history') {
                 renderHistory();
             } else if (tabName === 'withdrawals') {
+                updateWithdrawalNoteLabel();
                 renderWithdrawals();
             }
         }
