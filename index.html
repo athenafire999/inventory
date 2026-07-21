@@ -3759,7 +3759,6 @@
         // ==================== JSONBin.io CONFIGURATION ====================
         // This is your cloud storage - data syncs across all devices!
         const JSONBIN_API_KEY = '$2a$10$wKD6wmdekKhY5AbAtKUeu.d9hVdOrNHxBRCFBHuk995OFxmRUtqd.';
-        const JSONBIN_BIN_ID = null; // Will be auto-created on first save
         const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
         
         // ==================== ImgBB IMAGE HOSTING ====================
@@ -3812,63 +3811,43 @@
         }
         // ==============================================================
         
-        // ✅ SHARED BIN ID - All devices sync to this same bin!
-        const SHARED_BIN_ID = '697cadacd0ea881f40930514';
-        let jsonBinId = SHARED_BIN_ID;
+        // ✅ SHARED BIN IDs - All devices sync to these bins.
+        // Data is SPLIT across three bins because JSONBin's free tier rejects any
+        // update over 100KB — the old single combined bin hit that limit, which is
+        // why cloud saves were failing. Each section now has plenty of headroom.
+        const BIN_IDS = {
+            inventory: '697cadacd0ea881f40930514',      // original bin (also holds legacy combined data)
+            transactions: '6a5f07ebf5f4af5e29aaed84',
+            withdrawals: '6a5f07fbda38895dfe796be1'
+        };
         
         // JSONBin.io API functions
-        // Single save attempt. Returns true on confirmed success, false otherwise.
-        async function jsonBinSave(data) {
+        // Single save attempt to one bin. Returns true on confirmed success.
+        async function jsonBinSave(binId, data) {
             try {
-                const headers = {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': JSONBIN_API_KEY
-                };
-                
-                if (jsonBinId) {
-                    // Update existing bin
-                    const response = await fetch(`${JSONBIN_BASE_URL}/b/${jsonBinId}`, {
-                        method: 'PUT',
-                        headers: headers,
-                        body: JSON.stringify(data)
-                    });
-                    if (!response.ok) {
-                        console.error('☁️ ❌ JSONBin save HTTP error:', response.status, await response.text().catch(() => ''));
-                        return false;
+                const response = await fetch(`${JSONBIN_BASE_URL}/b/${binId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) {
+                    const errText = await response.text().catch(() => '');
+                    console.error('☁️ ❌ JSONBin save HTTP error:', response.status, errText);
+                    if (response.status === 403 && errText.includes('100kb')) {
+                        showToast('A data section exceeds the 100KB cloud limit — save blocked', 'error', 5000);
                     }
-                    const result = await response.json();
-                    if (result.metadata) {
-                        console.log('☁️ ✅ Data saved to JSONBin.io');
-                        return true;
-                    } else {
-                        console.error('☁️ ❌ JSONBin save error:', result);
-                        return false;
-                    }
+                    return false;
+                }
+                const result = await response.json();
+                if (result.metadata) {
+                    console.log('☁️ ✅ Data saved to JSONBin.io:', binId);
+                    return true;
                 } else {
-                    // Create new bin
-                    const response = await fetch(`${JSONBIN_BASE_URL}/b`, {
-                        method: 'POST',
-                        headers: {
-                            ...headers,
-                            'X-Bin-Name': 'furniture-inventory',
-                            'X-Bin-Private': 'true'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    if (!response.ok) {
-                        console.error('☁️ ❌ JSONBin create HTTP error:', response.status, await response.text().catch(() => ''));
-                        return false;
-                    }
-                    const result = await response.json();
-                    if (result.metadata && result.metadata.id) {
-                        jsonBinId = result.metadata.id;
-                        localStorage.setItem('furniture_jsonbin_id', jsonBinId);
-                        console.log('☁️ ✅ Created new JSONBin:', jsonBinId);
-                        return true;
-                    } else {
-                        console.error('☁️ ❌ JSONBin create error:', result);
-                        return false;
-                    }
+                    console.error('☁️ ❌ JSONBin save error:', result);
+                    return false;
                 }
             } catch (error) {
                 console.error('☁️ ❌ JSONBin error:', error);
@@ -3877,9 +3856,9 @@
         }
         
         // Retry a save with exponential backoff (1s, 2s, 4s between attempts).
-        async function jsonBinSaveWithRetry(data, maxAttempts = 4) {
+        async function jsonBinSaveWithRetry(binId, data, maxAttempts = 4) {
             for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-                const ok = await jsonBinSave(data);
+                const ok = await jsonBinSave(binId, data);
                 if (ok) return true;
                 if (attempt < maxAttempts) {
                     const waitMs = 1000 * Math.pow(2, attempt - 1);
@@ -3893,14 +3872,9 @@
         // Returns { status: 'ok', data } when cloud data was loaded,
         // { status: 'empty' } when the bin genuinely has no usable record,
         // { status: 'error' } when the request failed (network / rate limit / server error).
-        async function jsonBinLoad() {
+        async function jsonBinLoad(binId) {
             try {
-                if (!jsonBinId) {
-                    console.log('☁️ No JSONBin ID found - will create on first save');
-                    return { status: 'empty' };
-                }
-                
-                const response = await fetch(`${JSONBIN_BASE_URL}/b/${jsonBinId}/latest`, {
+                const response = await fetch(`${JSONBIN_BASE_URL}/b/${binId}/latest`, {
                     method: 'GET',
                     headers: {
                         'X-Master-Key': JSONBIN_API_KEY
@@ -5167,10 +5141,37 @@
                     console.error('❌ Error reading localStorage:', localError);
                 }
                 
-                // Try to load from JSONBin.io (cloud)
+                // Try to load from JSONBin.io (cloud) — three bins in parallel
                 console.log('☁️ Loading from cloud...');
-                const cloudResult = await jsonBinLoad();
-                const cloudData = (cloudResult.status === 'ok' && cloudResult.data && cloudResult.data.inventory) ? cloudResult.data : null;
+                const [invResult, transResult, wdResult] = await Promise.all([
+                    jsonBinLoad(BIN_IDS.inventory),
+                    jsonBinLoad(BIN_IDS.transactions),
+                    jsonBinLoad(BIN_IDS.withdrawals)
+                ]);
+                
+                // Assemble combined cloud view. The inventory bin may still contain
+                // legacy combined data (transactions/withdrawals from before the
+                // split), used as fallback if the dedicated bins are unavailable.
+                let cloudData = null;
+                const cloudResult = { status: invResult.status };
+                if (invResult.status === 'ok' && invResult.data && invResult.data.inventory) {
+                    const legacy = invResult.data;
+                    const transData = (transResult.status === 'ok' && transResult.data && transResult.data.transactions)
+                        ? transResult.data.transactions : (legacy.transactions || []);
+                    const wdData = (wdResult.status === 'ok' && wdResult.data && wdResult.data.withdrawals)
+                        ? wdResult.data.withdrawals : (legacy.withdrawals || []);
+                    // Newest timestamp across the bins that loaded
+                    const timestamps = [legacy.lastUpdated,
+                        transResult.status === 'ok' && transResult.data ? transResult.data.lastUpdated : null,
+                        wdResult.status === 'ok' && wdResult.data ? wdResult.data.lastUpdated : null
+                    ].filter(Boolean).map(t => Date.parse(t)).filter(t => !isNaN(t));
+                    cloudData = {
+                        inventory: legacy.inventory,
+                        transactions: transData,
+                        withdrawals: wdData,
+                        lastUpdated: timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : null
+                    };
+                }
                 
                 // Does localStorage hold changes that never reached the cloud?
                 const localHasUnsyncedChanges = localData && isCloudDirty();
@@ -5195,6 +5196,7 @@
                         transactions = cloudData.transactions || [];
                         withdrawals = cloudData.withdrawals || [];
                         setCloudDirty(false);
+                        markCloudInSync();
                         saveToLocalStorage();
                         console.log('☁️ ✅ Cloud data is newer than local unsynced backup — using cloud');
                         removeToast(loadingToast);
@@ -5207,6 +5209,7 @@
                     withdrawals = cloudData.withdrawals || [];
                     console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions,', withdrawals.length, 'withdrawals');
                     
+                    markCloudInSync();
                     // Update localStorage with cloud data
                     saveToLocalStorage();
                     
@@ -5339,7 +5342,19 @@
             }
         }
         
-        // Pushes the CURRENT data to the cloud, one request at a time.
+        // Remembers what each bin last successfully stored, so unchanged
+        // sections are skipped (fewer requests, less rate limiting).
+        const _lastSynced = { inventory: null, transactions: null, withdrawals: null };
+        
+        // Called after loading fresh cloud data so the next save skips
+        // sections that already match the cloud.
+        function markCloudInSync() {
+            _lastSynced.inventory = JSON.stringify(inventory);
+            _lastSynced.transactions = JSON.stringify(transactions);
+            _lastSynced.withdrawals = JSON.stringify(withdrawals);
+        }
+        
+        // Pushes the CURRENT data to the cloud, one pass at a time.
         // If called while a save is already running, queues exactly one follow-up
         // save which will pick up the latest data when the current one finishes.
         async function syncToCloud() {
@@ -5351,15 +5366,31 @@
             try {
                 do {
                     _cloudSaveQueued = false;
-                    // Snapshot the latest data at the start of each attempt
-                    const cloudData = {
-                        inventory: inventory,
-                        transactions: transactions,
-                        withdrawals: withdrawals,
-                        lastUpdated: new Date().toISOString()
+                    // Snapshot the latest data at the start of each pass.
+                    // Each section goes to its own bin (JSONBin free tier rejects
+                    // updates over 100KB, so the data is split three ways).
+                    const now = new Date().toISOString();
+                    const sections = {
+                        inventory: JSON.stringify(inventory),
+                        transactions: JSON.stringify(transactions),
+                        withdrawals: JSON.stringify(withdrawals)
                     };
                     
-                    const cloudSaved = await jsonBinSaveWithRetry(cloudData);
+                    let cloudSaved = true;
+                    for (const key of Object.keys(sections)) {
+                        if (_lastSynced[key] === sections[key]) {
+                            continue; // unchanged since last successful save
+                        }
+                        const payload = { lastUpdated: now };
+                        payload[key] = JSON.parse(sections[key]);
+                        const ok = await jsonBinSaveWithRetry(BIN_IDS[key], payload);
+                        if (ok) {
+                            _lastSynced[key] = sections[key];
+                        } else {
+                            cloudSaved = false;
+                        }
+                    }
+                    
                     if (cloudSaved) {
                         // Only clear the dirty flag if no newer edits arrived mid-save
                         if (!_cloudSaveQueued) {
