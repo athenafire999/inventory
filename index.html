@@ -3817,6 +3817,7 @@
         let jsonBinId = SHARED_BIN_ID;
         
         // JSONBin.io API functions
+        // Single save attempt. Returns true on confirmed success, false otherwise.
         async function jsonBinSave(data) {
             try {
                 const headers = {
@@ -3831,6 +3832,10 @@
                         headers: headers,
                         body: JSON.stringify(data)
                     });
+                    if (!response.ok) {
+                        console.error('☁️ ❌ JSONBin save HTTP error:', response.status, await response.text().catch(() => ''));
+                        return false;
+                    }
                     const result = await response.json();
                     if (result.metadata) {
                         console.log('☁️ ✅ Data saved to JSONBin.io');
@@ -3850,6 +3855,10 @@
                         },
                         body: JSON.stringify(data)
                     });
+                    if (!response.ok) {
+                        console.error('☁️ ❌ JSONBin create HTTP error:', response.status, await response.text().catch(() => ''));
+                        return false;
+                    }
                     const result = await response.json();
                     if (result.metadata && result.metadata.id) {
                         jsonBinId = result.metadata.id;
@@ -3867,11 +3876,28 @@
             }
         }
         
+        // Retry a save with exponential backoff (1s, 2s, 4s between attempts).
+        async function jsonBinSaveWithRetry(data, maxAttempts = 4) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                const ok = await jsonBinSave(data);
+                if (ok) return true;
+                if (attempt < maxAttempts) {
+                    const waitMs = 1000 * Math.pow(2, attempt - 1);
+                    console.log(`☁️ 🔁 Save attempt ${attempt} failed — retrying in ${waitMs / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, waitMs));
+                }
+            }
+            return false;
+        }
+        
+        // Returns { status: 'ok', data } when cloud data was loaded,
+        // { status: 'empty' } when the bin genuinely has no usable record,
+        // { status: 'error' } when the request failed (network / rate limit / server error).
         async function jsonBinLoad() {
             try {
                 if (!jsonBinId) {
                     console.log('☁️ No JSONBin ID found - will create on first save');
-                    return null;
+                    return { status: 'empty' };
                 }
                 
                 const response = await fetch(`${JSONBIN_BASE_URL}/b/${jsonBinId}/latest`, {
@@ -3880,17 +3906,25 @@
                         'X-Master-Key': JSONBIN_API_KEY
                     }
                 });
+                if (response.status === 404) {
+                    console.log('☁️ Bin not found (404) - treating as empty');
+                    return { status: 'empty' };
+                }
+                if (!response.ok) {
+                    console.error('☁️ ❌ JSONBin load HTTP error:', response.status, await response.text().catch(() => ''));
+                    return { status: 'error' };
+                }
                 const result = await response.json();
                 if (result.record) {
                     console.log('☁️ ✅ Data loaded from JSONBin.io');
-                    return result.record;
+                    return { status: 'ok', data: result.record };
                 } else {
-                    console.error('☁️ ❌ JSONBin load error:', result);
-                    return null;
+                    console.error('☁️ ❌ JSONBin load: no record in response:', result);
+                    return { status: 'empty' };
                 }
             } catch (error) {
                 console.error('☁️ ❌ JSONBin load error:', error);
-                return null;
+                return { status: 'error' };
             }
         }
         // ==================================================================
@@ -5114,11 +5148,12 @@
                 
                 // First, try to load from localStorage (instant)
                 let localData = null;
+                let localTimestamp = null;
                 try {
                     const backupStr = localStorage.getItem('furniture_inventory_backup');
                     const transBackupStr = localStorage.getItem('furniture_transactions_backup');
                     const withdrawalsBackupStr = localStorage.getItem('furniture_withdrawals_backup');
-                    const backupTimestamp = localStorage.getItem('furniture_backup_timestamp');
+                    localTimestamp = localStorage.getItem('furniture_backup_timestamp');
                     
                     if (backupStr) {
                         localData = {
@@ -5126,7 +5161,7 @@
                             transactions: transBackupStr ? JSON.parse(transBackupStr) : [],
                             withdrawals: withdrawalsBackupStr ? JSON.parse(withdrawalsBackupStr) : []
                         };
-                        console.log('📁 Found localStorage backup:', localData.inventory.length, 'items,', localData.withdrawals.length, 'withdrawals, saved at:', backupTimestamp);
+                        console.log('📁 Found localStorage backup:', localData.inventory.length, 'items,', localData.withdrawals.length, 'withdrawals, saved at:', localTimestamp);
                     }
                 } catch (localError) {
                     console.error('❌ Error reading localStorage:', localError);
@@ -5134,40 +5169,74 @@
                 
                 // Try to load from JSONBin.io (cloud)
                 console.log('☁️ Loading from cloud...');
-                const cloudData = await jsonBinLoad();
+                const cloudResult = await jsonBinLoad();
+                const cloudData = (cloudResult.status === 'ok' && cloudResult.data && cloudResult.data.inventory) ? cloudResult.data : null;
                 
-                if (cloudData && cloudData.inventory) {
-                    // Cloud data found
+                // Does localStorage hold changes that never reached the cloud?
+                const localHasUnsyncedChanges = localData && isCloudDirty();
+                
+                if (cloudData && localHasUnsyncedChanges) {
+                    // Both exist and local has unsynced edits — keep whichever is newer.
+                    const cloudTime = cloudData.lastUpdated ? Date.parse(cloudData.lastUpdated) : 0;
+                    const localTime = localTimestamp ? Date.parse(localTimestamp) : 0;
+                    
+                    if (localTime > cloudTime) {
+                        // Local edits are newer than anything in the cloud — restore and push them
+                        inventory = localData.inventory || [];
+                        transactions = localData.transactions || [];
+                        withdrawals = localData.withdrawals || [];
+                        console.log('📁 ⚠️ Local backup has newer unsynced changes — restoring and syncing to cloud');
+                        removeToast(loadingToast);
+                        showToast('Recovered unsaved changes — syncing to cloud...', 'warning', 3500);
+                        syncToCloud();
+                    } else {
+                        // Cloud was updated more recently (e.g. from another device) — cloud wins
+                        inventory = cloudData.inventory || [];
+                        transactions = cloudData.transactions || [];
+                        withdrawals = cloudData.withdrawals || [];
+                        setCloudDirty(false);
+                        saveToLocalStorage();
+                        console.log('☁️ ✅ Cloud data is newer than local unsynced backup — using cloud');
+                        removeToast(loadingToast);
+                        showToast(`Loaded ${inventory.length} items from cloud`, 'success', 2500);
+                    }
+                } else if (cloudData) {
+                    // Cloud data found and no unsynced local edits
                     inventory = cloudData.inventory || [];
                     transactions = cloudData.transactions || [];
                     withdrawals = cloudData.withdrawals || [];
                     console.log('☁️ ✅ Loaded from cloud:', inventory.length, 'items,', transactions.length, 'transactions,', withdrawals.length, 'withdrawals');
                     
                     // Update localStorage with cloud data
-                    try {
-                        localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
-                        localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
-                        localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
-                        localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
-                    } catch (e) {}
+                    saveToLocalStorage();
                     
                     removeToast(loadingToast);
                     showToast(`Loaded ${inventory.length} items from cloud`, 'success', 2500);
                     
                 } else if (localData) {
-                    // No cloud data, use local backup
+                    // Cloud unavailable or empty — use local backup
                     inventory = localData.inventory || [];
                     transactions = localData.transactions || [];
                     withdrawals = localData.withdrawals || [];
                     console.log('📁 Using localStorage backup:', inventory.length, 'items');
                     
                     removeToast(loadingToast);
-                    showToast('Loaded from local backup', 'warning', 3000);
                     
-                    // Sync local data to cloud
-                    if (inventory.length > 0 || transactions.length > 0) {
-                        console.log('☁️ Syncing local data to cloud...');
-                        setTimeout(() => saveInventory(), 1000);
+                    if (cloudResult.status === 'error') {
+                        // Cloud request FAILED (network/rate limit) — the cloud may hold
+                        // newer data from another device, so do NOT overwrite it with this
+                        // possibly stale backup. Only unsynced local edits will be pushed
+                        // later (via the 'online' handler or the next save).
+                        console.log('☁️ ⚠️ Cloud unreachable — using local backup WITHOUT overwriting cloud');
+                        showToast('Cloud unreachable — loaded local backup', 'warning', 3500);
+                    } else {
+                        // Cloud is reachable but genuinely empty — safe to seed it
+                        showToast('Loaded from local backup', 'warning', 3000);
+                        if (inventory.length > 0 || transactions.length > 0) {
+                            console.log('☁️ Cloud is empty — seeding it with local data...');
+                            setCloudDirty(true);
+                            syncToCloud();
+                        }
                     }
                     } else {
                     // No data anywhere, start fresh
@@ -5225,7 +5294,93 @@
         }
 
         // Save inventory to JSONBin.io + localStorage backup
+        //
+        // Robust cloud sync design:
+        // - localStorage is always written first (instant, never lost).
+        // - Cloud saves are SERIALIZED: only one PUT in flight at a time. If more
+        //   edits happen during a save, one follow-up save runs afterwards with the
+        //   latest data — overlapping PUTs can no longer land out of order.
+        // - Each cloud save retries up to 4 times with exponential backoff.
+        // - A persistent "dirty" flag records unsynced local changes so they can be
+        //   pushed after a reload, when the connection returns, or on page unload.
         let _saveToastTimeout = null;
+        let _cloudSaveInFlight = false;
+        let _cloudSaveQueued = false;
+        
+        function setCloudDirty(dirty) {
+            try {
+                if (dirty) {
+                    localStorage.setItem('furniture_cloud_dirty', new Date().toISOString());
+                } else {
+                    localStorage.removeItem('furniture_cloud_dirty');
+                }
+            } catch (e) {}
+        }
+        
+        function isCloudDirty() {
+            try {
+                return !!localStorage.getItem('furniture_cloud_dirty');
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
+                localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
+                localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
+                localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
+                console.log('💾 ✅ Saved backup to localStorage');
+                return true;
+            } catch (localError) {
+                console.error('❌ Failed to save localStorage backup:', localError);
+                return false;
+            }
+        }
+        
+        // Pushes the CURRENT data to the cloud, one request at a time.
+        // If called while a save is already running, queues exactly one follow-up
+        // save which will pick up the latest data when the current one finishes.
+        async function syncToCloud() {
+            if (_cloudSaveInFlight) {
+                _cloudSaveQueued = true;
+                return;
+            }
+            _cloudSaveInFlight = true;
+            try {
+                do {
+                    _cloudSaveQueued = false;
+                    // Snapshot the latest data at the start of each attempt
+                    const cloudData = {
+                        inventory: inventory,
+                        transactions: transactions,
+                        withdrawals: withdrawals,
+                        lastUpdated: new Date().toISOString()
+                    };
+                    
+                    const cloudSaved = await jsonBinSaveWithRetry(cloudData);
+                    if (cloudSaved) {
+                        // Only clear the dirty flag if no newer edits arrived mid-save
+                        if (!_cloudSaveQueued) {
+                            setCloudDirty(false);
+                        }
+                        console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
+                        // Debounce toast so rapid saves don't spam
+                        if (_saveToastTimeout) clearTimeout(_saveToastTimeout);
+                        _saveToastTimeout = setTimeout(() => {
+                            showToast('Saved to cloud ☁️', 'success', 2000);
+                        }, 300);
+                    } else {
+                        console.log('☁️ ⚠️ Cloud save failed after retries - data safe in localStorage, will retry when possible');
+                        showToast('Cloud save failed — saved locally, will retry', 'warning', 3500);
+                    }
+                } while (_cloudSaveQueued);
+            } finally {
+                _cloudSaveInFlight = false;
+            }
+        }
+        
         async function saveInventory() {
             try {
                 console.log('🔄 Saving inventory...', inventory.length, 'items');
@@ -5248,36 +5403,12 @@
                 }
                 
                 // ========== LOCALSTORAGE BACKUP ==========
-                try {
-                    localStorage.setItem('furniture_inventory_backup', JSON.stringify(inventory));
-                    localStorage.setItem('furniture_transactions_backup', JSON.stringify(transactions));
-                    localStorage.setItem('furniture_withdrawals_backup', JSON.stringify(withdrawals));
-                    localStorage.setItem('furniture_backup_timestamp', new Date().toISOString());
-                    console.log('💾 ✅ Saved backup to localStorage');
-                } catch (localError) {
-                    console.error('❌ Failed to save localStorage backup:', localError);
-                }
+                saveToLocalStorage();
+                // Mark as unsynced until the cloud confirms the save
+                setCloudDirty(true);
 
-                // ========== JSONBIN.IO CLOUD SAVE ==========
-                const cloudData = {
-                    inventory: inventory,
-                    transactions: transactions,
-                    withdrawals: withdrawals,
-                    lastUpdated: new Date().toISOString()
-                };
-                
-                const cloudSaved = await jsonBinSave(cloudData);
-                if (cloudSaved) {
-                    console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
-                    // Debounce toast so rapid saves don't spam
-                    if (_saveToastTimeout) clearTimeout(_saveToastTimeout);
-                    _saveToastTimeout = setTimeout(() => {
-                        showToast('Saved to cloud ☁️', 'success', 2000);
-                    }, 300);
-                } else {
-                    console.log('☁️ ⚠️ Cloud save failed - data safe in localStorage');
-                    showToast('Cloud save failed — saved locally', 'warning', 3500);
-                }
+                // ========== JSONBIN.IO CLOUD SAVE (serialized + retries) ==========
+                await syncToCloud();
                 
             } catch (error) {
                 console.error('❌ Error saving inventory:', error);
@@ -5285,6 +5416,24 @@
                 showToast('Save error — data safe locally', 'error', 4000);
             }
         }
+        
+        // Retry any unsynced changes as soon as the connection comes back
+        window.addEventListener('online', () => {
+            if (isCloudDirty()) {
+                console.log('🌐 Back online — syncing unsaved changes to cloud...');
+                showToast('Back online — syncing to cloud...', 'info', 2500);
+                syncToCloud();
+            }
+        });
+        
+        // Warn before leaving if changes haven't reached the cloud yet
+        window.addEventListener('beforeunload', (e) => {
+            if (_cloudSaveInFlight || _cloudSaveQueued || isCloudDirty()) {
+                e.preventDefault();
+                e.returnValue = 'Changes are still being saved to the cloud. Leave anyway?';
+                return e.returnValue;
+            }
+        });
 
         // Save transactions (uses the unified saveInventory function)
         async function saveTransactions() {
