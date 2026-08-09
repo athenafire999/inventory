@@ -6081,7 +6081,7 @@
                 const info = categoryInfo[w.person] || categoryInfo.dee;
                 const isEmoji = info.icon.length > 1;
                 const photoHtml = w.photo
-                    ? `<img src="${w.photo}" alt="" onclick="openPhotoByUrl(${JSON.stringify(w.photo)}, event)" style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border-color);flex-shrink:0;" title="View photo">`
+                    ? `<img src="${w.photo}" alt="" onclick="openPhotoByUrl(this.src, event)" style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border-color);flex-shrink:0;" title="View photo">`
                     : '';
                 return `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: background 0.2s; gap: 12px;" 
@@ -7909,7 +7909,7 @@
                 const isIncome = t.type === 'income';
                 const acctLabel = t.account === 'cash' ? '💵 Cash' : '💳 Digital';
                 const photoHtml = t.photo
-                    ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(${JSON.stringify(t.photo)}, event)" style="width:44px;height:44px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid #ddd;flex-shrink:0;" title="View photo">`
+                    ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(this.src, event)" style="width:44px;height:44px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid #ddd;flex-shrink:0;" title="View photo">`
                     : '';
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'}; gap: 12px;">
