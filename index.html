@@ -3226,7 +3226,18 @@
                         </div>
                         <div>
                             <label for="expenseReason" style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Reason</label>
-                            <input type="text" id="expenseReason" placeholder="e.g., Petrol, tools, cleaning supplies" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                <input type="text" id="expenseReason" placeholder="e.g., Petrol, tools, cleaning supplies" style="flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                                <div id="expensePhotoPreview" style="display: none; position: relative; flex-shrink: 0;">
+                                    <img id="expensePhotoThumb" src="" alt="Photo" onclick="openPhotoByUrl(document.getElementById('expensePhotoThumb').src)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+                                    <button type="button" onclick="clearPendingPhoto('expense')" title="Remove photo" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: white; font-size: 12px; cursor: pointer; line-height: 1;">✕</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('expensePhotoInput').click()" style="padding: 6px 10px; font-size: 0.85em;">📷 Upload</button>
+                                <button type="button" class="btn btn-secondary" onclick="openSoldPhotoPicker('expense')" style="padding: 6px 10px; font-size: 0.85em;">🪑 From sold</button>
+                                <input type="file" id="expensePhotoInput" accept="image/*" style="display: none;" onchange="handlePendingPhotoFile('expense', this)">
+                            </div>
                         </div>
                         <button onclick="addExpenseWithdrawal()" class="btn btn-success" style="padding: 12px 24px; white-space: nowrap;">
                             + Record
@@ -3323,7 +3334,18 @@
                     </div>
                     <div style="margin-top: 15px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary);">Note <span id="withdrawalNoteRequired" style="display: none; color: #ef4444;">(required for Expenses)</span><span id="withdrawalNoteOptional">(optional)</span></label>
-                        <input type="text" id="withdrawalNote" placeholder="What is this withdrawal for?" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <input type="text" id="withdrawalNote" placeholder="What is this withdrawal for?" style="flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+                            <div id="withdrawalPhotoPreview" style="display: none; position: relative; flex-shrink: 0;">
+                                <img id="withdrawalPhotoThumb" src="" alt="Photo" onclick="openPhotoByUrl(document.getElementById('withdrawalPhotoThumb').src)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid var(--border-color);">
+                                <button type="button" onclick="clearPendingPhoto('withdrawal')" title="Remove photo" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: white; font-size: 12px; cursor: pointer; line-height: 1;">✕</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('withdrawalPhotoInput').click()" style="padding: 6px 10px; font-size: 0.85em;">📷 Upload</button>
+                            <button type="button" class="btn btn-secondary" onclick="openSoldPhotoPicker('withdrawal')" style="padding: 6px 10px; font-size: 0.85em;">🪑 From sold</button>
+                            <input type="file" id="withdrawalPhotoInput" accept="image/*" style="display: none;" onchange="handlePendingPhotoFile('withdrawal', this)">
+                        </div>
                     </div>
                 </div>
                 
@@ -3695,7 +3717,18 @@
                 <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
                     <div class="form-group">
                         <label>Description</label>
-                        <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit" style="flex: 1;">
+                            <div id="transactionPhotoPreview" style="display: none; position: relative; flex-shrink: 0;">
+                                <img id="transactionPhotoThumb" src="" alt="Photo" onclick="openPhotoByUrl(document.getElementById('transactionPhotoThumb').src)" style="width: 52px; height: 52px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 1px solid #ddd;">
+                                <button type="button" onclick="clearPendingPhoto('transaction')" title="Remove photo" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: white; font-size: 12px; cursor: pointer; line-height: 1;">✕</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('transactionPhotoInput').click()" style="padding: 6px 10px; font-size: 0.85em;">📷 Upload</button>
+                            <button type="button" class="btn btn-secondary" onclick="openSoldPhotoPicker('transaction')" style="padding: 6px 10px; font-size: 0.85em;">🪑 From sold</button>
+                            <input type="file" id="transactionPhotoInput" accept="image/*" style="display: none;" onchange="handlePendingPhotoFile('transaction', this)">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Amount (£)</label>
@@ -3747,6 +3780,21 @@
             <div id="soldByStoreContent" style="padding: 10px 0;"></div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button class="btn btn-success" onclick="closeSoldByStoreModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pick photo from a sold listing -->
+    <div id="soldPhotoPickerModal" class="modal">
+        <div class="modal-content" style="max-width: 720px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Pick photo from sold listing</span>
+                <button onclick="closeSoldPhotoPicker()" style="background: none; border: none; font-size: 1.5em; cursor: pointer; color: #666;">✕</button>
+            </div>
+            <input type="text" id="soldPhotoPickerSearch" placeholder="Search sold items..." oninput="renderSoldPhotoPicker()" style="width: 100%; padding: 10px 12px; margin-bottom: 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; background: var(--bg-secondary); color: var(--text-primary); box-sizing: border-box;">
+            <div id="soldPhotoPickerList" style="max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;"></div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeSoldPhotoPicker()">Cancel</button>
             </div>
         </div>
     </div>
@@ -3908,139 +3956,6 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlweWdyZWV4b2tydXdxanF2dXVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3Mjg0NjcsImV4cCI6MjA3NjMwNDQ2N30.1itsG_KGK4_wqA7y1La9neJ9AkH4hDe0ouEwM1xvYwA';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Test Supabase connection
-        console.log('Supabase client initialized:', supabaseClient);
-        console.log('Supabase URL:', supabaseUrl);
-        console.log('Supabase Key (first 20 chars):', supabaseKey.substring(0, 20) + '...');
-
-        // Test Supabase connection
-        async function testSupabaseConnection() {
-            try {
-                console.log('Testing Supabase connection...');
-                const { data, error } = await supabaseClient
-                    .from('inventory')
-                    .select('count')
-                    .limit(1);
-                
-                if (error) {
-                    console.error('Supabase connection test failed:', error);
-                } else {
-                    console.log('Supabase connection test successful:', data);
-                }
-                
-                // Test inventory table specifically
-                console.log('Testing inventory table access...');
-                const { data: testData, error: testError } = await supabaseClient
-                    .from('inventory')
-                    .select('*')
-                    .limit(1);
-                
-                if (testError) {
-                    console.error('❌ Inventory table access failed:', testError);
-                    console.error('❌ Error details:', {
-                        message: testError.message,
-                        details: testError.details,
-                        hint: testError.hint,
-                        code: testError.code
-                    });
-                } else {
-                    console.log('✅ Inventory table access successful:', testData);
-                }
-                
-                // Test specific columns
-                console.log('Testing inventory table columns...');
-                const { data: colData, error: colError } = await supabaseClient
-                    .from('inventory')
-                    .select('id, item_number, name, purchase_date, purchase_price, status')
-                    .limit(1);
-                
-                if (colError) {
-                    console.error('❌ Inventory column test failed:', colError);
-                } else {
-                    console.log('✅ Inventory column test successful:', colData);
-                }
-                
-                // Test transactions table for comparison
-                console.log('Testing transactions table access...');
-                const { data: transData, error: transError } = await supabaseClient
-                    .from('transactions')
-                    .select('*')
-                    .limit(1);
-                
-                if (transError) {
-                    console.error('❌ Transactions table access failed:', transError);
-                } else {
-                    console.log('✅ Transactions table access successful:', transData);
-                }
-                
-            } catch (err) {
-                console.error('Supabase connection test error:', err);
-            }
-        }
-
-        // Test inserting a simple item
-        async function testInventoryInsert() {
-            try {
-                console.log('🧪 Testing inventory insert...');
-                const testItem = {
-                    item_number: 'TEST-001',
-                    name: 'Test Item',
-                    purchase_date: '2024-01-01',
-                    purchase_price: 10.00,
-                    sold_date: null,
-                    sold_price: null,
-                    status: 'ready',
-                    description: 'Test item for debugging',
-                    work_notes: '',
-                    affect_balance: true,
-                    add_to_balance: false,
-                    photos: [],
-                    work_photos: []
-                };
-                
-                const { data, error } = await supabaseClient
-                    .from('inventory')
-                    .insert([testItem])
-                    .select();
-                
-                if (error) {
-                    console.error('❌ Test insert failed:', error);
-                    console.error('❌ Insert error details:', {
-                        message: error.message,
-                        details: error.details,
-                        hint: error.hint,
-                        code: error.code
-                    });
-                } else {
-                    console.log('✅ Test insert successful:', data);
-                    
-                    // Clean up test item
-                    if (data && data.length > 0) {
-                        const { error: deleteError } = await supabaseClient
-                            .from('inventory')
-                            .delete()
-                            .eq('id', data[0].id);
-                        
-                        if (deleteError) {
-                            console.error('❌ Test cleanup failed:', deleteError);
-                        } else {
-                            console.log('✅ Test cleanup successful');
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error('❌ Test insert error:', err);
-            }
-        }
-
-        // Run connection test after page loads
-        window.addEventListener('load', () => {
-            setTimeout(async () => {
-                await testSupabaseConnection();
-                await testInventoryInsert();
-            }, 1000); // Wait 1 second for everything to load
-        });
-
         // ==================== TOAST NOTIFICATION SYSTEM ====================
         function showToast(message, type = 'info', duration = 3000) {
             const container = document.getElementById('toastContainer');
@@ -4164,6 +4079,182 @@
             }
             return compressed;
         }
+
+        // ==================== TRANSACTION / WITHDRAWAL PHOTO ATTACH ====================
+        // Pending photo for each form (transaction, withdrawal, expense). Stored as a
+        // data URL or existing ImgBB URL until save, then uploaded if needed.
+        const pendingPhotos = {
+            transaction: null,
+            withdrawal: null,
+            expense: null
+        };
+        let soldPhotoPickerTarget = null;
+
+        function updatePendingPhotoPreview(target) {
+            const preview = document.getElementById(target + 'PhotoPreview');
+            const thumb = document.getElementById(target + 'PhotoThumb');
+            if (!preview || !thumb) return;
+            if (pendingPhotos[target]) {
+                thumb.src = pendingPhotos[target];
+                preview.style.display = 'block';
+            } else {
+                thumb.src = '';
+                preview.style.display = 'none';
+            }
+        }
+
+        function clearPendingPhoto(target) {
+            pendingPhotos[target] = null;
+            const input = document.getElementById(target + 'PhotoInput');
+            if (input) input.value = '';
+            updatePendingPhotoPreview(target);
+        }
+
+        function setPendingPhoto(target, photoUrl) {
+            pendingPhotos[target] = photoUrl;
+            updatePendingPhotoPreview(target);
+        }
+
+        function handlePendingPhotoFile(target, input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => setPendingPhoto(target, e.target.result);
+            reader.readAsDataURL(file);
+        }
+
+        // Compress + upload if needed; reuse existing URLs (e.g. from sold listings)
+        async function resolvePendingPhoto(target) {
+            const photo = pendingPhotos[target];
+            if (!photo) return null;
+            if (photo.startsWith('http')) return photo;
+            const compressed = await compressImage(photo, 800, 0.7);
+            return await uploadToImgBB(compressed);
+        }
+
+        function openPhotoByUrl(url) {
+            if (!url) return;
+            currentItemPhotos = [url];
+            currentPhotoIndex = 0;
+            displayPhoto();
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function openSoldPhotoPicker(target) {
+            soldPhotoPickerTarget = target;
+            const search = document.getElementById('soldPhotoPickerSearch');
+            if (search) search.value = '';
+            renderSoldPhotoPicker();
+            document.getElementById('soldPhotoPickerModal').classList.add('active');
+        }
+
+        function closeSoldPhotoPicker() {
+            document.getElementById('soldPhotoPickerModal').classList.remove('active');
+            soldPhotoPickerTarget = null;
+        }
+
+        function renderSoldPhotoPicker() {
+            const list = document.getElementById('soldPhotoPickerList');
+            if (!list) return;
+            const q = (document.getElementById('soldPhotoPickerSearch')?.value || '').trim().toLowerCase();
+
+            const soldWithPhotos = inventory
+                .filter(item => item.status === 'sold')
+                .map(item => {
+                    const photos = (item.photos && item.photos.length > 0)
+                        ? item.photos
+                        : (item.photo ? [item.photo] : []);
+                    return { item, photos };
+                })
+                .filter(({ photos }) => photos.length > 0)
+                .filter(({ item }) => {
+                    if (!q) return true;
+                    return (item.name || '').toLowerCase().includes(q) ||
+                        (item.itemNumber || '').toLowerCase().includes(q);
+                })
+                .sort((a, b) => new Date(b.item.soldDate || 0) - new Date(a.item.soldDate || 0));
+
+            if (soldWithPhotos.length === 0) {
+                list.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted);">No sold listings with photos found</div>`;
+                return;
+            }
+
+            list.innerHTML = soldWithPhotos.map(({ item, photos }) => {
+                const main = photos[0];
+                const extras = photos.length > 1
+                    ? `<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,0.65);color:white;font-size:0.7em;padding:2px 6px;border-radius:10px;">+${photos.length - 1}</div>`
+                    : '';
+                const safeName = (item.name || 'Untitled').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `
+                    <button type="button" onclick="selectSoldItemForPhoto(${JSON.stringify(String(item.id))})"
+                        style="position:relative; border:1px solid var(--border-color); border-radius:10px; padding:0; overflow:hidden; cursor:pointer; background:var(--bg-card); text-align:left;">
+                        <img src="${main}" alt="" style="width:100%; height:110px; object-fit:cover; display:block;">
+                        ${extras}
+                        <div style="padding:8px;">
+                            <div style="font-weight:600; font-size:0.85em; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${safeName}</div>
+                            <div style="font-size:0.75em; color:var(--text-muted);">${item.itemNumber || ''}${item.soldPrice ? ' · £' + Number(item.soldPrice).toFixed(0) : ''}</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        let _soldPickerPhotos = [];
+
+        function selectSoldItemForPhoto(itemId) {
+            const item = inventory.find(i => String(i.id) === String(itemId));
+            if (!item) return;
+            const photos = (item.photos && item.photos.length > 0)
+                ? item.photos
+                : (item.photo ? [item.photo] : []);
+            if (photos.length === 0) return;
+
+            if (photos.length === 1) {
+                pickSoldPhoto(photos[0], item.name || '');
+                return;
+            }
+
+            _soldPickerPhotos = photos;
+            const list = document.getElementById('soldPhotoPickerList');
+            const safeTitle = (item.name || 'Item').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            list.innerHTML = `
+                <div style="grid-column: 1 / -1; margin-bottom: 8px;">
+                    <button type="button" class="btn btn-secondary" onclick="renderSoldPhotoPicker()" style="padding:6px 10px; font-size:0.85em;">← Back to sold items</button>
+                    <div style="margin-top:8px; font-weight:600;">${safeTitle} — pick a photo</div>
+                </div>
+                ${photos.map((p, idx) => `
+                    <button type="button" onclick="pickSoldPhotoByIndex(${idx}, ${JSON.stringify(item.name || '')})"
+                        style="border:1px solid var(--border-color); border-radius:10px; padding:0; overflow:hidden; cursor:pointer; background:var(--bg-card);">
+                        <img src="${p}" alt="Photo ${idx + 1}" style="width:100%; height:140px; object-fit:cover; display:block;">
+                    </button>
+                `).join('')}
+            `;
+        }
+
+        function pickSoldPhotoByIndex(idx, itemName) {
+            const photo = _soldPickerPhotos[idx];
+            if (photo) pickSoldPhoto(photo, itemName || '');
+        }
+
+        function pickSoldPhoto(photoUrl, itemName) {
+            if (!soldPhotoPickerTarget || !photoUrl) return;
+            setPendingPhoto(soldPhotoPickerTarget, photoUrl);
+
+            // If description/note is empty, fill it from the sold item name
+            if (soldPhotoPickerTarget === 'transaction') {
+                const desc = document.getElementById('transactionDesc');
+                if (desc && !desc.value.trim() && itemName) desc.value = itemName;
+            } else if (soldPhotoPickerTarget === 'withdrawal') {
+                const note = document.getElementById('withdrawalNote');
+                if (note && !note.value.trim() && itemName) note.value = itemName;
+            } else if (soldPhotoPickerTarget === 'expense') {
+                const reason = document.getElementById('expenseReason');
+                if (reason && !reason.value.trim() && itemName) reason.value = itemName;
+            }
+
+            closeSoldPhotoPicker();
+        }
+        // ==================================================================
 
         // Authentication variables
         let currentUser = null;
@@ -4815,7 +4906,7 @@
             }
         }
 
-        function addExpenseWithdrawal() {
+        async function addExpenseWithdrawal() {
             const amount = parseFloat(document.getElementById('expenseAmount').value);
             const reason = document.getElementById('expenseReason').value.trim();
 
@@ -4829,12 +4920,15 @@
                 return;
             }
 
+            const photo = await resolvePendingPhoto('expense');
+
             const withdrawal = {
                 id: Date.now(),
                 person: 'expenses',
                 amount: amount,
                 note: reason,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                photo: photo || null
             };
 
             withdrawals.push(withdrawal);
@@ -4844,6 +4938,7 @@
 
             document.getElementById('expenseAmount').value = '';
             document.getElementById('expenseReason').value = '';
+            clearPendingPhoto('expense');
             showToast('Expense recorded: £' + amount.toFixed(2), 'success', 2500);
         }
 
@@ -5269,6 +5364,18 @@
                 renderWithdrawals();
                 console.log('🎨 UI updated with loaded data');
                 
+                _dataLoaded = true;
+                _lastCloudCheck = Date.now();
+                if (isCloudDirty()) {
+                    setSyncStatus(navigator.onLine === false ? 'offline' : 'error');
+                } else if (cloudData) {
+                    setSyncStatus('synced');
+                } else if (cloudResult.status === 'error') {
+                    setSyncStatus(navigator.onLine === false ? 'offline' : 'error');
+                } else {
+                    setSyncStatus('synced');
+                }
+                
             } catch (error) {
                 console.error('❌ Error loading data:', error);
                 removeToast(loadingToast);
@@ -5293,6 +5400,8 @@
                 renderInventory();
                 updateStatistics();
                 renderWithdrawals();
+                _dataLoaded = true;
+                setSyncStatus(navigator.onLine === false ? 'offline' : 'error');
             }
         }
 
@@ -5354,6 +5463,35 @@
             _lastSynced.withdrawals = JSON.stringify(withdrawals);
         }
         
+        // ==================== SYNC STATUS INDICATOR ====================
+        // Small pill fixed to the bottom-left showing cloud sync state at a glance.
+        let _syncStatusEl = null;
+        function setSyncStatus(state) {
+            const styles = {
+                synced:  { text: '☁️ Synced',                 bg: '#dcfce7', color: '#166534', border: '#86efac' },
+                saving:  { text: '☁️ Saving…',                bg: '#fef3c7', color: '#92400e', border: '#fcd34d' },
+                error:   { text: '⚠️ Not synced — will retry', bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' },
+                offline: { text: '📴 Offline — saved locally', bg: '#e5e7eb', color: '#374151', border: '#9ca3af' }
+            };
+            const s = styles[state];
+            if (!s) return;
+            if (!_syncStatusEl) {
+                _syncStatusEl = document.createElement('div');
+                _syncStatusEl.id = 'syncStatusIndicator';
+                _syncStatusEl.style.cssText =
+                    'position:fixed;bottom:12px;left:12px;z-index:9999;' +
+                    'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;' +
+                    'font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,0.15);' +
+                    'transition:background 0.3s,color 0.3s;pointer-events:none;';
+                document.body.appendChild(_syncStatusEl);
+            }
+            _syncStatusEl.textContent = s.text;
+            _syncStatusEl.style.background = s.bg;
+            _syncStatusEl.style.color = s.color;
+            _syncStatusEl.style.border = '1px solid ' + s.border;
+        }
+        // ================================================================
+        
         // Pushes the CURRENT data to the cloud, one pass at a time.
         // If called while a save is already running, queues exactly one follow-up
         // save which will pick up the latest data when the current one finishes.
@@ -5363,6 +5501,7 @@
                 return;
             }
             _cloudSaveInFlight = true;
+            setSyncStatus('saving');
             try {
                 do {
                     _cloudSaveQueued = false;
@@ -5395,6 +5534,7 @@
                         // Only clear the dirty flag if no newer edits arrived mid-save
                         if (!_cloudSaveQueued) {
                             setCloudDirty(false);
+                            setSyncStatus('synced');
                         }
                         console.log('☁️ ✅ Data synced to cloud - accessible from all devices!');
                         // Debounce toast so rapid saves don't spam
@@ -5404,6 +5544,7 @@
                         }, 300);
                     } else {
                         console.log('☁️ ⚠️ Cloud save failed after retries - data safe in localStorage, will retry when possible');
+                        setSyncStatus(navigator.onLine === false ? 'offline' : 'error');
                         showToast('Cloud save failed — saved locally, will retry', 'warning', 3500);
                     }
                 } while (_cloudSaveQueued);
@@ -5465,6 +5606,102 @@
                 return e.returnValue;
             }
         });
+        
+        window.addEventListener('offline', () => {
+            setSyncStatus(isCloudDirty() ? 'offline' : 'synced');
+        });
+
+        // ==================== CLOUD AUTO-REFRESH ====================
+        // Pulls changes made on OTHER devices without needing a manual page
+        // reload. Runs when you return to the tab and every 5 minutes while
+        // the tab is visible. Never overwrites local edits that haven't
+        // synced yet, and stays out of the way while an item is being edited.
+        let _dataLoaded = false;   // set true once loadInventory() completes
+        let _lastCloudCheck = 0;
+        
+        async function checkCloudForUpdates(force = false) {
+            if (!_dataLoaded) return;
+            if (_cloudSaveInFlight || _cloudSaveQueued) return;
+            if (typeof editingIndex !== 'undefined' && editingIndex !== -1) return; // user mid-edit
+            if (!force && Date.now() - _lastCloudCheck < 30000) return; // at most every 30s
+            _lastCloudCheck = Date.now();
+            
+            // If there are unsynced local changes, push them instead of pulling
+            if (isCloudDirty()) {
+                if (navigator.onLine !== false) {
+                    console.log('🔄 Auto-sync: retrying unsynced local changes...');
+                    syncToCloud();
+                }
+                return;
+            }
+            
+            try {
+                const [invResult, transResult, wdResult] = await Promise.all([
+                    jsonBinLoad(BIN_IDS.inventory),
+                    jsonBinLoad(BIN_IDS.transactions),
+                    jsonBinLoad(BIN_IDS.withdrawals)
+                ]);
+                
+                // Another save/edit may have started while we were fetching — bail out
+                if (_cloudSaveInFlight || _cloudSaveQueued || isCloudDirty()) return;
+                if (typeof editingIndex !== 'undefined' && editingIndex !== -1) return;
+                
+                let changed = false;
+                if (invResult.status === 'ok' && invResult.data && invResult.data.inventory) {
+                    const s = JSON.stringify(invResult.data.inventory);
+                    if (s !== _lastSynced.inventory) {
+                        inventory = invResult.data.inventory;
+                        _lastSynced.inventory = s;
+                        changed = true;
+                    }
+                }
+                if (transResult.status === 'ok' && transResult.data && transResult.data.transactions) {
+                    const s = JSON.stringify(transResult.data.transactions);
+                    if (s !== _lastSynced.transactions) {
+                        transactions = transResult.data.transactions;
+                        _lastSynced.transactions = s;
+                        changed = true;
+                    }
+                }
+                if (wdResult.status === 'ok' && wdResult.data && wdResult.data.withdrawals) {
+                    const s = JSON.stringify(wdResult.data.withdrawals);
+                    if (s !== _lastSynced.withdrawals) {
+                        withdrawals = wdResult.data.withdrawals;
+                        _lastSynced.withdrawals = s;
+                        changed = true;
+                    }
+                }
+                
+                if (changed) {
+                    console.log('🔄 ✅ Auto-refresh: newer data found in cloud — updating view');
+                    saveToLocalStorage();
+                    renderInventory();
+                    updateStatistics();
+                    renderWithdrawals();
+                    setSyncStatus('synced');
+                    showToast('Updated with changes from another device', 'info', 3000);
+                } else {
+                    console.log('🔄 Auto-refresh: already up to date');
+                }
+            } catch (error) {
+                console.error('🔄 ❌ Auto-refresh check failed:', error);
+            }
+        }
+        
+        // Check when returning to the tab (e.g. after using the app on another device)
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                checkCloudForUpdates();
+            }
+        });
+        
+        // And every 5 minutes while the tab stays open and visible
+        setInterval(() => {
+            if (!document.hidden) {
+                checkCloudForUpdates();
+            }
+        }, 5 * 60 * 1000);
+        // =============================================================
 
         // Save transactions (uses the unified saveInventory function)
         async function saveTransactions() {
@@ -5482,7 +5719,7 @@
             if (optionalEl) optionalEl.style.display = isExpenses ? 'none' : 'inline';
         }
         
-        function addWithdrawal() {
+        async function addWithdrawal() {
             const person = document.getElementById('withdrawalPerson').value;
             const amount = parseFloat(document.getElementById('withdrawalAmount').value);
             const note = document.getElementById('withdrawalNote').value.trim();
@@ -5509,13 +5746,16 @@
                 alert(`This would exceed ${categoryNames[person]}'s limit!\n\nCurrent total: £${currentTotal.toFixed(2)}\nLimit: £${limit.toFixed(2)}\nRemaining: £${remaining.toFixed(2)}\n\nMaximum you can add: £${remaining.toFixed(2)}`);
                 return;
             }
+
+            const photo = await resolvePendingPhoto('withdrawal');
             
             const withdrawal = {
                 id: Date.now(),
                 person: person,
                 amount: amount,
                 note: note,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                photo: photo || null
             };
             
             withdrawals.push(withdrawal);
@@ -5525,6 +5765,7 @@
             // Clear form
             document.getElementById('withdrawalAmount').value = '';
             document.getElementById('withdrawalNote').value = '';
+            clearPendingPhoto('withdrawal');
         }
         
         function getWithdrawalTotal(person) {
@@ -5791,15 +6032,19 @@
             listContainer.innerHTML = sortedWithdrawals.map(w => {
                 const info = categoryInfo[w.person] || categoryInfo.dee;
                 const isEmoji = info.icon.length > 1;
+                const photoHtml = w.photo
+                    ? `<img src="${w.photo}" alt="" onclick="openPhotoByUrl(${JSON.stringify(w.photo)})" style="width:40px;height:40px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border-color);flex-shrink:0;">`
+                    : '';
                 return `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: background 0.2s;" 
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); transition: background 0.2s; gap: 12px;" 
                      onmouseover="this.style.background='var(--bg-secondary)'" 
                      onmouseout="this.style.background='transparent'">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${info.color}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: ${isEmoji ? '1.2em' : '1em'};">
+                    <div style="display: flex; align-items: center; gap: 12px; min-width:0; flex:1;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: ${info.color}; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: ${isEmoji ? '1.2em' : '1em'}; flex-shrink:0;">
                             ${info.icon}
                         </div>
-                        <div>
+                        ${photoHtml}
+                        <div style="min-width:0;">
                             <div style="font-weight: 600; color: var(--text-primary);">${info.name}</div>
                             <div style="font-size: 0.85em; color: var(--text-muted);">
                                 ${new Date(w.date).toLocaleDateString()} ${new Date(w.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -5807,7 +6052,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 15px; flex-shrink:0;">
                         <div style="font-size: 1.1em; font-weight: 700; color: var(--text-primary);">£${w.amount.toFixed(2)}</div>
                         <button onclick="deleteWithdrawal(${w.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 5px; font-size: 1.2em;" title="Delete">🗑️</button>
                     </div>
@@ -6479,10 +6724,8 @@
         // Save edit
         function saveEdit() {
             console.log('💾 saveEdit called, editingIndex:', editingIndex);
-            alert('💾 saveEdit called, editingIndex: ' + editingIndex); // Mobile debug
             if (editingIndex === -1) {
                 console.log('❌ No item being edited');
-                alert('❌ No item being edited'); // Mobile debug
                 return;
             }
             
@@ -6491,7 +6734,6 @@
             
             console.log('📝 Original item:', oldItem);
             console.log('📝 Inventory before edit:', inventory.length, 'items');
-            alert('📝 Inventory before edit: ' + inventory.length + ' items'); // Mobile debug
             
             // Get form values with mobile-safe parsing
             const nameEl = document.getElementById('editItemName');
@@ -7511,10 +7753,11 @@
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionType').value = 'expense';
             document.getElementById('transactionAccount').value = 'digital';
+            clearPendingPhoto('transaction');
         }
 
         // Add transaction
-        function addTransaction() {
+        async function addTransaction() {
             const desc = document.getElementById('transactionDesc').value;
             const amount = parseFloat(document.getElementById('transactionAmount').value);
             const type = document.getElementById('transactionType').value;
@@ -7526,13 +7769,16 @@
                 return;
             }
 
+            const photo = await resolvePendingPhoto('transaction');
+
             const transaction = {
                 id: Date.now(),
                 description: desc,
                 amount: amount,
                 type: type,
                 account: account,
-                date: date
+                date: date,
+                photo: photo || null
             };
 
             transactions.push(transaction);
@@ -7614,13 +7860,19 @@
             transactionList.innerHTML = sortedTransactions.map(t => {
                 const isIncome = t.type === 'income';
                 const acctLabel = t.account === 'cash' ? '💵 Cash' : '💳 Digital';
+                const photoHtml = t.photo
+                    ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(${JSON.stringify(t.photo)})" style="width:44px;height:44px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid #ddd;flex-shrink:0;">`
+                    : '';
                 return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'};">
-                        <div>
-                            <div style="font-weight: 600; color: #333;">${t.description}</div>
-                            <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'}; gap: 12px;">
+                        <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                            ${photoHtml}
+                            <div style="min-width:0;">
+                                <div style="font-weight: 600; color: #333;">${t.description}</div>
+                                <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
+                            </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px; flex-shrink:0;">
                             <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
                                 ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
                             </div>
