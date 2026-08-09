@@ -3689,8 +3689,8 @@
     </div>
 
     <!-- Photo Modal (lightbox) -->
-    <div id="photoModal" class="photo-modal" onclick="closePhotoModal()">
-        <button class="photo-close" onclick="event.stopPropagation(); closePhotoModal()">✕</button>
+    <div id="photoModal" class="photo-modal" onclick="if (event.target === this) closePhotoModal(event)">
+        <button class="photo-close" onclick="event.stopPropagation(); closePhotoModal(event)">✕</button>
         <div class="photo-modal-content" onclick="event.stopPropagation()">
             <button class="photo-nav prev" onclick="event.stopPropagation(); prevPhoto()">‹</button>
             <img id="photoModalImage" src="" alt="Full size photo">
@@ -4152,15 +4152,42 @@
                 event.stopPropagation();
             }
             if (!url) return;
-            currentItemPhotos = [url];
-            currentPhotoIndex = 0;
+            showPhotoLightbox([url], 0);
+        }
+
+        // Opens the full-screen photo lightbox. Defers showing until after the
+        // current click finishes, otherwise the same click hits the backdrop
+        // and immediately closes the popup.
+        let _photoLightboxIgnoreCloseUntil = 0;
+        let currentPhotoIndex = 0;
+        let currentItemPhotos = [];
+        function showPhotoLightbox(photos, startIndex) {
+            if (!photos || photos.length === 0) return;
+            currentItemPhotos = photos;
+            currentPhotoIndex = startIndex || 0;
             displayPhoto();
             const modal = document.getElementById('photoModal');
-            if (modal) {
-                // Move lightbox to end of body so it sits above every other modal
-                document.body.appendChild(modal);
+            if (!modal) return;
+            document.body.appendChild(modal);
+            _photoLightboxIgnoreCloseUntil = Date.now() + 400;
+            // Defer so the opening click cannot also trigger closePhotoModal
+            setTimeout(() => {
                 modal.classList.add('active');
+            }, 0);
+        }
+
+        function closePhotoModal(event) {
+            if (Date.now() < _photoLightboxIgnoreCloseUntil) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                return;
             }
+            const modal = document.getElementById('photoModal');
+            if (modal) modal.classList.remove('active');
+            currentItemPhotos = [];
+            currentPhotoIndex = 0;
         }
 
         function openSoldPhotoPicker(target) {
@@ -4821,8 +4848,6 @@
         let currentFullViewItemNumber = null;
         let transactions = [];
         const BASE_CASH_BALANCE = 100;
-        let currentPhotoIndex = 0;
-        let currentItemPhotos = [];
         
         // Sold tab month filter (defaults to current month)
         let soldMonthFilter = { month: new Date().getMonth(), year: new Date().getFullYear() };
@@ -7911,39 +7936,14 @@
         // Photo modal functions
         function openPhotoModal(itemIndex, photoIndex) {
             const item = inventory[itemIndex];
-            currentItemPhotos = item.photos && item.photos.length > 0 ? item.photos : 
+            const photos = item.photos && item.photos.length > 0 ? item.photos :
                                (item.photo ? [item.photo] : []);
-            
-            if (currentItemPhotos.length === 0) return;
-            
-            currentPhotoIndex = photoIndex;
-            displayPhoto();
-            const modal = document.getElementById('photoModal');
-            if (modal) {
-                document.body.appendChild(modal);
-                modal.classList.add('active');
-            }
+            showPhotoLightbox(photos, photoIndex);
         }
 
         function openWorkPhotoModal(itemIndex, photoIndex) {
             const item = inventory[itemIndex];
-            currentItemPhotos = item.workPhotos || [];
-            
-            if (currentItemPhotos.length === 0) return;
-            
-            currentPhotoIndex = photoIndex;
-            displayPhoto();
-            const modal = document.getElementById('photoModal');
-            if (modal) {
-                document.body.appendChild(modal);
-                modal.classList.add('active');
-            }
-        }
-
-        function closePhotoModal() {
-            document.getElementById('photoModal').classList.remove('active');
-            currentItemPhotos = [];
-            currentPhotoIndex = 0;
+            showPhotoLightbox(item.workPhotos || [], photoIndex);
         }
 
         document.addEventListener('keydown', (e) => {
@@ -7955,20 +7955,24 @@
         });
 
         function displayPhoto() {
-            document.getElementById('photoModalImage').src = currentItemPhotos[currentPhotoIndex];
-            document.getElementById('photoCounter').textContent = 
-                `${currentPhotoIndex + 1} / ${currentItemPhotos.length}`;
+            if (!currentItemPhotos.length) return;
+            const img = document.getElementById('photoModalImage');
+            const counter = document.getElementById('photoCounter');
+            if (img) img.src = currentItemPhotos[currentPhotoIndex];
+            if (counter) counter.textContent = `${currentPhotoIndex + 1} / ${currentItemPhotos.length}`;
             
             // Hide/show nav buttons
             const prevBtn = document.querySelector('.photo-nav.prev');
             const nextBtn = document.querySelector('.photo-nav.next');
             
-            if (currentItemPhotos.length <= 1) {
-                prevBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
-            } else {
-                prevBtn.style.display = 'block';
-                nextBtn.style.display = 'block';
+            if (prevBtn && nextBtn) {
+                if (currentItemPhotos.length <= 1) {
+                    prevBtn.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                } else {
+                    prevBtn.style.display = 'block';
+                    nextBtn.style.display = 'block';
+                }
             }
         }
 
@@ -8009,7 +8013,7 @@
 
         document.getElementById('photoModal').addEventListener('click', function(e) {
             if (e.target === this || e.target.classList.contains('photo-close')) {
-                closePhotoModal();
+                closePhotoModal(e);
             }
         });
 
