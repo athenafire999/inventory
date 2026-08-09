@@ -4236,7 +4236,7 @@
                     : '';
                 const safeName = (item.name || 'Untitled').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 return `
-                    <button type="button" onclick="selectSoldItemForPhoto(${JSON.stringify(String(item.id))})"
+                    <button type="button" onclick="selectSoldItemForPhoto('${String(item.id).replace(/'/g, "\\'")}')"
                         style="position:relative; border:1px solid var(--border-color); border-radius:10px; padding:0; overflow:hidden; cursor:pointer; background:var(--bg-card); text-align:left;">
                         <img src="${main}" alt="" style="width:100%; height:110px; object-fit:cover; display:block;">
                         ${extras}
@@ -4250,6 +4250,7 @@
         }
 
         let _soldPickerPhotos = [];
+        let _soldPickerItemName = '';
 
         function selectSoldItemForPhoto(itemId) {
             const item = inventory.find(i => String(i.id) === String(itemId));
@@ -4259,8 +4260,10 @@
                 : (item.photo ? [item.photo] : []);
             if (photos.length === 0) return;
 
+            _soldPickerItemName = item.name || '';
+
             if (photos.length === 1) {
-                pickSoldPhoto(photos[0], item.name || '');
+                pickSoldPhoto(photos[0], _soldPickerItemName);
                 return;
             }
 
@@ -4273,7 +4276,7 @@
                     <div style="margin-top:8px; font-weight:600;">${safeTitle} — pick a photo</div>
                 </div>
                 ${photos.map((p, idx) => `
-                    <button type="button" onclick="pickSoldPhotoByIndex(${idx}, ${JSON.stringify(item.name || '')})"
+                    <button type="button" onclick="pickSoldPhotoByIndex(${idx})"
                         style="border:1px solid var(--border-color); border-radius:10px; padding:0; overflow:hidden; cursor:pointer; background:var(--bg-card);">
                         <img src="${p}" alt="Photo ${idx + 1}" style="width:100%; height:140px; object-fit:cover; display:block;">
                     </button>
@@ -4281,9 +4284,9 @@
             `;
         }
 
-        function pickSoldPhotoByIndex(idx, itemName) {
+        function pickSoldPhotoByIndex(idx) {
             const photo = _soldPickerPhotos[idx];
-            if (photo) pickSoldPhoto(photo, itemName || '');
+            if (photo) pickSoldPhoto(photo, _soldPickerItemName);
         }
 
         function pickSoldPhoto(photoUrl, itemName) {
