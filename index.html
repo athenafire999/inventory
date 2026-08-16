@@ -1793,6 +1793,457 @@
             }
         }
 
+        /* ==================== BALANCE / TRANSACTIONS MODAL ==================== */
+        #balanceModal .modal-content {
+            max-width: 720px;
+            width: min(96vw, 720px);
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: min(92vh, 900px);
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+        }
+
+        #balanceModal .tx-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
+        }
+
+        #balanceModal .tx-modal-header h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        #balanceModal .tx-modal-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #balanceModal .tx-modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex: 1;
+        }
+
+        #balanceModal .tx-modal-footer {
+            padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
+        }
+
+        #balanceModal .tx-done-btn {
+            width: 100%;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 12px;
+            background: var(--success);
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .tx-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .tx-card h4 {
+            margin: 0 0 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .tx-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .tx-form-grid .tx-field-full {
+            grid-column: 1 / -1;
+        }
+
+        .tx-field label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .tx-field input,
+        .tx-field select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px 14px;
+            min-height: 48px;
+            border: 2px solid var(--border-default);
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .tx-field input:focus,
+        .tx-field select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .tx-desc-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .tx-desc-row input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tx-photo-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tx-chip-btn {
+            min-height: 40px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .tx-segment {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .tx-seg {
+            min-height: 48px;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .tx-seg.active {
+            border-color: var(--accent-primary);
+            background: var(--warning-bg);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 1px var(--accent-primary);
+        }
+
+        .tx-seg.income.active {
+            border-color: var(--success);
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .tx-seg.expense.active {
+            border-color: var(--danger);
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .tx-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .tx-primary-btn {
+            width: 100%;
+            min-height: 50px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        .tx-secondary-btn {
+            width: 100%;
+            min-height: 46px;
+            border-radius: 12px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .tx-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tx-check input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-primary);
+            flex-shrink: 0;
+        }
+
+        .tx-hint {
+            margin: 0;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: var(--text-muted);
+        }
+
+        .tx-filter-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tx-filter-tab {
+            min-height: 44px;
+            border-radius: 12px;
+            border: 2px solid var(--border-default);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.82rem;
+            cursor: pointer;
+            padding: 8px 6px;
+        }
+
+        .tx-filter-tab.active {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: #111;
+        }
+
+        [data-theme="dark"] .tx-filter-tab.active,
+        :root:not([data-theme="light"]) .tx-filter-tab.active {
+            color: #111;
+        }
+
+        .tx-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: min(42vh, 360px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 2px;
+        }
+
+        .tx-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px;
+            border-radius: 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-default);
+            border-left: 5px solid var(--danger);
+        }
+
+        .tx-item.income {
+            border-left-color: var(--success);
+        }
+
+        .tx-item-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .tx-item-main img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid var(--border-default);
+            cursor: zoom-in;
+            flex-shrink: 0;
+        }
+
+        .tx-item-text {
+            min-width: 0;
+        }
+
+        .tx-item-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            word-break: break-word;
+        }
+
+        .tx-item-meta {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .tx-item-link {
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .tx-item-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .tx-item-amount {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--danger);
+            white-space: nowrap;
+        }
+
+        .tx-item.income .tx-item-amount {
+            color: var(--success);
+        }
+
+        .tx-item-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tx-icon-btn {
+            min-width: 40px;
+            min-height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-default);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tx-icon-btn.danger {
+            background: var(--danger-bg);
+            border-color: transparent;
+            color: var(--danger);
+        }
+
+        .tx-empty {
+            text-align: center;
+            padding: 36px 16px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .edit-balance-btn {
+            margin-top: 12px;
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            color: var(--accent-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            #balanceModal.modal.active {
+                align-items: stretch;
+                justify-content: flex-end;
+            }
+
+            #balanceModal .modal-content {
+                width: 100%;
+                max-width: 100%;
+                max-height: 96vh;
+                border-radius: 18px 18px 0 0;
+                animation: slideUp 0.35s var(--transition-slow);
+            }
+
+            .tx-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tx-filter-tab {
+                font-size: 0.78rem;
+            }
+
+            .tx-item {
+                flex-wrap: wrap;
+            }
+
+            .tx-item-side {
+                width: 100%;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
         .modal-header {
             font-family: 'Outfit', sans-serif;
             font-size: 1.35rem;
@@ -2930,7 +3381,7 @@
                             <div>💵 Cash: <strong style="color: var(--text-primary);" id="cashBalanceDisplay">£100.00</strong></div>
                             <div>💳 Digital: <strong style="color: var(--text-primary);" id="digitalBalanceDisplay">£0.00</strong></div>
                         </div>
-                        <button onclick="openBalanceModal()" style="margin-top: 10px; padding: 6px 14px; background: white; color: #667eea; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.8rem;">
+                        <button onclick="openBalanceModal()" class="edit-balance-btn">
                             Edit Balance
                         </button>
                     </div>
@@ -3730,71 +4181,80 @@
 
     <!-- Balance Modal -->
     <div id="balanceModal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <div class="modal-header">Manage Balance & Transactions</div>
-            
-            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h4 style="margin-bottom: 15px;">Add Transaction</h4>
-                <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
-                    <div class="form-group">
-                        <label>Description</label>
-                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                            <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit" style="flex: 1;">
-                            <div id="transactionPhotoPreview" style="display: none; position: relative; flex-shrink: 0;">
-                                <img id="transactionPhotoThumb" src="" alt="Photo" onclick="openPhotoByUrl(this.src, event)" style="width: 52px; height: 52px; object-fit: cover; border-radius: 8px; cursor: zoom-in; border: 1px solid #ddd;">
-                                <button type="button" onclick="clearPendingPhoto('transaction')" title="Remove photo" style="position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #ef4444; color: white; font-size: 12px; cursor: pointer; line-height: 1;">✕</button>
+        <div class="modal-content">
+            <div class="tx-modal-header">
+                <h3>Balance & Transactions</h3>
+                <button type="button" class="tx-modal-close" onclick="closeBalanceModal()" aria-label="Close">✕</button>
+            </div>
+
+            <div class="tx-modal-body">
+                <div class="tx-card">
+                    <h4>Add Transaction</h4>
+                    <div class="tx-form-grid">
+                        <div class="tx-field tx-field-full">
+                            <label for="transactionDesc">Description</label>
+                            <div class="tx-desc-row">
+                                <input type="text" id="transactionDesc" placeholder="e.g., Rent, Tools, Cash deposit">
+                                <div id="transactionPhotoPreview" style="display: none; position: relative; flex-shrink: 0;">
+                                    <img id="transactionPhotoThumb" src="" alt="Photo" onclick="openPhotoByUrl(this.src, event)" style="width: 48px; height: 48px; object-fit: cover; border-radius: 10px; cursor: zoom-in; border: 1px solid var(--border-default);">
+                                    <button type="button" onclick="clearPendingPhoto('transaction')" title="Remove photo" style="position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--danger); color: white; font-size: 12px; cursor: pointer; line-height: 1;">✕</button>
+                                </div>
+                            </div>
+                            <div class="tx-photo-actions">
+                                <button type="button" class="tx-chip-btn" onclick="document.getElementById('transactionPhotoInput').click()">📷 Upload</button>
+                                <button type="button" class="tx-chip-btn" onclick="openSoldPhotoPicker('transaction')">🪑 From sold</button>
+                                <input type="file" id="transactionPhotoInput" accept="image/*" style="display: none;" onchange="handlePendingPhotoFile('transaction', this)">
                             </div>
                         </div>
-                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('transactionPhotoInput').click()" style="padding: 6px 10px; font-size: 0.85em;">📷 Upload</button>
-                            <button type="button" class="btn btn-secondary" onclick="openSoldPhotoPicker('transaction')" style="padding: 6px 10px; font-size: 0.85em;">🪑 From sold</button>
-                            <input type="file" id="transactionPhotoInput" accept="image/*" style="display: none;" onchange="handlePendingPhotoFile('transaction', this)">
+
+                        <div class="tx-field tx-field-full">
+                            <label for="transactionAmount">Amount (£)</label>
+                            <input type="number" id="transactionAmount" step="0.01" inputmode="decimal" placeholder="0.00">
+                        </div>
+
+                        <div class="tx-field">
+                            <label>Type</label>
+                            <input type="hidden" id="transactionType" value="expense">
+                            <div class="tx-segment" id="txTypeSegment">
+                                <button type="button" class="tx-seg expense active" data-value="expense" onclick="setTransactionType('expense')">− Expense</button>
+                                <button type="button" class="tx-seg income" data-value="income" onclick="setTransactionType('income')">+ Income</button>
+                            </div>
+                        </div>
+
+                        <div class="tx-field">
+                            <label>Money Type</label>
+                            <input type="hidden" id="transactionAccount" value="digital">
+                            <div class="tx-segment" id="txAccountSegment">
+                                <button type="button" class="tx-seg active" data-value="digital" onclick="setTransactionAccount('digital')">💳 Digital</button>
+                                <button type="button" class="tx-seg" data-value="cash" onclick="setTransactionAccount('cash')">💵 Cash</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Amount (£)</label>
-                        <input type="number" id="transactionAmount" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label>Type</label>
-                        <select id="transactionType">
-                            <option value="expense">Expense (-)</option>
-                            <option value="income">Income (+)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Money Type</label>
-                        <select id="transactionAccount">
-                            <option value="digital">💳 Digital</option>
-                            <option value="cash">💵 Cash</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
-                    <button type="button" class="btn btn-secondary" onclick="sendTransactionDetailsToInventoryForm()" style="padding: 10px 14px;">🪑 Send to New Item</button>
-                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #555; cursor: pointer; user-select: none;">
-                        <input type="checkbox" id="transactionAlsoAddInventory" style="width: 16px; height: 16px;">
-                        Also add as inventory item
-                    </label>
-                </div>
-                <p style="margin: 8px 0 0; font-size: 0.8em; color: #888;">Use <strong>Send to New Item</strong> to open the inventory form with these details, or tick the box to create both at once.</p>
-            </div>
 
-            <div>
-                <h4 style="margin-bottom: 10px;">Transaction History</h4>
-                <div style="display: flex; gap: 0; margin-bottom: 12px; border-radius: 8px; overflow: hidden; border: 1px solid #ddd;">
-                    <button onclick="setTransactionFilter('all')" id="txFilterAll" style="flex: 1; padding: 8px 0; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #667eea; color: white;">All</button>
-                    <button onclick="setTransactionFilter('income')" id="txFilterIncome" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Added (+)</button>
-                    <button onclick="setTransactionFilter('expense')" id="txFilterExpense" style="flex: 1; padding: 8px 0; border: none; border-left: 1px solid #ddd; cursor: pointer; font-weight: 600; font-size: 0.85rem; background: #f8f9fa; color: #333;">Subtracted (-)</button>
+                    <div class="tx-actions">
+                        <button type="button" class="tx-primary-btn" onclick="addTransaction()">Add Transaction</button>
+                        <button type="button" class="tx-secondary-btn" onclick="sendTransactionDetailsToInventoryForm()">🪑 Send to New Item</button>
+                        <label class="tx-check">
+                            <input type="checkbox" id="transactionAlsoAddInventory">
+                            Also add as inventory item
+                        </label>
+                        <p class="tx-hint">Send to New Item opens the inventory form with these details. Tick the box to create both at once.</p>
+                    </div>
                 </div>
-                <div id="transactionList" style="max-height: 300px; overflow-y: auto;">
-                    <!-- Transactions will be listed here -->
+
+                <div class="tx-card" style="margin-bottom: 0;">
+                    <h4>Transaction History</h4>
+                    <div class="tx-filter-tabs">
+                        <button type="button" class="tx-filter-tab active" id="txFilterAll" onclick="setTransactionFilter('all')">All</button>
+                        <button type="button" class="tx-filter-tab" id="txFilterIncome" onclick="setTransactionFilter('income')">Added (+)</button>
+                        <button type="button" class="tx-filter-tab" id="txFilterExpense" onclick="setTransactionFilter('expense')">Spent (−)</button>
+                    </div>
+                    <div id="transactionList" class="tx-list"></div>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn btn-success" onclick="closeBalanceModal()">Done</button>
+            <div class="tx-modal-footer">
+                <button type="button" class="tx-done-btn" onclick="closeBalanceModal()">Done</button>
             </div>
         </div>
     </div>
@@ -7820,7 +8280,9 @@
 
         // Open balance modal
         function openBalanceModal() {
-            renderTransactions();
+            setTransactionFilter(currentTxFilter || 'all');
+            setTransactionType(document.getElementById('transactionType')?.value || 'expense');
+            setTransactionAccount(document.getElementById('transactionAccount')?.value || 'digital');
             document.getElementById('balanceModal').classList.add('active');
         }
 
@@ -7834,11 +8296,27 @@
         function clearTransactionForm() {
             document.getElementById('transactionDesc').value = '';
             document.getElementById('transactionAmount').value = '';
-            document.getElementById('transactionType').value = 'expense';
-            document.getElementById('transactionAccount').value = 'digital';
+            setTransactionType('expense');
+            setTransactionAccount('digital');
             const alsoInv = document.getElementById('transactionAlsoAddInventory');
             if (alsoInv) alsoInv.checked = false;
             clearPendingPhoto('transaction');
+        }
+
+        function setTransactionType(value) {
+            const input = document.getElementById('transactionType');
+            if (input) input.value = value;
+            document.querySelectorAll('#txTypeSegment .tx-seg').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === value);
+            });
+        }
+
+        function setTransactionAccount(value) {
+            const input = document.getElementById('transactionAccount');
+            if (input) input.value = value;
+            document.querySelectorAll('#txAccountSegment .tx-seg').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.value === value);
+            });
         }
 
         // Pending photo brought across from a transaction into the New Item form
@@ -8055,13 +8533,8 @@
             currentTxFilter = filter;
             ['all', 'income', 'expense'].forEach(f => {
                 const btn = document.getElementById('txFilter' + f.charAt(0).toUpperCase() + f.slice(1));
-                if (f === filter) {
-                    btn.style.background = '#667eea';
-                    btn.style.color = 'white';
-                } else {
-                    btn.style.background = '#f8f9fa';
-                    btn.style.color = '#333';
-                }
+                if (!btn) return;
+                btn.classList.toggle('active', f === filter);
             });
             renderTransactions();
         }
@@ -8071,7 +8544,7 @@
             const transactionList = document.getElementById('transactionList');
             
             if (transactions.length === 0) {
-                transactionList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No additional transactions yet</div>';
+                transactionList.innerHTML = '<div class="tx-empty">No transactions yet</div>';
                 return;
             }
 
@@ -8083,7 +8556,7 @@
             }
 
             if (sortedTransactions.length === 0) {
-                transactionList.innerHTML = '<div style="text-align: center; padding: 30px; color: #999;">No ' + (currentTxFilter === 'income' ? 'added' : 'subtracted') + ' transactions</div>';
+                transactionList.innerHTML = '<div class="tx-empty">No ' + (currentTxFilter === 'income' ? 'added' : 'spent') + ' transactions</div>';
                 return;
             }
 
@@ -8091,31 +8564,27 @@
                 const isIncome = t.type === 'income';
                 const acctLabel = t.account === 'cash' ? '💵 Cash' : '💳 Digital';
                 const photoHtml = t.photo
-                    ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(this.src, event)" style="width:44px;height:44px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid #ddd;flex-shrink:0;" title="View photo">`
+                    ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(this.src, event)" title="View photo">`
                     : '';
                 const linked = t.inventoryItemNumber
-                    ? `<div style="font-size:0.75em;color:#667eea;margin-top:2px;">🪑 ${t.inventoryItemNumber}</div>`
+                    ? `<div class="tx-item-link">🪑 ${t.inventoryItemNumber}</div>`
                     : '';
                 return `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'}; gap: 12px;">
-                        <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
+                    <div class="tx-item ${isIncome ? 'income' : 'expense'}">
+                        <div class="tx-item-main">
                             ${photoHtml}
-                            <div style="min-width:0;">
-                                <div style="font-weight: 600; color: #333;">${t.description}</div>
-                                <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
+                            <div class="tx-item-text">
+                                <div class="tx-item-title">${t.description}</div>
+                                <div class="tx-item-meta">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
                                 ${linked}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink:0;">
-                            <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
-                                ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
+                        <div class="tx-item-side">
+                            <div class="tx-item-amount">${isIncome ? '+' : '−'}£${(t.amount || 0).toFixed(2)}</div>
+                            <div class="tx-item-btns">
+                                <button class="tx-icon-btn" onclick="addInventoryFromTransaction(${t.id})" title="Add to inventory">🪑</button>
+                                <button class="tx-icon-btn danger" onclick="deleteTransaction(${t.id})" title="Delete">🗑️</button>
                             </div>
-                            <button onclick="addInventoryFromTransaction(${t.id})" title="Add to inventory" style="padding: 6px 8px; background: #f0f4ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 6px; cursor: pointer; font-size: 0.85em;">
-                                🪑
-                            </button>
-                            <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-                                Delete
-                            </button>
                         </div>
                     </div>
                 `;
