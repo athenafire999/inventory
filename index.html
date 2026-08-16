@@ -3085,6 +3085,13 @@
                         <label>Item Photos</label>
                         <input type="file" id="itemPhoto" accept="image/*" multiple>
                         <small style="color: #666; font-size: 0.85em;">You can select multiple photos</small>
+                        <div id="itemPhotoFromTxPreview" style="display: none; margin-top: 10px; align-items: center; gap: 10px;">
+                            <img id="itemPhotoFromTxThumb" src="" alt="From transaction" onclick="openPhotoByUrl(this.src, event)" style="width: 64px; height: 64px; object-fit: cover; border-radius: 8px; cursor: zoom-in; border: 1px solid #ddd;">
+                            <div>
+                                <div style="font-size: 0.85em; color: #666;">Photo brought from transaction</div>
+                                <button type="button" class="btn btn-secondary" onclick="clearInventoryPhotoFromTx()" style="padding: 4px 8px; font-size: 0.8em; margin-top: 4px;">Remove</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div style="margin-top: 20px;">
@@ -3763,7 +3770,15 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="addTransaction()" style="margin-top: 10px;">Add Transaction</button>
+                <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <button class="btn btn-primary" onclick="addTransaction()">Add Transaction</button>
+                    <button type="button" class="btn btn-secondary" onclick="sendTransactionDetailsToInventoryForm()" style="padding: 10px 14px;">🪑 Send to New Item</button>
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #555; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="transactionAlsoAddInventory" style="width: 16px; height: 16px;">
+                        Also add as inventory item
+                    </label>
+                </div>
+                <p style="margin: 8px 0 0; font-size: 0.8em; color: #888;">Use <strong>Send to New Item</strong> to open the inventory form with these details, or tick the box to create both at once.</p>
             </div>
 
             <div>
@@ -6125,8 +6140,12 @@
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             
-            if (event && event.target) {
-                event.target.classList.add('active');
+            const tabBtn = document.querySelector(`.tab[onclick*="'${tabName}'"]`);
+            if (tabBtn) {
+                tabBtn.classList.add('active');
+            } else if (typeof event !== 'undefined' && event && event.target) {
+                const btn = event.target.closest ? event.target.closest('.tab') : event.target;
+                if (btn) btn.classList.add('active');
             }
             document.getElementById(tabName).classList.add('active');
             
@@ -6299,11 +6318,23 @@
             const checkAllLoaded = async () => {
                 if (!photosLoaded) return;
                 let uploadToast = null;
+
+                // Include photo brought over from a transaction (URL or base64)
+                if (pendingInventoryPhotoFromTx) {
+                    let txPhoto = pendingInventoryPhotoFromTx;
+                    if (!txPhoto.startsWith('http')) {
+                        txPhoto = await compressImage(txPhoto, 800, 0.7);
+                        txPhoto = await uploadToImgBB(txPhoto);
+                    }
+                    item.photos.unshift(txPhoto);
+                    clearInventoryPhotoFromTx();
+                }
+
                 if (item.photos.length > 0) {
                     uploadToast = showToast('Compressing & uploading photos...', 'progress');
                     console.log('📐 Compressing', item.photos.length, 'main photos...');
+                    // Only compress/upload non-URL photos that came from the file input
                     item.photos = await compressMultipleImages(item.photos);
-                    console.log('📤 Uploading', item.photos.length, 'main photos to ImgBB...');
                     item.photos = await uploadMultipleToImgBB(item.photos);
                     if (uploadToast) removeToast(uploadToast);
                 }
@@ -6352,6 +6383,7 @@
             document.getElementById('addSoldPrice').value = '';
             document.getElementById('addSoldPlatform').value = '';
             document.getElementById('itemPhoto').value = '';
+            clearInventoryPhotoFromTx();
             updateAddItemSoldFields();
 
             // Switch to inventory tab to show the new item
@@ -7804,7 +7836,108 @@
             document.getElementById('transactionAmount').value = '';
             document.getElementById('transactionType').value = 'expense';
             document.getElementById('transactionAccount').value = 'digital';
+            const alsoInv = document.getElementById('transactionAlsoAddInventory');
+            if (alsoInv) alsoInv.checked = false;
             clearPendingPhoto('transaction');
+        }
+
+        // Pending photo brought across from a transaction into the New Item form
+        let pendingInventoryPhotoFromTx = null;
+
+        function updateInventoryPhotoFromTxPreview() {
+            const wrap = document.getElementById('itemPhotoFromTxPreview');
+            const thumb = document.getElementById('itemPhotoFromTxThumb');
+            if (!wrap || !thumb) return;
+            if (pendingInventoryPhotoFromTx) {
+                thumb.src = pendingInventoryPhotoFromTx;
+                wrap.style.display = 'flex';
+            } else {
+                thumb.src = '';
+                wrap.style.display = 'none';
+            }
+        }
+
+        function clearInventoryPhotoFromTx() {
+            pendingInventoryPhotoFromTx = null;
+            updateInventoryPhotoFromTxPreview();
+        }
+
+        function getTransactionFormDetails() {
+            return {
+                desc: (document.getElementById('transactionDesc').value || '').trim(),
+                amount: parseFloat(document.getElementById('transactionAmount').value),
+                type: document.getElementById('transactionType').value,
+                account: document.getElementById('transactionAccount').value,
+                date: new Date().toISOString().split('T')[0],
+                photo: pendingPhotos.transaction || null
+            };
+        }
+
+        // Prefill New Item form from the current transaction fields (does not save yet)
+        function sendTransactionDetailsToInventoryForm() {
+            const details = getTransactionFormDetails();
+            if (!details.desc && !details.amount && !details.photo) {
+                alert('Enter a description, amount, or photo first');
+                return;
+            }
+
+            closeBalanceModal();
+            switchTab('additem');
+
+            if (details.desc) document.getElementById('itemName').value = details.desc;
+            if (!isNaN(details.amount) && details.amount > 0) {
+                document.getElementById('purchasePrice').value = details.amount;
+            }
+            document.getElementById('purchaseDate').value = details.date;
+            document.getElementById('itemStatus').value = 'ready';
+            updateAddItemSoldFields();
+
+            pendingInventoryPhotoFromTx = details.photo;
+            updateInventoryPhotoFromTxPreview();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast('Transaction details filled into New Item — review and save', 'info', 3500);
+        }
+
+        // Create an inventory item from transaction details (used by checkbox / history button)
+        async function createInventoryFromTransactionDetails({ desc, amount, date, photo }) {
+            if (!desc || isNaN(amount) || amount <= 0) {
+                throw new Error('Need a description and valid amount to create an inventory item');
+            }
+
+            let photoUrl = null;
+            if (photo) {
+                if (photo.startsWith('http')) {
+                    photoUrl = photo;
+                } else {
+                    const compressed = await compressImage(photo, 800, 0.7);
+                    photoUrl = await uploadToImgBB(compressed);
+                }
+            }
+
+            const item = {
+                id: Date.now() + 1,
+                itemNumber: generateItemNumber(),
+                name: desc,
+                purchaseDate: date || new Date().toISOString().split('T')[0],
+                purchasePrice: amount,
+                affectBalance: false, // transaction already affects balance
+                status: 'ready',
+                description: '',
+                workNotes: '',
+                soldDate: '',
+                soldPrice: 0,
+                soldPlatform: '',
+                addToBalance: false,
+                photos: photoUrl ? [photoUrl] : [],
+                workPhotos: []
+            };
+
+            inventory.push(item);
+            await saveInventory();
+            addHistoryEntry('add', item.name, item.itemNumber);
+            renderInventory();
+            return item;
         }
 
         // Add transaction
@@ -7814,6 +7947,7 @@
             const type = document.getElementById('transactionType').value;
             const account = document.getElementById('transactionAccount').value;
             const date = new Date().toISOString().split('T')[0];
+            const alsoAddInventory = !!document.getElementById('transactionAlsoAddInventory')?.checked;
 
             if (!desc || isNaN(amount) || amount <= 0 || !account) {
                 alert('Please fill in all fields with valid values');
@@ -7842,10 +7976,55 @@
                 { field: 'Amount', oldValue: '', newValue: `£${(amount || 0).toFixed(2)}` },
                 { field: 'Date', oldValue: '', newValue: date }
             ]);
+
+            if (alsoAddInventory) {
+                try {
+                    const item = await createInventoryFromTransactionDetails({
+                        desc,
+                        amount,
+                        date,
+                        photo: photo || null
+                    });
+                    transaction.inventoryItemId = item.id;
+                    transaction.inventoryItemNumber = item.itemNumber;
+                    saveTransactions();
+                    showToast('Transaction + inventory item added', 'success', 3000);
+                } catch (err) {
+                    console.error(err);
+                    showToast('Transaction saved, but inventory item failed', 'warning', 4000);
+                }
+            }
             
             renderTransactions();
             updateStatistics();
             clearTransactionForm();
+        }
+
+        // From an existing transaction in history → create inventory item
+        async function addInventoryFromTransaction(transactionId) {
+            const t = transactions.find(tx => tx.id === transactionId);
+            if (!t) return;
+            if (t.inventoryItemId && inventory.some(i => i.id === t.inventoryItemId)) {
+                if (!confirm('This transaction already has an inventory item. Create another one?')) return;
+            } else if (!confirm(`Add "${t.description}" (£${Number(t.amount).toFixed(2)}) to inventory?`)) {
+                return;
+            }
+            try {
+                const item = await createInventoryFromTransactionDetails({
+                    desc: t.description,
+                    amount: t.amount,
+                    date: t.date,
+                    photo: t.photo || null
+                });
+                t.inventoryItemId = item.id;
+                t.inventoryItemNumber = item.itemNumber;
+                saveTransactions();
+                renderTransactions();
+                showToast(`Added to inventory as ${item.itemNumber}`, 'success', 3000);
+            } catch (err) {
+                console.error(err);
+                alert(err.message || 'Could not create inventory item');
+            }
         }
 
         // Delete transaction
@@ -7914,6 +8093,9 @@
                 const photoHtml = t.photo
                     ? `<img src="${t.photo}" alt="" onclick="openPhotoByUrl(this.src, event)" style="width:44px;height:44px;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid #ddd;flex-shrink:0;" title="View photo">`
                     : '';
+                const linked = t.inventoryItemNumber
+                    ? `<div style="font-size:0.75em;color:#667eea;margin-top:2px;">🪑 ${t.inventoryItemNumber}</div>`
+                    : '';
                 return `
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${isIncome ? '#28a745' : '#dc3545'}; gap: 12px;">
                         <div style="display:flex; align-items:center; gap:12px; min-width:0; flex:1;">
@@ -7921,12 +8103,16 @@
                             <div style="min-width:0;">
                                 <div style="font-weight: 600; color: #333;">${t.description}</div>
                                 <div style="font-size: 0.9em; color: #666;">${new Date(t.date).toLocaleDateString()} · ${acctLabel}</div>
+                                ${linked}
                             </div>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 15px; flex-shrink:0;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink:0;">
                             <div style="font-size: 1.2em; font-weight: 700; color: ${isIncome ? '#28a745' : '#dc3545'};">
                                 ${isIncome ? '+' : '-'}£${(t.amount || 0).toFixed(2)}
                             </div>
+                            <button onclick="addInventoryFromTransaction(${t.id})" title="Add to inventory" style="padding: 6px 8px; background: #f0f4ff; color: #4338ca; border: 1px solid #c7d2fe; border-radius: 6px; cursor: pointer; font-size: 0.85em;">
+                                🪑
+                            </button>
                             <button onclick="deleteTransaction(${t.id})" style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
                                 Delete
                             </button>
